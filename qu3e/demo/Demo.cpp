@@ -366,7 +366,36 @@ void UpdateImGui( float dt )
 }
 
 // In main.cpp
-void UpdateScene( f32 time );
+void UpdateScene( f32 time )
+{
+	// The time accumulator is used to allow the application to render at
+	// a frequency different from the constant frequency the physics sim-
+	// ulation is running at (default 60Hz).
+	static f32 accumulator = 0;
+	accumulator += time;
+
+	accumulator = q3Clamp01( accumulator );
+	while ( accumulator >= dt )
+	{
+		if ( !paused )
+		{
+			scene.Step( );
+			demos[ currentDemo ]->Update( );
+		}
+
+		else
+		{
+			if ( singleStep )
+			{
+				scene.Step( );
+				demos[ currentDemo ]->Update( );
+				singleStep = false;
+			}
+		}
+
+		accumulator -= dt;
+	}
+}
 
 void DisplayLoop ( void )
 {
