@@ -81,6 +81,9 @@
 
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
+#ifdef _MSC_VER
+#pragma warning(disable : 4312)
+#endif
 
 // Limitations:
 //    - no jpeg progressive support
