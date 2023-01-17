@@ -43,7 +43,7 @@ struct BoxStack : public Demo
 		body->AddBox( boxDef );
 
 		// Create boxes
-		//for ( i32 i = 0; i < 10; ++i )
+		//for ( int i = 0; i < 10; ++i )
 		//{
 		//	bodyDef.position.Set( 0.0f, 1.2f * (i + 1), -0.0f );
 		//	//bodyDef.axis.Set( 0.0f, 1.0f, 0.0f );
@@ -59,11 +59,11 @@ struct BoxStack : public Demo
 		bodyDef.bodyType = eDynamicBody;
 		boxDef.Set( tx, q3Vec3( 1.0f, 1.0f, 1.0f ) );
 
-		for ( i32 i = 0; i < 8; ++i )
+		for ( int i = 0; i < 8; ++i )
 		{
-			for ( i32 j = 0; j < 8; ++j )
+			for ( int j = 0; j < 8; ++j )
 			{
-				for ( i32 k = 0; k < 10; ++k )
+				for ( int k = 0; k < 10; ++k )
 				{
 					bodyDef.position.Set( -16.0f + 1.0f * j, 1.0f * i + 5.0f, -16.0f + 1.0f * k );
 					body = scene.CreateBody( bodyDef );

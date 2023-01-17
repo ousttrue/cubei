@@ -34,7 +34,7 @@
 //--------------------------------------------------------------------------------------------------
 // Memory Macros
 //--------------------------------------------------------------------------------------------------
-inline void* q3Alloc( i32 bytes )
+inline void* q3Alloc( int bytes )
 {
 	return malloc( bytes );
 }
@@ -45,7 +45,7 @@ inline void q3Free( void* memory )
 }
 
 #define Q3_PTR_ADD( P, BYTES ) \
-	((decltype( P ))(((u8 *)P) + (BYTES)))
+	((decltype( P ))(((uint8_t *)P) + (BYTES)))
 
 //--------------------------------------------------------------------------------------------------
 // q3Stack
@@ -56,36 +56,36 @@ class q3Stack
 private:
 	struct q3StackEntry
 	{
-		u8 *data;
-		i32 size;
+		uint8_t *data;
+		int size;
 	};
 
 public:
 	q3Stack( );
 	~q3Stack( );
 
-	void Reserve( u32 size );
-	void *Allocate( i32 size );
+	void Reserve( uint32_t size );
+	void *Allocate( int size );
 	void Free( void *data );
 
 private:
-	u8* m_memory;
+	uint8_t* m_memory;
 	q3StackEntry* m_entries;
 
-	u32 m_index;
+	uint32_t m_index;
 
-	i32 m_allocation;
-	i32 m_entryCount;
-	i32 m_entryCapacity;
-	u32 m_stackSize;
+	int m_allocation;
+	int m_entryCount;
+	int m_entryCapacity;
+	uint32_t m_stackSize;
 };
 
 //--------------------------------------------------------------------------------------------------
 // q3Heap
 //--------------------------------------------------------------------------------------------------
 // 20 MB heap size, change as necessary
-const i32 q3k_heapSize = 1024 * 1024 * 20;
-const i32 q3k_heapInitialCapacity = 1024;
+const int q3k_heapSize = 1024 * 1024 * 20;
+const int q3k_heapInitialCapacity = 1024;
 
 // Operates on first fit basis in attempt to improve cache coherency
 class q3Heap
@@ -95,28 +95,28 @@ private:
 	{
 		q3Header* next;
 		q3Header* prev;
-		i32 size;
+		int size;
 	};
 
 	struct q3FreeBlock
 	{
 		q3Header* header;
-		i32 size;
+		int size;
 	};
 
 public:
 	q3Heap( );
 	~q3Heap( );
 
-	void *Allocate( i32 size );
+	void *Allocate( int size );
 	void Free( void *memory );
 
 private:
 	q3Header* m_memory;
 
 	q3FreeBlock* m_freeBlocks;
-	i32 m_freeBlockCount;
-	i32 m_freeBlockCapacity;
+	int m_freeBlockCount;
+	int m_freeBlockCapacity;
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ class q3PagedAllocator
 	};
 
 public:
-	q3PagedAllocator( i32 elementSize, i32 elementsPerPage );
+	q3PagedAllocator( int elementSize, int elementsPerPage );
 	~q3PagedAllocator( );
 
 	void* Allocate( );
@@ -145,11 +145,11 @@ public:
 	void Clear( );
 
 private:
-	i32 m_blockSize;
-	i32 m_blocksPerPage;
+	int m_blockSize;
+	int m_blocksPerPage;
 
 	q3Page *m_pages;
-	i32 m_pageCount;
+	int m_pageCount;
 
 	q3Block *m_freeList;
 };

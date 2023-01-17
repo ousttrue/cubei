@@ -34,7 +34,7 @@ q3HalfSpace::q3HalfSpace( )
 }
 
 //--------------------------------------------------------------------------------------------------
-q3HalfSpace::q3HalfSpace( const q3Vec3& n, r32 d )
+q3HalfSpace::q3HalfSpace( const q3Vec3& n, float d )
 	: normal( n )
 	, distance( d )
 {
@@ -61,7 +61,7 @@ const q3Vec3 q3HalfSpace::Origin( ) const
 }
 
 //--------------------------------------------------------------------------------------------------
-r32 q3HalfSpace::Distance( const q3Vec3& p ) const
+float q3HalfSpace::Distance( const q3Vec3& p ) const
 {
 	return q3Dot( normal, p ) - distance;
 }

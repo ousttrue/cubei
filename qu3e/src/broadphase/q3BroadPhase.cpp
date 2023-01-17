@@ -42,7 +42,7 @@ q3BroadPhase::q3BroadPhase( q3ContactManager *manager )
 
 	m_moveCount = 0;
 	m_moveCapacity = 64;
-	m_moveBuffer = (i32*)q3Alloc( m_moveCapacity * sizeof( i32 ) );
+	m_moveBuffer = (int*)q3Alloc( m_moveCapacity * sizeof( int ) );
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ q3BroadPhase::~q3BroadPhase( )
 //--------------------------------------------------------------------------------------------------
 void q3BroadPhase::InsertBox( q3Box *box, const q3AABB& aabb )
 {
-	i32 id = m_tree.Insert( aabb, box );
+	int id = m_tree.Insert( aabb, box );
 	box->broadPhaseIndex = id;
 	BufferMove( id );
 }
@@ -84,7 +84,7 @@ void q3BroadPhase::UpdatePairs( )
 	m_pairCount = 0;
 
 	// Query the tree with all moving boxs
-	for ( i32 i = 0; i < m_moveCount; ++i)
+	for ( int i = 0; i < m_moveCount; ++i)
 	{
 		m_currentIndex = m_moveBuffer[ i ];
 		q3AABB aabb = m_tree.GetFatAABB( m_currentIndex );
@@ -104,7 +104,7 @@ void q3BroadPhase::UpdatePairs( )
 
 	// Queue manifolds for solving
 	{
-		i32 i = 0;
+		int i = 0;
 		while ( i < m_pairCount )
 		{
 			// Add contact to manager
@@ -132,27 +132,27 @@ void q3BroadPhase::UpdatePairs( )
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3BroadPhase::Update( i32 id, const q3AABB& aabb )
+void q3BroadPhase::Update( int id, const q3AABB& aabb )
 {
 	if ( m_tree.Update( id, aabb ) )
 		BufferMove( id );
 }
 
 //--------------------------------------------------------------------------------------------------
-bool q3BroadPhase::TestOverlap( i32 A, i32 B ) const
+bool q3BroadPhase::TestOverlap( int A, int B ) const
 {
 	return q3AABBtoAABB( m_tree.GetFatAABB( A ), m_tree.GetFatAABB( B ) );
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3BroadPhase::BufferMove( i32 id )
+void q3BroadPhase::BufferMove( int id )
 {
 	if ( m_moveCount == m_moveCapacity )
 	{
-		i32* oldBuffer = m_moveBuffer;
+		int* oldBuffer = m_moveBuffer;
 		m_moveCapacity *= 2;
-		m_moveBuffer = (i32*)q3Alloc( m_moveCapacity * sizeof( i32 ) );
-		memcpy( m_moveBuffer, oldBuffer, m_moveCount * sizeof( i32 ) );
+		m_moveBuffer = (int*)q3Alloc( m_moveCapacity * sizeof( int ) );
+		memcpy( m_moveBuffer, oldBuffer, m_moveCount * sizeof( int ) );
 		q3Free( oldBuffer );
 	}
 

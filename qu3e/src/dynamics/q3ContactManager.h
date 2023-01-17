@@ -70,7 +70,7 @@ public:
 
 private:
 	q3ContactConstraint* m_contactList;
-	i32 m_contactCount;
+	int m_contactCount;
 	q3Stack* m_stack;
 	q3PagedAllocator m_allocator;
 	q3BroadPhase m_broadphase;

@@ -29,10 +29,10 @@ inline void q3ComputeBasis( const q3Vec3& a, q3Vec3* __restrict b, q3Vec3* __res
 	// Then 3*s*s = 1, s = sqrt(1/3) = 0.57735027. This means that at least one component of a
 	// unit vector must be greater or equal to 0.57735027. Can use SIMD select operation.
 
-	if ( q3Abs( a.x ) >= r32( 0.57735027 ) )
-		b->Set( a.y, -a.x, r32( 0.0 ) );
+	if ( q3Abs( a.x ) >= float( 0.57735027 ) )
+		b->Set( a.y, -a.x, float( 0.0 ) );
 	else
-		b->Set( r32( 0.0 ), a.z, -a.y );
+		b->Set( float( 0.0 ), a.z, -a.y );
 
 	*b = q3Normalize( *b );
 	*c = q3Cross( a, *b );
@@ -80,13 +80,13 @@ inline bool q3AABB::Contains( const q3Vec3& point ) const
 }
 
 //--------------------------------------------------------------------------------------------------
-inline r32 q3AABB::SurfaceArea( ) const
+inline float q3AABB::SurfaceArea( ) const
 {
-	r32 x = max.x - min.x;
-	r32 y = max.y - min.y;
-	r32 z = max.z - min.z;
+	float x = max.x - min.x;
+	float y = max.y - min.y;
+	float z = max.z - min.z;
 
-	return r32( 2.0 ) * (x * y + x * z + y * z);
+	return float( 2.0 ) * (x * y + x * z + y * z);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ inline const q3AABB q3Combine( const q3AABB& a, const q3AABB& b )
 //--------------------------------------------------------------------------------------------------
 // q3RaycastData
 //--------------------------------------------------------------------------------------------------
-inline void q3RaycastData::Set( const q3Vec3& startPoint, const q3Vec3& direction, r32 endPointTime )
+inline void q3RaycastData::Set( const q3Vec3& startPoint, const q3Vec3& direction, float endPointTime )
 {
 	start = startPoint;
 	dir = direction;

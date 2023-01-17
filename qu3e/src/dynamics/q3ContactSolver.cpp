@@ -47,12 +47,12 @@ void q3ContactSolver::Initialize( q3Island *island )
 //--------------------------------------------------------------------------------------------------
 void q3ContactSolver::ShutDown( void )
 {
-	for ( i32 i = 0; i < m_contactCount; ++i )
+	for ( int i = 0; i < m_contactCount; ++i )
 	{
 		q3ContactConstraintState *c = m_contacts + i;
 		q3ContactConstraint *cc = m_island->m_contacts[ i ];
 
-		for ( i32 j = 0; j < c->contactCount; ++j )
+		for ( int j = 0; j < c->contactCount; ++j )
 		{
 			q3Contact *oc = cc->manifold.contacts + j;
 			q3ContactState *cs = c->contacts + j;
@@ -64,9 +64,9 @@ void q3ContactSolver::ShutDown( void )
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactSolver::PreSolve( r32 dt )
+void q3ContactSolver::PreSolve( float dt )
 {
-	for ( i32 i = 0; i < m_contactCount; ++i )
+	for ( int i = 0; i < m_contactCount; ++i )
 	{
 		q3ContactConstraintState *cs = m_contacts + i;
 
@@ -75,22 +75,22 @@ void q3ContactSolver::PreSolve( r32 dt )
 		q3Vec3 vB = m_velocities[ cs->indexB ].v;
 		q3Vec3 wB = m_velocities[ cs->indexB ].w;
 
-		for ( i32 j = 0; j < cs->contactCount; ++j )
+		for ( int j = 0; j < cs->contactCount; ++j )
 		{
 			q3ContactState *c = cs->contacts + j;
 
 			// Precalculate JM^-1JT for contact and friction constraints
 			q3Vec3 raCn = q3Cross( c->ra, cs->normal );
 			q3Vec3 rbCn = q3Cross( c->rb, cs->normal );
-			r32 nm = cs->mA + cs->mB;
-			r32 tm[ 2 ];
+			float nm = cs->mA + cs->mB;
+			float tm[ 2 ];
 			tm[ 0 ] = nm;
 			tm[ 1 ] = nm;
 
 			nm += q3Dot( raCn, cs->iA * raCn ) + q3Dot( rbCn, cs->iB * rbCn );
 			c->normalMass = q3Invert( nm );
 
-			for ( i32 i = 0; i < 2; ++i )
+			for ( int i = 0; i < 2; ++i )
 			{
 				q3Vec3 raCt = q3Cross( cs->tangentVectors[ i ], c->ra );
 				q3Vec3 rbCt = q3Cross( cs->tangentVectors[ i ], c->rb );
@@ -99,7 +99,7 @@ void q3ContactSolver::PreSolve( r32 dt )
 			}
 
 			// Precalculate bias factor
-			c->bias = -Q3_BAUMGARTE * (r32( 1.0 ) / dt) * q3Min( r32( 0.0 ), c->penetration + Q3_PENETRATION_SLOP );
+			c->bias = -Q3_BAUMGARTE * (float( 1.0 ) / dt) * q3Min( float( 0.0 ), c->penetration + Q3_PENETRATION_SLOP );
 
 			// Warm start contact
 			q3Vec3 P = cs->normal * c->normalImpulse;
@@ -117,9 +117,9 @@ void q3ContactSolver::PreSolve( r32 dt )
 			wB += cs->iB * q3Cross( c->rb, P );
 
 			// Add in restitution bias
-			r32 dv = q3Dot( vB + q3Cross( wB, c->rb ) - vA - q3Cross( wA, c->ra ), cs->normal );
+			float dv = q3Dot( vB + q3Cross( wB, c->rb ) - vA - q3Cross( wA, c->ra ), cs->normal );
 
-			if ( dv < -r32( 1.0 ) )
+			if ( dv < -float( 1.0 ) )
 				c->bias += -(cs->restitution) * dv;
 		}
 
@@ -133,7 +133,7 @@ void q3ContactSolver::PreSolve( r32 dt )
 //--------------------------------------------------------------------------------------------------
 void q3ContactSolver::Solve( )
 {
-	for ( i32 i = 0; i < m_contactCount; ++i )
+	for ( int i = 0; i < m_contactCount; ++i )
 	{
 		q3ContactConstraintState *cs = m_contacts + i;
 
@@ -142,7 +142,7 @@ void q3ContactSolver::Solve( )
 		q3Vec3 vB = m_velocities[ cs->indexB ].v;
 		q3Vec3 wB = m_velocities[ cs->indexB ].w;
 
-		for ( i32 j = 0; j < cs->contactCount; ++j )
+		for ( int j = 0; j < cs->contactCount; ++j )
 		{
 			q3ContactState *c = cs->contacts + j;
 
@@ -152,15 +152,15 @@ void q3ContactSolver::Solve( )
 			// Friction
 			if ( m_enableFriction )
 			{
-				for ( i32 i = 0; i < 2; ++i )
+				for ( int i = 0; i < 2; ++i )
 				{
-					r32 lambda = -q3Dot( dv, cs->tangentVectors[ i ] ) * c->tangentMass[ i ];
+					float lambda = -q3Dot( dv, cs->tangentVectors[ i ] ) * c->tangentMass[ i ];
 
 					// Calculate frictional impulse
-					r32 maxLambda = cs->friction * c->normalImpulse;
+					float maxLambda = cs->friction * c->normalImpulse;
 
 					// Clamp frictional impulse
-					r32 oldPT = c->tangentImpulse[ i ];
+					float oldPT = c->tangentImpulse[ i ];
 					c->tangentImpulse[ i ] = q3Clamp( -maxLambda, maxLambda, oldPT + lambda );
 					lambda = c->tangentImpulse[ i ] - oldPT;
 
@@ -179,14 +179,14 @@ void q3ContactSolver::Solve( )
 				dv = vB + q3Cross( wB, c->rb ) - vA - q3Cross( wA, c->ra );
 
 				// Normal impulse
-				r32 vn = q3Dot( dv, cs->normal );
+				float vn = q3Dot( dv, cs->normal );
 
 				// Factor in positional bias to calculate impulse scalar j
-				r32 lambda = c->normalMass * (-vn + c->bias);
+				float lambda = c->normalMass * (-vn + c->bias);
 
 				// Clamp impulse
-				r32 tempPN = c->normalImpulse;
-				c->normalImpulse = q3Max( tempPN + lambda, r32( 0.0 ) );
+				float tempPN = c->normalImpulse;
+				c->normalImpulse = q3Max( tempPN + lambda, float( 0.0 ) );
 				lambda = c->normalImpulse - tempPN;
 
 				// Apply impulse

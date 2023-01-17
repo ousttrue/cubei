@@ -29,9 +29,9 @@
 
 #include "../common/q3Types.h"
 
-r32 q3Abs( r32 a );
-r32 q3Min( r32 a, r32 b );
-r32 q3Max( r32 a, r32 b );
+float q3Abs( float a );
+float q3Min( float a, float b );
+float q3Max( float a, float b );
 
 //--------------------------------------------------------------------------------------------------
 // q3Vec3
@@ -40,35 +40,35 @@ struct q3Vec3
 {
 	union
 	{
-		r32 v[ 3 ];
+		float v[ 3 ];
 
 		struct
 		{
-			r32 x;
-			r32 y;
-			r32 z;
+			float x;
+			float y;
+			float z;
 		};
 	};
 
 	q3Vec3( );
-	q3Vec3( r32 _x, r32 _y, r32 _z );
+	q3Vec3( float _x, float _y, float _z );
 
-	void Set( r32 _x, r32 _y, r32 _z );
-	void SetAll( r32 a );
+	void Set( float _x, float _y, float _z );
+	void SetAll( float a );
 	q3Vec3& operator+=( const q3Vec3& rhs );
 	q3Vec3& operator-=( const q3Vec3& rhs );
-	q3Vec3& operator*=( r32 f );
-	q3Vec3& operator/=( r32 f );
+	q3Vec3& operator*=( float f );
+	q3Vec3& operator/=( float f );
 
-	r32& operator[]( u32 i );
-	r32 operator[]( u32 i ) const;
+	float& operator[]( uint32_t i );
+	float operator[]( uint32_t i ) const;
 
 	q3Vec3 operator-( void ) const;
 
 	const q3Vec3 operator+( const q3Vec3& rhs ) const;
 	const q3Vec3 operator-( const q3Vec3& rhs ) const;
-	const q3Vec3 operator*( r32 f ) const;
-	const q3Vec3 operator/( r32 f ) const;
+	const q3Vec3 operator*( float f ) const;
+	const q3Vec3 operator/( float f ) const;
 };
 
 #include "q3Vec3.inl"

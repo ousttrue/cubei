@@ -25,9 +25,9 @@
 inline void q3Identity( q3Mat3& m )
 {
 	m.Set(
-		r32( 1.0 ), r32( 0.0 ), r32( 0.0 ),
-		r32( 0.0 ), r32( 1.0 ), r32( 0.0 ),
-		r32( 0.0 ), r32( 0.0 ), r32( 1.0 )
+		float( 1.0 ), float( 0.0 ), float( 0.0 ),
+		float( 0.0 ), float( 1.0 ), float( 0.0 ),
+		float( 0.0 ), float( 0.0 ), float( 1.0 )
 		);
 }
 
@@ -50,26 +50,26 @@ inline const q3Mat3 q3Transpose( const q3Mat3& m )
 //--------------------------------------------------------------------------------------------------
 inline void q3Zero( q3Mat3& m )
 {
-	memset( &m, 0, sizeof( r32 ) * 9 );
+	memset( &m, 0, sizeof( float ) * 9 );
 }
 
 //--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Diagonal( r32 a )
+inline const q3Mat3 q3Diagonal( float a )
 {
 	return q3Mat3(
-		r32( a   ), r32( 0.0 ), r32( 0.0 ),
-		r32( 0.0 ), r32( a   ), r32( 0.0 ),
-		r32( 0.0 ), r32( 0.0 ), r32( a   )
+		float( a   ), float( 0.0 ), float( 0.0 ),
+		float( 0.0 ), float( a   ), float( 0.0 ),
+		float( 0.0 ), float( 0.0 ), float( a   )
 		);
 }
 
 //--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Diagonal( r32 a, r32 b, r32 c )
+inline const q3Mat3 q3Diagonal( float a, float b, float c )
 {
 	return q3Mat3(
-		r32( a   ), r32( 0.0 ), r32( 0.0 ),
-		r32( 0.0 ), r32( b   ), r32( 0.0 ),
-		r32( 0.0 ), r32( 0.0 ), r32( c   )
+		float( a   ), float( 0.0 ), float( 0.0 ),
+		float( 0.0 ), float( b   ), float( 0.0 ),
+		float( 0.0 ), float( 0.0 ), float( c   )
 		);
 }
 
@@ -88,20 +88,20 @@ inline const q3Mat3 q3OuterProduct( const q3Vec3& u, const q3Vec3& v )
 }
 
 //--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Covariance( q3Vec3 *points, u32 numPoints )
+inline const q3Mat3 q3Covariance( q3Vec3 *points, uint32_t numPoints )
 {
-	r32 invNumPoints = r32( 1.0 ) / r32( numPoints );
-	q3Vec3 c = q3Vec3( r32( 0.0 ), r32( 0.0 ), r32( 0.0 ) );
+	float invNumPoints = float( 1.0 ) / float( numPoints );
+	q3Vec3 c = q3Vec3( float( 0.0 ), float( 0.0 ), float( 0.0 ) );
 
-	for ( u32 i = 0; i < numPoints; ++i )
+	for ( uint32_t i = 0; i < numPoints; ++i )
 		c += points[ i ];
 
-	c /= r32( numPoints );
+	c /= float( numPoints );
 
-	r32 m00, m11, m22, m01, m02, m12;
-	m00 = m11 = m22 = m01 = m02 = m12 = r32( 0.0 );
+	float m00, m11, m22, m01, m02, m12;
+	m00 = m11 = m22 = m01 = m02 = m12 = float( 0.0 );
 
-	for ( u32 i = 0; i < numPoints; ++i )
+	for ( uint32_t i = 0; i < numPoints; ++i )
 	{
 		q3Vec3 p = points[ i ] - c;
 
@@ -113,9 +113,9 @@ inline const q3Mat3 q3Covariance( q3Vec3 *points, u32 numPoints )
 		m12 += p.y * p.z;
 	}
 
-	r32 m01inv = m01 * invNumPoints;
-	r32 m02inv = m02 * invNumPoints;
-	r32 m12inv = m12 * invNumPoints;
+	float m01inv = m01 * invNumPoints;
+	float m02inv = m02 * invNumPoints;
+	float m12inv = m12 * invNumPoints;
 
 	return q3Mat3(
 		m00 * invNumPoints, m01inv, m02inv,
@@ -128,13 +128,13 @@ inline const q3Mat3 q3Covariance( q3Vec3 *points, u32 numPoints )
 inline const q3Mat3 q3Inverse( const q3Mat3& m )
 {
 	q3Vec3 tmp0, tmp1, tmp2;
-	r32 detinv;
+	float detinv;
 
 	tmp0 = q3Cross( m.ey, m.ez );
 	tmp1 = q3Cross( m.ez, m.ex );
 	tmp2 = q3Cross( m.ex, m.ey );
 
-	detinv = r32( 1.0 ) / q3Dot( m.ez, tmp2 );
+	detinv = float( 1.0 ) / q3Dot( m.ez, tmp2 );
 
 	return q3Mat3(
 		tmp0.x * detinv, tmp1.x * detinv, tmp2.x * detinv,

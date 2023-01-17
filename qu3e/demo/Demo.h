@@ -41,7 +41,7 @@ struct Demo
 	virtual void Render( q3Render *debugDrawer ) { (void)debugDrawer; }
 	virtual void KeyDown( unsigned char key ) { (void)key; }
 	virtual void KeyUp( unsigned char key ) { (void)key; }
-	virtual void LeftClick( i32 x, i32 y ) { (void)x; (void)y; }
+	virtual void LeftClick( int x, int y ) { (void)x; (void)y; }
 };
 
 // Is frame by frame stepping enabled?
@@ -56,8 +56,8 @@ extern q3Scene scene;
 int InitApp( int argc, char** argv );
 
 // Globals for maintaining a list of demos
-extern i32 demoCount;
-extern i32 currentDemo;
+extern int demoCount;
+extern int currentDemo;
 #define Q3_DEMO_MAX_COUNT 64
 extern Demo* demos[ Q3_DEMO_MAX_COUNT ];
 

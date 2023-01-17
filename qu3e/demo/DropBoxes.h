@@ -44,7 +44,7 @@ struct DropBoxes : public Demo
 		body->AddBox( boxDef );
 
 		// Create boxes
-		//for ( i32 i = 0; i < 10; ++i )
+		//for ( int i = 0; i < 10; ++i )
 		//{
 		//	bodyDef.position.Set( 0.0f, 1.2f * (i + 1), -0.0f );
 		//	//bodyDef.axis.Set( 0.0f, 1.0f, 0.0f );

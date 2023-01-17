@@ -39,7 +39,7 @@ struct q3AABB
 
 	bool Contains( const q3AABB& other ) const;
 	bool Contains( const q3Vec3& point ) const;
-	r32 SurfaceArea( ) const;
+	float SurfaceArea( ) const;
 };
 
 const q3AABB q3Combine( const q3AABB& a, const q3AABB& b );
@@ -50,16 +50,16 @@ const q3AABB q3Combine( const q3AABB& a, const q3AABB& b );
 struct q3HalfSpace
 {
 	q3HalfSpace( );
-	q3HalfSpace( const q3Vec3& normal, r32 distance );
+	q3HalfSpace( const q3Vec3& normal, float distance );
 
 	void Set( const q3Vec3& a, const q3Vec3& b, const q3Vec3& c );
 	void Set( const q3Vec3& n, const q3Vec3& p );
 	const q3Vec3 Origin( ) const;
-	r32 Distance( const q3Vec3& p ) const;
+	float Distance( const q3Vec3& p ) const;
 	const q3Vec3 Projected( const q3Vec3& p ) const;
 
 	q3Vec3 normal;
-	r32 distance;
+	float distance;
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -69,12 +69,12 @@ struct q3RaycastData
 {
 	q3Vec3 start;	// Beginning point of the ray
 	q3Vec3 dir;		// Direction of the ray (normalized)
-	r32 t;			// Time specifying ray endpoint
+	float t;			// Time specifying ray endpoint
 
-	r32 toi;		// Solved time of impact
+	float toi;		// Solved time of impact
 	q3Vec3 normal;	// Surface normal at impact
 
-	void Set( const q3Vec3& startPoint, const q3Vec3& direction, r32 endPointTime );
+	void Set( const q3Vec3& startPoint, const q3Vec3& direction, float endPointTime );
 
 	// Uses toi, start and dir to compute the point at toi. Should
 	// only be called after a raycast has been conducted with a

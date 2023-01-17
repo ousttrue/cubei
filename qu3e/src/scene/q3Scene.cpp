@@ -37,7 +37,7 @@
 //--------------------------------------------------------------------------------------------------
 // q3Scene
 //--------------------------------------------------------------------------------------------------
-q3Scene::q3Scene( r32 dt, const q3Vec3& gravity, i32 iterations )
+q3Scene::q3Scene( float dt, const q3Vec3& gravity, int iterations )
 	: m_contactManager( &m_stack )
 	, m_boxAllocator( sizeof( q3Box ), 256 )
 	, m_bodyCount( 0 )
@@ -96,7 +96,7 @@ void q3Scene::Step( )
 	island.m_iterations = m_iterations;
 
 	// Build each active island and then solve each built island
-	i32 stackSize = m_bodyCount;
+	int stackSize = m_bodyCount;
 	q3Body** stack = (q3Body**)m_stack.Allocate( sizeof( q3Body* ) * stackSize );
 	for ( q3Body* seed = m_bodyList; seed; seed = seed->m_next )
 	{
@@ -113,7 +113,7 @@ void q3Scene::Step( )
 		if ( seed->m_flags & q3Body::eStatic )
 			continue;
 
-		i32 stackCount = 0;
+		int stackCount = 0;
 		stack[ stackCount++ ] = seed;
 		island.m_bodyCount = 0;
 		island.m_contactCount = 0;
@@ -180,7 +180,7 @@ void q3Scene::Step( )
 
 		// Reset all static island flags
 		// This allows static bodies to participate in other island formations
-		for ( i32 i = 0; i < island.m_bodyCount; i++ )
+		for ( int i = 0; i < island.m_bodyCount; i++ )
 		{
 			q3Body *body = island.m_bodies[ i ];
 
@@ -290,7 +290,7 @@ void q3Scene::SetAllowSleep( bool allowSleep )
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3Scene::SetIterations( i32 iterations )
+void q3Scene::SetIterations( int iterations )
 {
 	m_iterations = q3Max( 1, iterations );
 }
@@ -347,7 +347,7 @@ void q3Scene::QueryAABB( q3QueryCallback *cb, const q3AABB& aabb ) const
 {
 	struct SceneQueryWrapper
 	{
-		bool TreeCallBack( i32 id )
+		bool TreeCallBack( int id )
 		{
 			q3AABB aabb;
 			q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData( id );
@@ -379,7 +379,7 @@ void q3Scene::QueryPoint( q3QueryCallback *cb, const q3Vec3& point ) const
 {
 	struct SceneQueryWrapper
 	{
-		bool TreeCallBack( i32 id )
+		bool TreeCallBack( int id )
 		{
 			q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData( id );
 
@@ -400,7 +400,7 @@ void q3Scene::QueryPoint( q3QueryCallback *cb, const q3Vec3& point ) const
 	wrapper.m_point = point;
 	wrapper.broadPhase = &m_contactManager.m_broadphase;
 	wrapper.cb = cb;
-	const r32 k_fattener = r32( 0.5 );
+	const float k_fattener = float( 0.5 );
 	q3Vec3 v( k_fattener, k_fattener, k_fattener );
 	q3AABB aabb;
 	aabb.min = point - v;
@@ -413,7 +413,7 @@ void q3Scene::RayCast( q3QueryCallback *cb, q3RaycastData& rayCast ) const
 {
 	struct SceneQueryWrapper
 	{
-		bool TreeCallBack( i32 id )
+		bool TreeCallBack( int id )
 		{
 			q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData( id );
 
@@ -448,7 +448,7 @@ void q3Scene::Dump( FILE* file ) const
 
 	fprintf( file, "q3Body** bodies = (q3Body**)q3Alloc( sizeof( q3Body* ) * %d );\n", m_bodyCount );
 
-	i32 i = 0;
+	int i = 0;
 	for ( q3Body* body = m_bodyList; body; body = body->m_next, ++i )
 	{
 		body->Dump( file, i );

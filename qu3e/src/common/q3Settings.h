@@ -31,14 +31,14 @@
 //--------------------------------------------------------------------------------------------------
 // Internal Implementation Constants (do not change unless you know what you're doing)
 //--------------------------------------------------------------------------------------------------
-#define Q3_SLEEP_LINEAR r32( 0.01 )
+#define Q3_SLEEP_LINEAR float( 0.01 )
 
-#define Q3_SLEEP_ANGULAR r32( (3.0 / 180.0) * q3PI )
+#define Q3_SLEEP_ANGULAR float( (3.0 / 180.0) * q3PI )
 
-#define Q3_SLEEP_TIME r32( 0.5 )
+#define Q3_SLEEP_TIME float( 0.5 )
 
-#define Q3_BAUMGARTE r32( 0.2 )
+#define Q3_BAUMGARTE float( 0.2 )
 
-#define Q3_PENETRATION_SLOP r32( 0.05 )
+#define Q3_PENETRATION_SLOP float( 0.05 )
 
 #endif // Q3SETTINGS_H

@@ -53,7 +53,7 @@ q3Stack::~q3Stack( )
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3Stack::Reserve( u32 size )
+void q3Stack::Reserve( uint32_t size )
 {
 	assert( !m_index );
 
@@ -63,13 +63,13 @@ void q3Stack::Reserve( u32 size )
 	if ( size >= m_stackSize )
 	{
 		if ( m_memory ) q3Free( m_memory );
-		m_memory = (u8*)q3Alloc( size );
+		m_memory = (uint8_t*)q3Alloc( size );
 		m_stackSize = size;
 	}
 }
 
 //--------------------------------------------------------------------------------------------------
-void *q3Stack::Allocate( i32 size )
+void *q3Stack::Allocate( int size )
 {
 	assert( m_index + size <= m_stackSize );
 
@@ -138,12 +138,12 @@ q3Heap::~q3Heap( )
 }
 
 //--------------------------------------------------------------------------------------------------
-void *q3Heap::Allocate( i32 size )
+void *q3Heap::Allocate( int size )
 {
-	i32 sizeNeeded = size + sizeof( q3Header );
+	int sizeNeeded = size + sizeof( q3Header );
 	q3FreeBlock* firstFit = NULL;
 
-	for ( i32 i = 0; i < m_freeBlockCount; ++i )
+	for ( int i = 0; i < m_freeBlockCount; ++i )
 	{
 		q3FreeBlock* block = m_freeBlocks + i;
 
@@ -177,16 +177,16 @@ void *q3Heap::Allocate( i32 size )
 void q3Heap::Free( void *memory )
 {
 	assert( memory );
-	q3Header* node = (q3Header*)Q3_PTR_ADD( memory, -i32( sizeof( q3Header ) ) );
+	q3Header* node = (q3Header*)Q3_PTR_ADD( memory, -int( sizeof( q3Header ) ) );
 
 	q3Header* next = node->next;
 	q3Header* prev = node->prev;
 	q3FreeBlock* nextBlock = NULL;
-	i32 prevBlockIndex = ~0;
+	int prevBlockIndex = ~0;
 	q3FreeBlock* prevBlock = NULL;
-	i32 freeBlockCount = m_freeBlockCount;
+	int freeBlockCount = m_freeBlockCount;
 
-	for ( i32 i = 0; i < freeBlockCount; ++i )
+	for ( int i = 0; i < freeBlockCount; ++i )
 	{
 		q3FreeBlock* block = m_freeBlocks + i;
 		q3Header* header = block->header;
@@ -259,7 +259,7 @@ void q3Heap::Free( void *memory )
 		if ( m_freeBlockCount == m_freeBlockCapacity )
 		{
 			q3FreeBlock* oldBlocks = m_freeBlocks;
-			i32 oldCapacity = m_freeBlockCapacity;
+			int oldCapacity = m_freeBlockCapacity;
 
 			m_freeBlockCapacity *= 2;
 			m_freeBlocks = (q3FreeBlock*)q3Alloc( sizeof( q3FreeBlock ) * m_freeBlockCapacity );
@@ -275,7 +275,7 @@ void q3Heap::Free( void *memory )
 //--------------------------------------------------------------------------------------------------
 // q3PagedAllocator
 //--------------------------------------------------------------------------------------------------
-q3PagedAllocator::q3PagedAllocator( i32 elementSize, i32 elementsPerPage )
+q3PagedAllocator::q3PagedAllocator( int elementSize, int elementsPerPage )
 {
 	m_blockSize = elementSize;
 	m_blocksPerPage = elementsPerPage;
@@ -312,8 +312,8 @@ void* q3PagedAllocator::Allocate( )
 		page->data = (q3Block*)Q3_PTR_ADD( page, sizeof( q3Page ) );
 		m_pages = page;
 
-		i32 blocksPerPageMinusOne = m_blocksPerPage - 1;
-		for ( i32 i = 0; i < blocksPerPageMinusOne; ++i )
+		int blocksPerPageMinusOne = m_blocksPerPage - 1;
+		for ( int i = 0; i < blocksPerPageMinusOne; ++i )
 		{
 			q3Block *node = Q3_PTR_ADD( page->data, m_blockSize * i );
 			q3Block *next = Q3_PTR_ADD( page->data, m_blockSize * (i + 1) );
@@ -357,7 +357,7 @@ void q3PagedAllocator::Clear( )
 {
 	q3Page* page = m_pages;
 
-	for ( i32 i = 0; i < m_pageCount; ++i )
+	for ( int i = 0; i < m_pageCount; ++i )
 	{
 		q3Page* next = page->next;
 		q3Free( page );

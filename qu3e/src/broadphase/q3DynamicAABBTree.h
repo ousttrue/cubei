@@ -45,12 +45,12 @@ public:
 	~q3DynamicAABBTree( );
 
 	// Provide tight-AABB
-	i32 Insert( const q3AABB& aabb, void *userData );
-	void Remove( i32 id );
-	bool Update( i32 id, const q3AABB& aabb );
+	int Insert( const q3AABB& aabb, void *userData );
+	void Remove( int id );
+	bool Update( int id, const q3AABB& aabb );
 
-	void *GetUserData( i32 id ) const;
-	const q3AABB& GetFatAABB( i32 id ) const;
+	void *GetUserData( int id ) const;
+	const q3AABB& GetFatAABB( int id ) const;
 	void Render( q3Render *render ) const;
 
 	template <typename T>
@@ -76,15 +76,15 @@ private:
 
 		union
 		{
-			i32 parent;
-			i32 next; // free list
+			int parent;
+			int next; // free list
 		};
 
 		// Child indices
 		struct
 		{
-			i32 left;
-			i32 right;
+			int left;
+			int right;
 		};
 
 		// Since only leaf nodes hold userdata, we can use the
@@ -93,31 +93,31 @@ private:
 		void *userData;
 
 		// leaf = 0, free nodes = -1
-		i32 height;
+		int height;
 
-		static const i32 Null = -1;
+		static const int Null = -1;
 	};
 
-	inline i32 AllocateNode( );
-	inline void DeallocateNode( i32 index );
-	i32 Balance( i32 index );
-	void InsertLeaf( i32 index );
-	void RemoveLeaf( i32 index );
-	void ValidateStructure( i32 index ) const;
-	void RenderNode( q3Render *render, i32 index ) const;
+	inline int AllocateNode( );
+	inline void DeallocateNode( int index );
+	int Balance( int index );
+	void InsertLeaf( int index );
+	void RemoveLeaf( int index );
+	void ValidateStructure( int index ) const;
+	void RenderNode( q3Render *render, int index ) const;
 
 	// Correct AABB hierarchy heights and AABBs starting at supplied
 	// index traversing up the heirarchy
-	void SyncHeirarchy( i32 index );
+	void SyncHeirarchy( int index );
 
 	// Insert nodes at a given index until m_capacity into the free list
-	void AddToFreeList( i32 index );
+	void AddToFreeList( int index );
 
-	i32 m_root;
+	int m_root;
 	Node *m_nodes;
-	i32 m_count;	// Number of active nodes
-	i32 m_capacity;	// Max capacity of nodes
-	i32 m_freeList;
+	int m_count;	// Number of active nodes
+	int m_capacity;	// Max capacity of nodes
+	int m_freeList;
 };
 
 #include "q3DynamicAABBTree.inl"

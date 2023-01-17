@@ -83,7 +83,7 @@ void q3ContactManager::AddContact( q3Box *A, q3Box *B )
 	contact->restitution = q3MixRestitution( A, B );
 	contact->manifold.contactCount = 0;
 
-	for ( i32 i = 0; i < 8; ++i )
+	for ( int i = 0; i < 8; ++i )
 		contact->manifold.contacts[ i ].warmStarted = 0;
 
 	contact->prev = NULL;
@@ -236,14 +236,14 @@ void q3ContactManager::TestCollisions( void )
 		constraint->SolveCollision( );
 		q3ComputeBasis( manifold->normal, manifold->tangentVectors, manifold->tangentVectors + 1 );
 
-		for ( i32 i = 0; i < manifold->contactCount; ++i )
+		for ( int i = 0; i < manifold->contactCount; ++i )
 		{
 			q3Contact *c = manifold->contacts + i;
-			c->tangentImpulse[ 0 ] = c->tangentImpulse[ 1 ] = c->normalImpulse = r32( 0.0 );
-			u8 oldWarmStart = c->warmStarted;
-			c->warmStarted = u8( 0 );
+			c->tangentImpulse[ 0 ] = c->tangentImpulse[ 1 ] = c->normalImpulse = float( 0.0 );
+			uint8_t oldWarmStart = c->warmStarted;
+			c->warmStarted = uint8_t( 0 );
 
-			for ( i32 j = 0; j < oldManifold.contactCount; ++j )
+			for ( int j = 0; j < oldManifold.contactCount; ++j )
 			{
 				q3Contact *oc = oldManifold.contacts + j;
 				if ( c->fp.key == oc->fp.key )
@@ -254,7 +254,7 @@ void q3ContactManager::TestCollisions( void )
 					q3Vec3 friction = ot0 * oc->tangentImpulse[ 0 ] + ot1 * oc->tangentImpulse[ 1 ];
 					c->tangentImpulse[ 0 ] = q3Dot( friction, manifold->tangentVectors[ 0 ] );
 					c->tangentImpulse[ 1 ] = q3Dot( friction, manifold->tangentVectors[ 1 ] );
-					c->warmStarted = q3Max( oldWarmStart, u8( oldWarmStart + 1 ) );
+					c->warmStarted = q3Max( oldWarmStart, uint8_t( oldWarmStart + 1 ) );
 					break;
 				}
 			}
@@ -262,8 +262,8 @@ void q3ContactManager::TestCollisions( void )
 
 		if ( m_contactListener )
 		{
-			i32 now_colliding = constraint->m_flags & q3ContactConstraint::eColliding;
-			i32 was_colliding = constraint->m_flags & q3ContactConstraint::eWasColliding;
+			int now_colliding = constraint->m_flags & q3ContactConstraint::eColliding;
+			int was_colliding = constraint->m_flags & q3ContactConstraint::eWasColliding;
 
 			if ( now_colliding && !was_colliding )
 				m_contactListener->BeginContact( constraint );
@@ -291,11 +291,11 @@ void q3ContactManager::RenderContacts( q3Render* render ) const
 			continue;
 		}
 
-		for ( i32 j = 0; j < m->contactCount; ++j)
+		for ( int j = 0; j < m->contactCount; ++j)
 		{
 			const q3Contact *c = m->contacts + j;
-			f32 blue = (f32)(255 - c->warmStarted) / 255.0f;
-			f32 red = 1.0f - blue;
+			float blue = (float)(255 - c->warmStarted) / 255.0f;
+			float red = 1.0f - blue;
 			render->SetScale( 10.0f, 10.0f, 10.0f );
 			render->SetPenColor( red, blue, blue );
 			render->SetPenPosition( c->position.x, c->position.y, c->position.z );

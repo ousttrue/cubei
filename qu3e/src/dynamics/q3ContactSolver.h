@@ -40,30 +40,30 @@ struct q3ContactState
 {
 	q3Vec3 ra;					// Vector from C.O.M to contact position
 	q3Vec3 rb;					// Vector from C.O.M to contact position
-	r32 penetration;			// Depth of penetration from collision
-	r32 normalImpulse;			// Accumulated normal impulse
-	r32 tangentImpulse[ 2 ];	// Accumulated friction impulse
-	r32 bias;					// Restitution + baumgarte
-	r32 normalMass;				// Normal constraint mass
-	r32 tangentMass[ 2 ];		// Tangent constraint mass
+	float penetration;			// Depth of penetration from collision
+	float normalImpulse;			// Accumulated normal impulse
+	float tangentImpulse[ 2 ];	// Accumulated friction impulse
+	float bias;					// Restitution + baumgarte
+	float normalMass;				// Normal constraint mass
+	float tangentMass[ 2 ];		// Tangent constraint mass
 };
 
 struct q3ContactConstraintState
 {
 	q3ContactState contacts[ 8 ];
-	i32 contactCount;
+	int contactCount;
 	q3Vec3 tangentVectors[ 2 ];	// Tangent vectors
 	q3Vec3 normal;				// From A to B
 	q3Vec3 centerA;
 	q3Vec3 centerB;
 	q3Mat3 iA;
 	q3Mat3 iB;
-	r32 mA;
-	r32 mB;
-	r32 restitution;
-	r32 friction;
-	i32 indexA;
-	i32 indexB;
+	float mA;
+	float mB;
+	float restitution;
+	float friction;
+	int indexA;
+	int indexB;
 };
 
 struct q3ContactSolver
@@ -71,12 +71,12 @@ struct q3ContactSolver
 	void Initialize( q3Island *island );
 	void ShutDown( void );
 
-	void PreSolve( r32 dt );
+	void PreSolve( float dt );
 	void Solve( void );
 
 	q3Island *m_island;
 	q3ContactConstraintState *m_contacts;
-	i32 m_contactCount;
+	int m_contactCount;
 	q3VelocityState *m_velocities;
 
 	bool m_enableFriction;

@@ -47,41 +47,41 @@ bool singleStep = false;
 bool enableSleep = true;
 bool enableFriction = true;
 int velocityIterations = 10;
-i32 mouseX;
-i32 mouseY;
+int mouseX;
+int mouseY;
 bool mouseLeftDown;
 bool mouseRightDown;
 static GLuint fontTex;
 int windowWidth;
 int windowHeight;
-i32 demoCount;
-i32 currentDemo;
+int demoCount;
+int currentDemo;
 char sceneFileName[ 256 ];
-i32 lastDemo;
+int lastDemo;
 Demo* demos[ Q3_DEMO_MAX_COUNT ];
 
 class Renderer : public q3Render
 {
 public:
-	void SetPenColor( f32 r, f32 g, f32 b, f32 a = 1.0f ) override
+	void SetPenColor( float r, float g, float b, float a = 1.0f ) override
 	{
 		Q3_UNUSED( a );
 
 		glColor3f( (float)r, (float)g, (float)b );
 	}
 
-	void SetPenPosition( f32 x, f32 y, f32 z ) override
+	void SetPenPosition( float x, float y, float z ) override
 	{
 		x_ = x, y_ = y, z_ = z;
 	}
 
-	void SetScale( f32 sx, f32 sy, f32 sz ) override
+	void SetScale( float sx, float sy, float sz ) override
 	{
 		glPointSize( (float)sx );
 		sx_ = sx, sy_ = sy, sz_ = sz;
 	}
 
-	void Line( f32 x, f32 y, f32 z ) override
+	void Line( float x, float y, float z ) override
 	{
 		glBegin( GL_LINES );
 		glVertex3f( (float)x_, (float)y_, (float)z_ );
@@ -91,9 +91,9 @@ public:
 	}
 
 	void Triangle(
-		f32 x1, f32 y1, f32 z1,
-		f32 x2, f32 y2, f32 z2,
-		f32 x3, f32 y3, f32 z3
+		float x1, float y1, float z1,
+		float x2, float y2, float z2,
+		float x3, float y3, float z3
 		) override
 	{
 		glEnable( GL_LIGHTING );
@@ -107,7 +107,7 @@ public:
 		glDisable( GL_LIGHTING );
 	}
 
-	void SetTriNormal( f32 x, f32 y, f32 z ) override
+	void SetTriNormal( float x, float y, float z ) override
 	{
 		nx_ = x;
 		ny_ = y;
@@ -122,9 +122,9 @@ public:
 	};
 
 private:
-	f32 x_, y_, z_;
-	f32 sx_, sy_, sz_;
-	f32 nx_, ny_, nz_;
+	float x_, y_, z_;
+	float sx_, sy_, sz_;
+	float nx_, ny_, nz_;
 };
 
 Renderer renderer;
@@ -336,7 +336,7 @@ void Reshape( int width, int height )
 	windowWidth = width;
 	windowHeight = height;
 
-	f32 aspectRatio = (f32)width / (f32)height;
+	float aspectRatio = (float)width / (float)height;
 	glViewport( 0, 0, width, height );
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
@@ -366,12 +366,12 @@ void UpdateImGui( float dt )
 }
 
 // In main.cpp
-void UpdateScene( f32 time )
+void UpdateScene( float time )
 {
 	// The time accumulator is used to allow the application to render at
 	// a frequency different from the constant frequency the physics sim-
 	// ulation is running at (default 60Hz).
-	static f32 accumulator = 0;
+	static float accumulator = 0;
 	accumulator += time;
 
 	accumulator = q3Clamp01( accumulator );
@@ -399,7 +399,7 @@ void UpdateScene( f32 time )
 
 void DisplayLoop ( void )
 {
-	i32 w = glutGet( GLUT_WINDOW_WIDTH );
+	int w = glutGet( GLUT_WINDOW_WIDTH );
 	Reshape( w, glutGet( GLUT_WINDOW_HEIGHT ) );
 
 	UpdateImGui( 1.0f / 60.0f );
@@ -444,7 +444,7 @@ void MainLoop( void )
 	}
 
 
-	f32 time = g_clock.Start( );
+	float time = g_clock.Start( );
 
 	scene.SetAllowSleep( enableSleep );
 	scene.SetEnableFriction( enableFriction );
@@ -511,8 +511,8 @@ void InitImGui( )
 int InitApp( int argc, char** argv )
 {
 	// Starting width / height of the window
-	const u32 kWindowWidth = 1000;
-	const u32 kWindowHeight = 600;
+	const uint32_t kWindowWidth = 1000;
+	const uint32_t kWindowHeight = 600;
 
 	// Initialize GLUT
 	glutInit( &argc, argv );
@@ -553,16 +553,16 @@ int InitApp( int argc, char** argv )
 
 	// Used FFP to setup lights
 	float floats[ 4 ];
-	for ( i32 i = 0; i < 4; ++i )
+	for ( int i = 0; i < 4; ++i )
 		floats[ i ] = (float)Light::ambient[ i ];
 	glLightfv( GL_LIGHT0, GL_AMBIENT, floats );
-	for ( i32 i = 0; i < 4; ++i )
+	for ( int i = 0; i < 4; ++i )
 		floats[ i ] = (float)Light::diffuse[ i ];
 	glLightfv( GL_LIGHT0, GL_DIFFUSE, floats );
-	for ( i32 i = 0; i < 4; ++i )
+	for ( int i = 0; i < 4; ++i )
 		floats[ i ] = (float)Light::specular[ i ];
 	glLightfv( GL_LIGHT0, GL_SPECULAR, floats );
-	for ( i32 i = 0; i < 4; ++i )
+	for ( int i = 0; i < 4; ++i )
 		floats[ i ] = (float)Camera::position[ i ];
 	glLightfv( GL_LIGHT0, GL_POSITION, floats );
 	glEnable( GL_LIGHT0 );

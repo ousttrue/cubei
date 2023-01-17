@@ -35,7 +35,7 @@ q3Vec3::q3Vec3( )
 }
 
 //--------------------------------------------------------------------------------------------------
-q3Vec3::q3Vec3( r32 _x, r32 _y, r32 _z )
+q3Vec3::q3Vec3( float _x, float _y, float _z )
 	: x( _x )
 	, y( _y )
 	, z( _z )
@@ -43,7 +43,7 @@ q3Vec3::q3Vec3( r32 _x, r32 _y, r32 _z )
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3Vec3::Set( r32 _x, r32 _y, r32 _z )
+void q3Vec3::Set( float _x, float _y, float _z )
 {
 	x = _x;
 	y = _y;
@@ -51,7 +51,7 @@ void q3Vec3::Set( r32 _x, r32 _y, r32 _z )
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3Vec3::SetAll( r32 a )
+void q3Vec3::SetAll( float a )
 {
 	x = a;
 	y = a;
@@ -79,7 +79,7 @@ q3Vec3& q3Vec3::operator-=( const q3Vec3& rhs )
 }
 
 //--------------------------------------------------------------------------------------------------
-q3Vec3& q3Vec3::operator*=( r32 f )
+q3Vec3& q3Vec3::operator*=( float f )
 {
 	x *= f;
 	y *= f;
@@ -89,7 +89,7 @@ q3Vec3& q3Vec3::operator*=( r32 f )
 }
 
 //--------------------------------------------------------------------------------------------------
-q3Vec3& q3Vec3::operator/=( r32 f )
+q3Vec3& q3Vec3::operator/=( float f )
 {
 	x /= f;
 	y /= f;
@@ -99,7 +99,7 @@ q3Vec3& q3Vec3::operator/=( r32 f )
 }
 
 //--------------------------------------------------------------------------------------------------
-r32& q3Vec3::operator[]( u32 i )
+float& q3Vec3::operator[]( uint32_t i )
 {
 	assert( i >= 0 && i < 3 );
 
@@ -107,7 +107,7 @@ r32& q3Vec3::operator[]( u32 i )
 }
 
 //--------------------------------------------------------------------------------------------------
-r32 q3Vec3::operator[]( u32 i ) const
+float q3Vec3::operator[]( uint32_t i ) const
 {
 	assert( i >= 0 && i < 3 );
 
@@ -133,19 +133,19 @@ const q3Vec3 q3Vec3::operator-( const q3Vec3& rhs ) const
 }
 
 //--------------------------------------------------------------------------------------------------
-const q3Vec3 q3Vec3::operator*( r32 f ) const
+const q3Vec3 q3Vec3::operator*( float f ) const
 {
 	return q3Vec3( x * f, y * f, z * f );
 }
 
 //--------------------------------------------------------------------------------------------------
-const q3Vec3 q3Vec3::operator/( r32 f ) const
+const q3Vec3 q3Vec3::operator/( float f ) const
 {
 	return q3Vec3( x / f, y / f, z / f );
 }
 
 //--------------------------------------------------------------------------------------------------
-const q3Vec3 operator*( r32 f, const q3Vec3& rhs )
+const q3Vec3 operator*( float f, const q3Vec3& rhs )
 {
 	return q3Vec3( rhs.x * f, rhs.y * f, rhs.z * f );
 }
