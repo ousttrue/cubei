@@ -43,8 +43,6 @@ struct q3Vec3 {
   float x = 0;
   float y = 0;
   float z = 0;
-  q3Vec3() {}
-  q3Vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
   void Set(float _x, float _y, float _z) {
     x = _x;
     y = _y;
@@ -105,15 +103,15 @@ struct q3Vec3 {
       throw std::runtime_error("index out of range");
     }
   }
-  q3Vec3 operator-(void) const { return q3Vec3(-x, -y, -z); }
+  q3Vec3 operator-(void) const { return {-x, -y, -z}; }
   const q3Vec3 operator+(const q3Vec3 &rhs) const {
-    return q3Vec3(x + rhs.x, y + rhs.y, z + rhs.z);
+    return {x + rhs.x, y + rhs.y, z + rhs.z};
   }
   const q3Vec3 operator-(const q3Vec3 &rhs) const {
-    return q3Vec3(x - rhs.x, y - rhs.y, z - rhs.z);
+    return {x - rhs.x, y - rhs.y, z - rhs.z};
   }
-  const q3Vec3 operator*(float f) const { return q3Vec3(x * f, y * f, z * f); }
-  const q3Vec3 operator/(float f) const { return q3Vec3(x / f, y / f, z / f); }
+  const q3Vec3 operator*(float f) const { return {x * f, y * f, z * f}; }
+  const q3Vec3 operator/(float f) const { return {x / f, y / f, z / f}; }
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -123,7 +121,7 @@ inline void q3Identity(q3Vec3 &v) { v.Set(float(0.0), float(0.0), float(0.0)); }
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Mul(const q3Vec3 &a, const q3Vec3 &b) {
-  return q3Vec3(a.x * b.x, a.y * b.y, a.z * b.z);
+  return {a.x * b.x, a.y * b.y, a.z * b.z};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -133,8 +131,11 @@ inline float q3Dot(const q3Vec3 &a, const q3Vec3 &b) {
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Cross(const q3Vec3 &a, const q3Vec3 &b) {
-  return q3Vec3((a.y * b.z) - (b.y * a.z), (b.x * a.z) - (a.x * b.z),
-                (a.x * b.y) - (b.x * a.y));
+  return {
+      (a.y * b.z) - (b.y * a.z),
+      (b.x * a.z) - (a.x * b.z),
+      (a.x * b.y) - (b.x * a.y),
+  };
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -179,17 +180,17 @@ inline float q3DistanceSq(const q3Vec3 &a, const q3Vec3 &b) {
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Abs(const q3Vec3 &v) {
-  return q3Vec3(q3Abs(v.x), q3Abs(v.y), q3Abs(v.z));
+  return {q3Abs(v.x), q3Abs(v.y), q3Abs(v.z)};
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Min(const q3Vec3 &a, const q3Vec3 &b) {
-  return q3Vec3(q3Min(a.x, b.x), q3Min(a.y, b.y), q3Min(a.z, b.z));
+  return {q3Min(a.x, b.x), q3Min(a.y, b.y), q3Min(a.z, b.z)};
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Max(const q3Vec3 &a, const q3Vec3 &b) {
-  return q3Vec3(q3Max(a.x, b.x), q3Max(a.y, b.y), q3Max(a.z, b.z));
+  return {q3Max(a.x, b.x), q3Max(a.y, b.y), q3Max(a.z, b.z)};
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -203,7 +204,7 @@ inline const float q3MaxPerElem(const q3Vec3 &a) {
 }
 
 inline const q3Vec3 operator*(float f, const q3Vec3 &rhs) {
-  return q3Vec3(rhs.x * f, rhs.y * f, rhs.z * f);
+  return {rhs.x * f, rhs.y * f, rhs.z * f};
 }
 
 #endif // Q3VEC3_H
