@@ -13,9 +13,8 @@ void DropBoxes::Init(q3Scene *scene) {
   q3BoxDef boxDef = {
       .m_restitution = 0,
   };
-  q3Transform tx;
-  q3Identity(tx);
-  boxDef.Set(tx, q3Vec3(50.0f, 1.0f, 50.0f));
+  q3Transform tx = {};
+  boxDef.Set(tx, {50.0f, 1.0f, 50.0f});
   body->AddBox(boxDef);
 
   // Create boxes
@@ -27,7 +26,7 @@ void DropBoxes::Init(q3Scene *scene) {
     // bodyDef.linearVelocity.Set( 2.0f, 0.0f, 0.0f );
     bodyDef.bodyType = eDynamicBody;
     body = scene->CreateBody(bodyDef);
-    boxDef.Set(tx, q3Vec3(1.0f, 1.0f, 1.0f));
+    boxDef.Set(tx, {1.0f, 1.0f, 1.0f});
     body->AddBox(boxDef);
   }
 }
@@ -54,10 +53,9 @@ void DropBoxes::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
     bodyDef.linearVelocity *= q3Sign(q3RandomFloat(-1.0f, 1.0f));
     q3Body *body = scene->CreateBody(bodyDef);
 
-    q3Transform tx;
-    q3Identity(tx);
+    q3Transform tx = {};
     q3BoxDef boxDef = {};
-    boxDef.Set(tx, q3Vec3(1.0f, 1.0f, 1.0f));
+    boxDef.Set(tx, {1.0f, 1.0f, 1.0f});
     body->AddBox(boxDef);
   }
 }

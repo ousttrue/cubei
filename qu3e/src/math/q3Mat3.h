@@ -5,68 +5,159 @@
 @author	Randy Gaul
 @date	10/10/2014
 
-	Copyright (c) 2014 Randy Gaul http://www.randygaul.net
+        Copyright (c) 2014 Randy Gaul http://www.randygaul.net
 
-	This software is provided 'as-is', without any express or implied
-	warranty. In no event will the authors be held liable for any damages
-	arising from the use of this software.
+        This software is provided 'as-is', without any express or implied
+        warranty. In no event will the authors be held liable for any damages
+        arising from the use of this software.
 
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-	  1. The origin of this software must not be misrepresented; you must not
-	     claim that you wrote the original software. If you use this software
-	     in a product, an acknowledgment in the product documentation would be
-	     appreciated but is not required.
-	  2. Altered source versions must be plainly marked as such, and must not
-	     be misrepresented as being the original software.
-	  3. This notice may not be removed or altered from any source distribution.
+        Permission is granted to anyone to use this software for any purpose,
+        including commercial applications, and to alter it and redistribute it
+        freely, subject to the following restrictions:
+          1. The origin of this software must not be misrepresented; you must
+not claim that you wrote the original software. If you use this software in a
+product, an acknowledgment in the product documentation would be appreciated but
+is not required.
+          2. Altered source versions must be plainly marked as such, and must
+not be misrepresented as being the original software.
+          3. This notice may not be removed or altered from any source
+distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
 #ifndef Q3MAT3_H
 #define Q3MAT3_H
 
-#include <cstring>	// memset
 #include "../common/q3Types.h"
 #include "q3Vec3.h"
+#include <cstring> // memset
 
 //--------------------------------------------------------------------------------------------------
 // q3Mat3
 //--------------------------------------------------------------------------------------------------
-struct q3Mat3
-{
-	q3Vec3 ex;
-	q3Vec3 ey;
-	q3Vec3 ez;
+struct q3Mat3 {
+  q3Vec3 ex = {1, 0, 0};
+  q3Vec3 ey = {0, 1, 0};
+  q3Vec3 ez = {0, 0, 1};
 
-	q3Mat3( );
-	q3Mat3( float a, float b, float c, float d, float e, float f, float g, float h, float i );
-	q3Mat3( const q3Vec3& _x, const q3Vec3& _y, const q3Vec3& _z );
+  void Set(float a, float b, float c, float d, float e, float f, float g,
+           float h, float i);
+  void Set(const q3Vec3 &axis, float angle);
+  void SetRows(const q3Vec3 &x, const q3Vec3 &y, const q3Vec3 &z);
 
-	void Set( float a, float b, float c, float d, float e, float f, float g, float h, float i );
-	void Set( const q3Vec3& axis, float angle );
-	void SetRows( const q3Vec3& x, const q3Vec3& y, const q3Vec3& z );
+  q3Mat3 &operator=(const q3Mat3 &rhs);
+  q3Mat3 &operator*=(const q3Mat3 &rhs);
+  q3Mat3 &operator*=(float f);
+  q3Mat3 &operator+=(const q3Mat3 &rhs);
+  q3Mat3 &operator-=(const q3Mat3 &rhs);
 
-	q3Mat3& operator=( const q3Mat3& rhs );
-	q3Mat3& operator*=( const q3Mat3& rhs );
-	q3Mat3& operator*=( float f );
-	q3Mat3& operator+=( const q3Mat3& rhs );
-	q3Mat3& operator-=( const q3Mat3& rhs );
+  q3Vec3 &operator[](uint32_t index);
+  const q3Vec3 &operator[](uint32_t index) const;
+  const q3Vec3 Column0() const;
+  const q3Vec3 Column1() const;
+  const q3Vec3 Column2() const;
 
-	q3Vec3& operator[]( uint32_t index );
-	const q3Vec3& operator[]( uint32_t index ) const;
-	const q3Vec3 Column0( ) const;
-	const q3Vec3 Column1( ) const;
-	const q3Vec3 Column2( ) const;
-
-	const q3Vec3 operator*( const q3Vec3& rhs ) const;
-	const q3Mat3 operator*( const q3Mat3& rhs ) const;
-	const q3Mat3 operator*( float f ) const;
-	const q3Mat3 operator+( const q3Mat3& rhs ) const;
-	const q3Mat3 operator-( const q3Mat3& rhs ) const;
+  const q3Vec3 operator*(const q3Vec3 &rhs) const;
+  const q3Mat3 operator*(const q3Mat3 &rhs) const;
+  const q3Mat3 operator*(float f) const;
+  const q3Mat3 operator+(const q3Mat3 &rhs) const;
+  const q3Mat3 operator-(const q3Mat3 &rhs) const;
 };
 
-#include "q3Mat3.inl"
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3Rotate(const q3Vec3 &x, const q3Vec3 &y,
+                             const q3Vec3 &z) {
+  return {x, y, z};
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3Transpose(const q3Mat3 &m) {
+  return {
+      {m.ex.x, m.ey.x, m.ez.x},
+      {m.ex.y, m.ey.y, m.ez.y},
+      {m.ex.z, m.ey.z, m.ez.z},
+  };
+}
+
+//--------------------------------------------------------------------------------------------------
+inline void q3Zero(q3Mat3 &m) { memset(&m, 0, sizeof(float) * 9); }
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3Diagonal(float a) {
+  return {
+      {float(a), float(0.0), float(0.0)},
+      {float(0.0), float(a), float(0.0)},
+      {float(0.0), float(0.0), float(a)},
+  };
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3Diagonal(float a, float b, float c) {
+  return {
+      {float(a), float(0.0), float(0.0)},
+      {float(0.0), float(b), float(0.0)},
+      {float(0.0), float(0.0), float(c)},
+  };
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3OuterProduct(const q3Vec3 &u, const q3Vec3 &v) {
+  q3Vec3 a = v * u.x;
+  q3Vec3 b = v * u.y;
+  q3Vec3 c = v * u.z;
+
+  return {a, b, c};
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3Covariance(q3Vec3 *points, uint32_t numPoints) {
+  float invNumPoints = float(1.0) / float(numPoints);
+  q3Vec3 c = q3Vec3{float(0.0), float(0.0), float(0.0)};
+
+  for (uint32_t i = 0; i < numPoints; ++i)
+    c += points[i];
+
+  c /= float(numPoints);
+
+  float m00, m11, m22, m01, m02, m12;
+  m00 = m11 = m22 = m01 = m02 = m12 = float(0.0);
+
+  for (uint32_t i = 0; i < numPoints; ++i) {
+    q3Vec3 p = points[i] - c;
+
+    m00 += p.x * p.x;
+    m11 += p.y * p.y;
+    m22 += p.z * p.z;
+    m01 += p.x * p.y;
+    m02 += p.x * p.z;
+    m12 += p.y * p.z;
+  }
+
+  float m01inv = m01 * invNumPoints;
+  float m02inv = m02 * invNumPoints;
+  float m12inv = m12 * invNumPoints;
+
+  return {{m00 * invNumPoints, m01inv, m02inv},
+          {m01inv, m11 * invNumPoints, m12inv},
+          {m02inv, m12inv, m22 * invNumPoints}};
+};
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Mat3 q3Inverse(const q3Mat3 &m) {
+  q3Vec3 tmp0, tmp1, tmp2;
+  float detinv;
+
+  tmp0 = q3Cross(m.ey, m.ez);
+  tmp1 = q3Cross(m.ez, m.ex);
+  tmp2 = q3Cross(m.ex, m.ey);
+
+  detinv = float(1.0) / q3Dot(m.ez, tmp2);
+
+  return {
+      {tmp0.x * detinv, tmp1.x * detinv, tmp2.x * detinv},
+      {tmp0.y * detinv, tmp1.y * detinv, tmp2.y * detinv},
+      {tmp0.z * detinv, tmp1.z * detinv, tmp2.z * detinv},
+  };
+}
 
 #endif // Q3MAT3_H

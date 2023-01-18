@@ -6,9 +6,8 @@ void Test::Init(q3Scene *scene) {
   q3BoxDef boxDef{
       .m_restitution = 0,
   };
-  q3Transform tx;
-  q3Identity(tx);
-  boxDef.Set(tx, q3Vec3(50.0f, 1.0f, 50.0f));
+  q3Transform tx = {};
+  boxDef.Set(tx, {50.0f, 1.0f, 50.0f});
   body->AddBox(boxDef);
 
   bodyDef.bodyType = eDynamicBody;
@@ -17,7 +16,7 @@ void Test::Init(q3Scene *scene) {
   for (int i = 0; i < 20; ++i) {
     tx.position.Set(q3RandomFloat(1.0f, 10.0f), q3RandomFloat(1.0f, 10.0f),
                     q3RandomFloat(1.0f, 10.0f));
-    boxDef.Set(tx, q3Vec3(1.0f, 1.0f, 1.0f));
+    boxDef.Set(tx, {1.0f, 1.0f, 1.0f});
     body->AddBox(boxDef);
   }
 }

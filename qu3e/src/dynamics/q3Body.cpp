@@ -503,8 +503,7 @@ void q3Body::CalculateMassData() {
     m_mass = mass;
     m_invMass = float(1.0) / mass;
     lc *= m_invMass;
-    q3Mat3 identity;
-    q3Identity(identity);
+    q3Mat3 identity={};
     inertia -= (identity * q3Dot(lc, lc) - q3OuterProduct(lc, lc)) * mass;
     m_invInertiaModel = q3Inverse(inertia);
 
