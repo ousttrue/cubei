@@ -6,11 +6,11 @@
 #include <string_view>
 #include <vector>
 
-auto VS = R"(#version 110
+auto VS = R"(#version 400
 uniform mat4 MVP;
-attribute vec3 vPos;
-attribute vec3 vCol;
-varying vec3 color;
+in vec3 vPos;
+in vec3 vCol;
+out vec3 color;
 void main()
 {
     gl_Position = MVP * vec4(vPos, 1.0);
@@ -18,11 +18,12 @@ void main()
 }
 )";
 
-auto FS = R"(#version 110
-varying vec3 color;
+auto FS = R"(#version 400
+in vec3 color;
+out vec4 FragColor;
 void main()
 {
-    gl_FragColor = vec4(1, 1, 1, 1.0);
+    FragColor = vec4(1, 1, 1, 1.0);
 }
 )";
 
