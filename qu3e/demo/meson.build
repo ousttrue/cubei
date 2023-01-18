@@ -4,6 +4,7 @@ imgui_dep = dependency('imgui', default_options: ['default_library=static'])
 executable('demo', [
     'main.cpp',
     'App.cpp',
+    'Renderer.cpp',
     'demos/Demo.cpp',
     'demos/Clock.cpp',
 ],

@@ -1,8 +1,6 @@
 #include "App.h"
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#endif
+
+#include "Renderer.h"
 
 #include <gl/GL.h>
 #include "demos/Demo.h"
@@ -22,6 +20,8 @@ App::App(GLFWwindow *window) {
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
+
+  renderer_ = new Renderer();
 
   // Setup all the open-gl states we want to use (ones that don't change in
   // the lifetime of the application) Note: These can be changed anywhere, but
@@ -56,6 +56,8 @@ App::~App() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+
+  delete renderer_;
 }
 
 void App::KeyDown(char key) {
@@ -119,6 +121,6 @@ void App::Frame(int w, int h) {
   // Render
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  DemosRender(w, h, camera_);
+  DemosRender(renderer_, w, h, camera_);
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

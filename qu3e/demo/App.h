@@ -1,5 +1,6 @@
 #pragma once
 #include "Camera.h"
+#include "debug/q3Render.h"
 
 struct Light {
   float ambient[4] = {1.0f, 1.0f, 1.0f, 0.5f};
@@ -10,6 +11,7 @@ struct Light {
 class App {
   Camera camera_ = {};
   Light light_ = {};
+  class q3Render *renderer_ = nullptr;
 
 public:
   App(struct GLFWwindow *window);

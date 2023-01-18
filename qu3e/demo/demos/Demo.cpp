@@ -1,6 +1,5 @@
 #include "Demo.h"
 #include "Camera.h"
-#include "Renderer.h"
 
 #include "BoxStack.h"
 #include "DropBoxes.h"
@@ -10,9 +9,9 @@
 #include "Clock.h"
 #include <imgui.h>
 #include <stdio.h>
-#include <gl/GLU.h>
 
-Renderer g_renderer;
+#include <Windows.h>
+#include <gl/GLU.h>
 
 Clock g_clock;
 // extern float dt;
@@ -108,7 +107,7 @@ void DemosUpdate() {
   g_clock.Stop();
 }
 
-void DemosRender(int width, int height, const Camera &camera) {
+void DemosRender(q3Render *renderer, int width, int height, const Camera &camera) {
   if (height <= 0)
     height = 1;
 
@@ -123,8 +122,8 @@ void DemosRender(int width, int height, const Camera &camera) {
             camera.target[0], camera.target[1], camera.target[2], 0.0f, 1.0f,
             0.0f);
 
-  scene.Render(&g_renderer);
-  demos[currentDemo]->Render(&g_renderer);
+  scene.Render(renderer);
+  demos[currentDemo]->Render(renderer);
 }
 
 void DemosGui() {
