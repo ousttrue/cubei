@@ -1,5 +1,6 @@
 #include "App.h"
 #include <GLFW/glfw3.h>
+#include <Remotery.h>
 #include <iostream>
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
@@ -18,6 +19,9 @@ static void glfw_error_callback(int error, const char *description) {
 int main(int argc, char **argv) {
   static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
   plog::init(plog::debug, &consoleAppender);
+
+  Remotery *rmt;
+  rmt_CreateGlobalInstance(&rmt);
 
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
@@ -46,6 +50,8 @@ int main(int argc, char **argv) {
   glfwSetWindowUserPointer(window, &app);
 
   while (!glfwWindowShouldClose(window)) { // message loop
+    rmt_ScopedCPUSample(MainLoop, 0);
+
     glfwPollEvents();
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
@@ -58,4 +64,7 @@ int main(int argc, char **argv) {
   g_exit = true;
   glfwDestroyWindow(window);
   glfwTerminate();
+
+  // Destroy the main instance of Remotery.
+  rmt_DestroyGlobalInstance(rmt);
 }

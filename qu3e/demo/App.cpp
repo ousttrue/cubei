@@ -13,6 +13,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <Remotery.h>
+
 const std::chrono::nanoseconds DELTA =
     std::chrono::nanoseconds(1000000000 / 60);
 
@@ -137,6 +139,7 @@ void App::Frame(int w, int h) {
   // accumulator = q3Clamp01(accumulator);
   // while (accumulator >= dt_)
   {
+    rmt_ScopedCPUSample(Qu3eStep, 0);
     if (!paused_) {
       scene_->Step();
       demos_[currentDemo_]->Update(scene_.get(), delta);
@@ -149,40 +152,50 @@ void App::Frame(int w, int h) {
     }
   }
 
-  // Start the Dear ImGui frame
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-  // ImGui::SetNewWindowDefaultPos(ImVec2(float(w - 300 - 30), 30));
-  ImGui::SetNextWindowSize(ImVec2(300, 225), ImGuiCond_Appearing);
-  ImGui::Begin("q3Scene Settings");
-  ImGui::Combo("Demo", &currentDemo_,
-               "Drop Boxes\0Ray Push\0Box Stack\0Test\0");
-  ImGui::Checkbox("Pause", &paused_);
-  if (paused_)
-    ImGui::Checkbox("Single Step", &singleStep_);
-  ImGui::Checkbox("Sleeping", &enableSleep_);
-  ImGui::Checkbox("Friction", &enableFriction_);
-  ImGui::SliderInt("Iterations", &velocityIterations_, 1, 50);
-  int flags = (1 << 0) | (1 << 1) | (1 << 2);
-  ImGui::InputText("Dump File Name", sceneFileName_,
-                   ((int)(sizeof(sceneFileName_) / sizeof(*sceneFileName_))),
-                   flags);
-  if (ImGui::Button("Dump Scene")) {
-    DemosSceneDump();
-  }
-  ImGui::End();
+  {
+    rmt_ScopedCPUSample(ImGui, 0);
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    // ImGui::SetNewWindowDefaultPos(ImVec2(float(w - 300 - 30), 30));
+    ImGui::SetNextWindowSize(ImVec2(300, 225), ImGuiCond_Appearing);
+    ImGui::Begin("q3Scene Settings");
+    ImGui::Combo("Demo", &currentDemo_,
+                 "Drop Boxes\0Ray Push\0Box Stack\0Test\0");
+    ImGui::Checkbox("Pause", &paused_);
+    if (paused_)
+      ImGui::Checkbox("Single Step", &singleStep_);
+    ImGui::Checkbox("Sleeping", &enableSleep_);
+    ImGui::Checkbox("Friction", &enableFriction_);
+    ImGui::SliderInt("Iterations", &velocityIterations_, 1, 50);
+    int flags = (1 << 0) | (1 << 1) | (1 << 2);
+    ImGui::InputText("Dump File Name", sceneFileName_,
+                     ((int)(sizeof(sceneFileName_) / sizeof(*sceneFileName_))),
+                     flags);
+    if (ImGui::Button("Dump Scene")) {
+      DemosSceneDump();
+    }
+    ImGui::End();
 
-  ImGui::ShowMetricsWindow();
-  ImGui::Render();
+    ImGui::ShowMetricsWindow();
+    ImGui::Render();
+  }
 
   // render
-  float aspectRatio = (float)w / (float)(h <= 0 ? 1 : h);
-  camera_.Update(aspectRatio);
-  renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
-  scene_->Render(renderer_.get());
-  demos_[currentDemo_]->Render(renderer_.get());
-  renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);
+  {
+    rmt_ScopedCPUSample(Render, 0);
 
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    float aspectRatio = (float)w / (float)(h <= 0 ? 1 : h);
+    camera_.Update(aspectRatio);
+    renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
+    scene_->Render(renderer_.get());
+    demos_[currentDemo_]->Render(renderer_.get());
+    renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);
+  }
+
+  {
+    rmt_ScopedCPUSample(ImGuiRender, 0);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  }
 }

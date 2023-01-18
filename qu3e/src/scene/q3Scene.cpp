@@ -34,6 +34,8 @@ distribution.
 #include "../dynamics/q3Island.h"
 #include "q3Scene.h"
 
+#include <Remotery.h>
+
 //--------------------------------------------------------------------------------------------------
 // q3Scene
 //--------------------------------------------------------------------------------------------------
@@ -48,6 +50,8 @@ q3Scene::~q3Scene() { Shutdown(); }
 
 //--------------------------------------------------------------------------------------------------
 void q3Scene::Step() {
+  rmt_ScopedCPUSample(qSceneStep, 0);
+
   if (m_newBox) {
     m_contactManager.m_broadphase.UpdatePairs();
     m_newBox = false;

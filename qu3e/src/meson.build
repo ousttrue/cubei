@@ -14,7 +14,9 @@ qu3e_lib = static_library('qu3e', [
 	'math/q3Quaternion.cpp',
 	'math/q3Vec3.cpp',
 	'scene/q3Scene.cpp',
-])
+],
+	dependencies: [remotery_dep],
+)
 qu3e_dep = declare_dependency(
     include_directories: include_directories('.'),
     link_with: qu3e_lib,

@@ -4,7 +4,6 @@ glfw_dep = dependency('glfw3', default_options: ['install=true'])
 gl_dep = dependency('opengl')
 glew_dep = dependency('glew')
 imgui_dep = dependency('imgui', default_options: ['default_library=static'])
-remotery_dep = dependency('remotery')
 executable('demo', [
     'main.cpp',
     'App.cpp',
