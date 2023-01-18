@@ -1,5 +1,6 @@
-#include "Renderer.h"
 #include "Demo.h"
+#include "Camera.h"
+#include "Renderer.h"
 
 #include "BoxStack.h"
 #include "DropBoxes.h"
@@ -9,6 +10,7 @@
 #include "Clock.h"
 #include <imgui.h>
 #include <stdio.h>
+#include <gl/GLU.h>
 
 Renderer g_renderer;
 
@@ -106,7 +108,21 @@ void DemosUpdate() {
   g_clock.Stop();
 }
 
-void DemosRender() {
+void DemosRender(int width, int height, const Camera &camera) {
+  if (height <= 0)
+    height = 1;
+
+  float aspectRatio = (float)width / (float)height;
+  glViewport(0, 0, width, height);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(45.0f, aspectRatio, 0.1f, 10000.0f);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(camera.position[0], camera.position[1], camera.position[2],
+            camera.target[0], camera.target[1], camera.target[2], 0.0f, 1.0f,
+            0.0f);
+
   scene.Render(&g_renderer);
   demos[currentDemo]->Render(&g_renderer);
 }

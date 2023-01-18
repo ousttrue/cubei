@@ -1,3 +1,19 @@
 #pragma once
+#include "Camera.h"
 
-int InitApp(int argc, char **argv);
+struct Light {
+  float ambient[4] = {1.0f, 1.0f, 1.0f, 0.5f};
+  float diffuse[4] = {0.2f, 0.4f, 0.7f, 1.0f};
+  float specular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+};
+
+class App {
+  Camera camera_ = {};
+  Light light_ = {};
+
+public:
+  App(struct GLFWwindow *window);
+  ~App();
+  void KeyDown(char key);
+  void Frame(int w, int h);
+};
