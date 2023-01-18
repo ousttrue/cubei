@@ -1,4 +1,4 @@
-
+#include "Renderer.h"
 #include "Demo.h"
 
 #include "BoxStack.h"
@@ -9,6 +9,8 @@
 #include "Clock.h"
 #include <imgui.h>
 #include <stdio.h>
+
+Renderer g_renderer;
 
 Clock g_clock;
 // extern float dt;
@@ -104,9 +106,9 @@ void DemosUpdate() {
   g_clock.Stop();
 }
 
-void DemosRender(class q3Render *renderer) {
-  scene.Render(renderer);
-  demos[currentDemo]->Render(renderer);
+void DemosRender() {
+  scene.Render(&g_renderer);
+  demos[currentDemo]->Render(&g_renderer);
 }
 
 void DemosGui() {

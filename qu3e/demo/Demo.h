@@ -51,5 +51,5 @@ void DemosKeyUp(unsigned char key);
 void DemosTogglePause();
 void DemosSingleStep();
 void DemosUpdate();
-void DemosRender(class q3Render *);
+void DemosRender();
 void DemosGui();
