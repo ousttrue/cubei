@@ -3,7 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
-#include "Demo.h"
+#include "demos/Demo.h"
 #include <GLFW/glfw3.h>
 #include <gl/GLU.h>
 #include <imgui.h>
