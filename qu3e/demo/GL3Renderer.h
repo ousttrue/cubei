@@ -1,8 +1,9 @@
 #pragma once
 #include "GLTypes.h"
 #include <q3.h>
+#include <stdint.h>
 
-class GL2Renderer : public q3Render {
+class GL3Renderer : public q3Render {
   float x_, y_, z_;
   float sx_, sy_, sz_;
   float nx_, ny_, nz_;
@@ -10,9 +11,11 @@ class GL2Renderer : public q3Render {
   Camera camera_ = {};
   Light light_ = {};
 
+  class GL3RendererImpl *impl_ = nullptr;
+
 public:
-  GL2Renderer();
-  ~GL2Renderer();
+  GL3Renderer();
+  ~GL3Renderer();
   void SetPenColor(float r, float g, float b, float a = 1.0f) override;
   void SetPenPosition(float x, float y, float z) override;
   void SetScale(float sx, float sy, float sz) override;
@@ -23,4 +26,5 @@ public:
   void Point() override;
 
   void BeginFrame(int width, int height) override;
+  void EndFrame() override;
 };

@@ -1,6 +1,10 @@
 #include "App.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <plog/Appenders/ConsoleAppender.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Init.h>
+#include <plog/Log.h>
 #include <stdio.h>
 
 bool g_exit = false;
@@ -12,6 +16,9 @@ static void glfw_error_callback(int error, const char *description) {
 }
 
 int main(int argc, char **argv) {
+  static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+  plog::init(plog::debug, &consoleAppender);
+
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
 
