@@ -1,5 +1,6 @@
 /builddir/
 /prefix/
 /subprojects/*
+!/subprojects/packagefiles
 !/subprojects/*.wrap
-
+imgui.ini

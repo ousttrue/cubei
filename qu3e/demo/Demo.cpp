@@ -113,7 +113,8 @@ void DemosRender() {
 
 void DemosGui() {
   // ImGui::SetNewWindowDefaultPos(ImVec2(float(w - 300 - 30), 30));
-  ImGui::Begin("q3Scene Settings", NULL, ImVec2(300, 225));
+  ImGui::SetNextWindowSize(ImVec2(300, 225), ImGuiCond_Appearing);
+  ImGui::Begin("q3Scene Settings");
   ImGui::Combo("Demo", &currentDemo, "Drop Boxes\0Ray Push\0Box Stack\0Test\0");
   ImGui::Checkbox("Pause", &paused);
   if (paused)
