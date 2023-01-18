@@ -197,8 +197,8 @@ void q3Scene::Step() {
 
   // Clear all forces
   for (q3Body *body = m_bodyList; body; body = body->m_next) {
-    q3Identity(body->m_force);
-    q3Identity(body->m_torque);
+    body->m_force = {};
+    body->m_torque = {};
   }
 }
 
@@ -360,7 +360,7 @@ void q3Scene::QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const {
   wrapper.broadPhase = &m_contactManager.m_broadphase;
   wrapper.cb = cb;
   const float k_fattener = float(0.5);
-  q3Vec3 v(k_fattener, k_fattener, k_fattener);
+  q3Vec3 v{k_fattener, k_fattener, k_fattener};
   q3AABB aabb;
   aabb.min = point - v;
   aabb.max = point + v;
