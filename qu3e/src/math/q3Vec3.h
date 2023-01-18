@@ -30,6 +30,7 @@ distribution.
 
 #include "../common/q3Types.h"
 #include <stdexcept>
+#include <cmath>
 
 float q3Abs(float a);
 float q3Min(float a, float b);
@@ -86,6 +87,90 @@ struct q3Vec3 {
   const q3Vec3 operator/(float f) const;
 };
 
-#include "q3Vec3.inl"
+//--------------------------------------------------------------------------------------------------
+// q3Vec3
+//--------------------------------------------------------------------------------------------------
+inline void q3Identity(q3Vec3 &v) { v.Set(float(0.0), float(0.0), float(0.0)); }
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Vec3 q3Mul(const q3Vec3 &a, const q3Vec3 &b) {
+  return q3Vec3(a.x * b.x, a.y * b.y, a.z * b.z);
+}
+
+//--------------------------------------------------------------------------------------------------
+inline float q3Dot(const q3Vec3 &a, const q3Vec3 &b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Vec3 q3Cross(const q3Vec3 &a, const q3Vec3 &b) {
+  return q3Vec3((a.y * b.z) - (b.y * a.z), (b.x * a.z) - (a.x * b.z),
+                (a.x * b.y) - (b.x * a.y));
+}
+
+//--------------------------------------------------------------------------------------------------
+inline float q3Length(const q3Vec3 &v) {
+  return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+//--------------------------------------------------------------------------------------------------
+inline float q3LengthSq(const q3Vec3 &v) {
+  return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Vec3 q3Normalize(const q3Vec3 &v) {
+  float l = q3Length(v);
+
+  if (l != float(0.0)) {
+    float inv = float(1.0) / l;
+    return v * inv;
+  }
+
+  return v;
+}
+
+//--------------------------------------------------------------------------------------------------
+inline float q3Distance(const q3Vec3 &a, const q3Vec3 &b) {
+  float xp = a.x - b.x;
+  float yp = a.y - b.y;
+  float zp = a.z - b.z;
+
+  return std::sqrt(xp * xp + yp * yp + zp * zp);
+}
+
+//--------------------------------------------------------------------------------------------------
+inline float q3DistanceSq(const q3Vec3 &a, const q3Vec3 &b) {
+  float xp = a.x - b.x;
+  float yp = a.y - b.y;
+  float zp = a.z - b.z;
+
+  return xp * xp + yp * yp + zp * zp;
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Vec3 q3Abs(const q3Vec3 &v) {
+  return q3Vec3(q3Abs(v.x), q3Abs(v.y), q3Abs(v.z));
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Vec3 q3Min(const q3Vec3 &a, const q3Vec3 &b) {
+  return q3Vec3(q3Min(a.x, b.x), q3Min(a.y, b.y), q3Min(a.z, b.z));
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const q3Vec3 q3Max(const q3Vec3 &a, const q3Vec3 &b) {
+  return q3Vec3(q3Max(a.x, b.x), q3Max(a.y, b.y), q3Max(a.z, b.z));
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const float q3MinPerElem(const q3Vec3 &a) {
+  return q3Min(a.x, q3Min(a.y, a.z));
+}
+
+//--------------------------------------------------------------------------------------------------
+inline const float q3MaxPerElem(const q3Vec3 &a) {
+  return q3Max(a.x, q3Max(a.y, a.z));
+}
 
 #endif // Q3VEC3_H
