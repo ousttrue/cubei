@@ -25,6 +25,6 @@ public:
   void SetTriNormal(float x, float y, float z) override;
   void Point() override;
 
-  void BeginFrame(int width, int height) override;
+  void BeginFrame(int width, int height, const float *projection, const float *view) override;
   void EndFrame() override;
 };

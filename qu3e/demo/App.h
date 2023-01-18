@@ -1,5 +1,6 @@
 #pragma once
 #include "debug/q3Render.h"
+#include "GLTypes.h"
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -21,6 +22,8 @@ class App {
   bool enableSleep_ = true;
   bool enableFriction_ = true;
   int velocityIterations_ = 10;
+
+  Camera camera_;
 
 public:
   App(struct GLFWwindow *window);

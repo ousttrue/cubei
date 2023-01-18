@@ -7,7 +7,6 @@ class GL2Renderer : public q3Render {
   float sx_, sy_, sz_;
   float nx_, ny_, nz_;
 
-  Camera camera_ = {};
   Light light_ = {};
 
 public:
@@ -22,5 +21,5 @@ public:
   void SetTriNormal(float x, float y, float z) override;
   void Point() override;
 
-  void BeginFrame(int width, int height) override;
+  void BeginFrame(int width, int height, const float *projection, const float *view) override;
 };

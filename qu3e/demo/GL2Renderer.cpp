@@ -30,9 +30,9 @@ GL2Renderer::GL2Renderer() {
   for (int i = 0; i < 4; ++i)
     floats[i] = (float)light_.specular[i];
   glLightfv(GL_LIGHT0, GL_SPECULAR, floats);
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)camera_.position[i];
-  glLightfv(GL_LIGHT0, GL_POSITION, floats);
+  // for (int i = 0; i < 4; ++i)
+  //   floats[i] = (float)camera_.position[i];
+  // glLightfv(GL_LIGHT0, GL_POSITION, floats);
   glEnable(GL_LIGHT0);
   glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 }
@@ -87,21 +87,15 @@ void GL2Renderer::Point() {
   glEnd();
 };
 
-void GL2Renderer::BeginFrame(int width, int height) {
+void GL2Renderer::BeginFrame(int width, int height, const float *projection, const float *view) {
   glViewport(0, 0, width, height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  if (height <= 0) {
-    height = 1;
-  }
-  float aspectRatio = (float)width / (float)height;
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(45.0f, aspectRatio, 0.1f, 10000.0f);
+  glLoadMatrixf(projection);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(camera_.position[0], camera_.position[1], camera_.position[2],
-            camera_.target[0], camera_.target[1], camera_.target[2], 0.0f, 1.0f,
-            0.0f);
+  glLoadMatrixf(view);
 }

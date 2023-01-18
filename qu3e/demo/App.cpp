@@ -173,7 +173,9 @@ void App::Frame(int w, int h) {
   ImGui::Render();
 
   // render
-  renderer_->BeginFrame(w, h);
+  float aspectRatio = (float)w / (float)(h <= 0 ? 1 : h);
+  camera_.Update(aspectRatio);
+  renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
   scene_->Render(renderer_.get());
   demos_[currentDemo_]->Render(renderer_.get());
   renderer_->EndFrame();
