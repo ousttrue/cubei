@@ -29,8 +29,8 @@ distribution.
 #define Q3VEC3_H
 
 #include "../common/q3Types.h"
-#include <stdexcept>
 #include <cmath>
+#include <stdexcept>
 
 float q3Abs(float a);
 float q3Min(float a, float b);
@@ -40,19 +40,46 @@ float q3Max(float a, float b);
 // q3Vec3
 //--------------------------------------------------------------------------------------------------
 struct q3Vec3 {
-  float x;
-  float y;
-  float z;
+  float x = 0;
+  float y = 0;
+  float z = 0;
+  q3Vec3() {}
+  q3Vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+  void Set(float _x, float _y, float _z) {
+    x = _x;
+    y = _y;
+    z = _z;
+  }
+  void SetAll(float a) {
+    x = a;
+    y = a;
+    z = a;
+  }
+  q3Vec3 &operator+=(const q3Vec3 &rhs) {
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
+  }
+  q3Vec3 &operator-=(const q3Vec3 &rhs) {
+    x -= rhs.x;
+    y -= rhs.y;
+    z -= rhs.z;
+    return *this;
+  }
+  q3Vec3 &operator*=(float f) {
+    x *= f;
+    y *= f;
+    z *= f;
+    return *this;
+  }
+  q3Vec3 &operator/=(float f) {
+    x /= f;
+    y /= f;
+    z /= f;
 
-  q3Vec3();
-  q3Vec3(float _x, float _y, float _z);
-
-  void Set(float _x, float _y, float _z);
-  void SetAll(float a);
-  q3Vec3 &operator+=(const q3Vec3 &rhs);
-  q3Vec3 &operator-=(const q3Vec3 &rhs);
-  q3Vec3 &operator*=(float f);
-  q3Vec3 &operator/=(float f);
+    return *this;
+  }
 
   float &operator[](uint32_t i) {
     switch (i) {
@@ -78,13 +105,15 @@ struct q3Vec3 {
       throw std::runtime_error("index out of range");
     }
   }
-
-  q3Vec3 operator-(void) const;
-
-  const q3Vec3 operator+(const q3Vec3 &rhs) const;
-  const q3Vec3 operator-(const q3Vec3 &rhs) const;
-  const q3Vec3 operator*(float f) const;
-  const q3Vec3 operator/(float f) const;
+  q3Vec3 operator-(void) const { return q3Vec3(-x, -y, -z); }
+  const q3Vec3 operator+(const q3Vec3 &rhs) const {
+    return q3Vec3(x + rhs.x, y + rhs.y, z + rhs.z);
+  }
+  const q3Vec3 operator-(const q3Vec3 &rhs) const {
+    return q3Vec3(x - rhs.x, y - rhs.y, z - rhs.z);
+  }
+  const q3Vec3 operator*(float f) const { return q3Vec3(x * f, y * f, z * f); }
+  const q3Vec3 operator/(float f) const { return q3Vec3(x / f, y / f, z / f); }
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -171,6 +200,10 @@ inline const float q3MinPerElem(const q3Vec3 &a) {
 //--------------------------------------------------------------------------------------------------
 inline const float q3MaxPerElem(const q3Vec3 &a) {
   return q3Max(a.x, q3Max(a.y, a.z));
+}
+
+inline const q3Vec3 operator*(float f, const q3Vec3 &rhs) {
+  return q3Vec3(rhs.x * f, rhs.y * f, rhs.z * f);
 }
 
 #endif // Q3VEC3_H
