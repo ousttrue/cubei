@@ -12,7 +12,6 @@ class App {
   std::unique_ptr<class q3Render> renderer_;
 
   std::chrono::high_resolution_clock::time_point time_;
-  std::chrono::nanoseconds dt_ = std::chrono::nanoseconds(1000000000 / 60);
   std::unique_ptr<class q3Scene> scene_;
   // Is frame by frame stepping enabled?
   bool paused_ = false;

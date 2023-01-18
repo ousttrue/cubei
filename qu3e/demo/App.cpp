@@ -12,11 +12,13 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+const std::chrono::nanoseconds DELTA = std::chrono::nanoseconds(1000000000 / 60);
+
 App::App(GLFWwindow *window)
     : renderer_(new GL2Renderer),
       scene_(
           new q3Scene(std::chrono::duration_cast<
-                          std::chrono::duration<float, std::ratio<1, 1>>>(dt_)
+                          std::chrono::duration<float, std::ratio<1, 1>>>(DELTA)
                           .count())) {
   // Setup Dear ImGui context
   const char *glsl_version = "#version 130";
@@ -137,7 +139,7 @@ void App::Frame(int w, int h) {
     } else {
       if (singleStep_) {
         scene_->Step();
-        demos_[currentDemo_]->Update(scene_.get(), dt_);
+        demos_[currentDemo_]->Update(scene_.get(), DELTA);
         singleStep_ = false;
       }
     }
