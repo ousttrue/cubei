@@ -1,8 +1,5 @@
 #include "App.h"
 
-#include "Renderer.h"
-
-#include <gl/GL.h>
 #include "demos/Demo.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -20,44 +17,12 @@ App::App(GLFWwindow *window) {
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
-
-  renderer_ = new Renderer();
-
-  // Setup all the open-gl states we want to use (ones that don't change in
-  // the lifetime of the application) Note: These can be changed anywhere, but
-  // generally we don't change the back buffer color
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
-  glCullFace(GL_BACK);
-  glFrontFace(GL_CCW);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
-
-  // Used FFP to setup lights
-  float floats[4];
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)light_.ambient[i];
-  glLightfv(GL_LIGHT0, GL_AMBIENT, floats);
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)light_.diffuse[i];
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, floats);
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)light_.specular[i];
-  glLightfv(GL_LIGHT0, GL_SPECULAR, floats);
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)camera_.position[i];
-  glLightfv(GL_LIGHT0, GL_POSITION, floats);
-  glEnable(GL_LIGHT0);
-  glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 }
 
 App::~App() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
-
-  delete renderer_;
 }
 
 void App::KeyDown(char key) {
@@ -99,14 +64,6 @@ void App::KeyDown(char key) {
   }
 }
 
-int InitApp(int argc, char **argv) {
-
-  // int w, h;
-  // glfwGetFramebufferSize(window, &w, &h);
-
-  return 0;
-}
-
 void App::Frame(int w, int h) {
   DemosUpdate();
 
@@ -118,9 +75,6 @@ void App::Frame(int w, int h) {
   ImGui::ShowMetricsWindow();
   ImGui::Render();
 
-  // Render
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  DemosRender(renderer_, w, h, camera_);
+  DemosRender(w, h);
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

@@ -1,17 +1,16 @@
 #include "Demo.h"
-#include "Camera.h"
 
 #include "BoxStack.h"
+#include "Clock.h"
 #include "DropBoxes.h"
 #include "RayPush.h"
+#include "Renderer.h"
 #include "Test.h"
-
-#include "Clock.h"
 #include <imgui.h>
+#include <memory>
 #include <stdio.h>
 
-#include <Windows.h>
-#include <gl/GLU.h>
+std::unique_ptr<Renderer> g_renderer;
 
 Clock g_clock;
 // extern float dt;
@@ -107,23 +106,15 @@ void DemosUpdate() {
   g_clock.Stop();
 }
 
-void DemosRender(q3Render *renderer, int width, int height, const Camera &camera) {
-  if (height <= 0)
-    height = 1;
+void DemosRender(int width, int height) {
+  if (!g_renderer) {
+    g_renderer.reset(new Renderer);
+  }
 
-  float aspectRatio = (float)width / (float)height;
-  glViewport(0, 0, width, height);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(45.0f, aspectRatio, 0.1f, 10000.0f);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  gluLookAt(camera.position[0], camera.position[1], camera.position[2],
-            camera.target[0], camera.target[1], camera.target[2], 0.0f, 1.0f,
-            0.0f);
+  g_renderer->BeginFrame(width, height);
 
-  scene.Render(renderer);
-  demos[currentDemo]->Render(renderer);
+  scene.Render(g_renderer.get());
+  demos[currentDemo]->Render(g_renderer.get());
 }
 
 void DemosGui() {

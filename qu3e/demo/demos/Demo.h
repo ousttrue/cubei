@@ -26,7 +26,6 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "Camera.h"
 
 // Base class for running demos to show off q3
 
@@ -52,5 +51,5 @@ void DemosKeyUp(unsigned char key);
 void DemosTogglePause();
 void DemosSingleStep();
 void DemosUpdate();
-void DemosRender(q3Render *renderer, int w, int h, const Camera &camera);
+void DemosRender(int w, int h);
 void DemosGui();

@@ -7,10 +7,24 @@
 #endif
 #include <gl/GL.h>
 
+struct Light {
+  float ambient[4] = {1.0f, 1.0f, 1.0f, 0.5f};
+  float diffuse[4] = {0.2f, 0.4f, 0.7f, 1.0f};
+  float specular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+};
+
+struct Camera {
+  float position[3] = {0.0f, 5.0f, 20.0f};
+  float target[3] = {0.0f, 0.0f, 0.0f};
+};
+
 class Renderer : public q3Render {
   float x_, y_, z_;
   float sx_, sy_, sz_;
   float nx_, ny_, nz_;
+
+  Camera camera_ = {};
+  Light light_ = {};
 
 public:
   Renderer();
@@ -23,4 +37,6 @@ public:
                 float x3, float y3, float z3) override;
   void SetTriNormal(float x, float y, float z) override;
   void Point() override;
+
+  void BeginFrame(int width, int height);
 };
