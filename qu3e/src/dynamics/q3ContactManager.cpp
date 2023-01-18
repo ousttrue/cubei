@@ -31,6 +31,8 @@
 #include "../scene/q3Scene.h"
 #include "../debug/q3Render.h"
 
+#include <Remotery.h>
+
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
@@ -196,6 +198,8 @@ void q3ContactManager::RemoveFromBroadphase( q3Body *body )
 //--------------------------------------------------------------------------------------------------
 void q3ContactManager::TestCollisions( void )
 {
+	rmt_ScopedCPUSample(qTestCollisions, 0);
+
 	q3ContactConstraint* constraint = m_contactList;
 
 	while( constraint )

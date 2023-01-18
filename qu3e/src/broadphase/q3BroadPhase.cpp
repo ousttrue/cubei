@@ -29,6 +29,8 @@
 #include "../common/q3Geometry.h"
 #include "../dynamics/q3ContactManager.h"
 
+#include <Remotery.h>
+
 //--------------------------------------------------------------------------------------------------
 // q3BroadPhase
 //--------------------------------------------------------------------------------------------------
@@ -81,6 +83,8 @@ inline bool ContactPairSort( const q3ContactPair& lhs, const q3ContactPair& rhs 
 //--------------------------------------------------------------------------------------------------
 void q3BroadPhase::UpdatePairs( )
 {
+    rmt_ScopedCPUSample(q3BroadPhaseUpdatePairs, 0);
+
 	m_pairCount = 0;
 
 	// Query the tree with all moving boxs

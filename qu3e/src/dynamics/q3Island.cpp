@@ -32,11 +32,15 @@
 #include "../broadphase/q3BroadPhase.h"
 #include "q3Contact.h"
 
+#include <Remotery.h>
+
 //--------------------------------------------------------------------------------------------------
 // q3Island
 //--------------------------------------------------------------------------------------------------
 void q3Island::Solve( )
 {
+    rmt_ScopedCPUSample(q3IslandSolve, 0);
+
 	// Apply gravity
 	// Integrate velocities and create state buffers, calculate world inertia
 	for ( int i = 0 ; i < m_bodyCount; ++i )
@@ -166,6 +170,8 @@ void q3Island::Add( q3ContactConstraint *contact )
 //--------------------------------------------------------------------------------------------------
 void q3Island::Initialize( )
 {
+    rmt_ScopedCPUSample(q3IslandInitialize, 0);
+
 	for ( int i = 0; i < m_contactCount; ++i )
 	{
 		q3ContactConstraint *cc = m_contacts[ i ];

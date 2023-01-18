@@ -26,28 +26,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 #include "Demo.h"
 #include <q3.h>
-
 struct Test : public Demo {
-  void Init(q3Scene *scene) override {
-    q3BodyDef bodyDef;
-    q3Body *body = scene->CreateBody(bodyDef);
-    q3BoxDef boxDef;
-    boxDef.SetRestitution(0);
-    q3Transform tx;
-    q3Identity(tx);
-    boxDef.Set(tx, q3Vec3(50.0f, 1.0f, 50.0f));
-    body->AddBox(boxDef);
-
-    bodyDef.bodyType = eDynamicBody;
-    bodyDef.position.Set(0, 5.0f, 0);
-    body = scene->CreateBody(bodyDef);
-    for (int i = 0; i < 20; ++i) {
-      tx.position.Set(q3RandomFloat(1.0f, 10.0f), q3RandomFloat(1.0f, 10.0f),
-                      q3RandomFloat(1.0f, 10.0f));
-      boxDef.Set(tx, q3Vec3(1.0f, 1.0f, 1.0f));
-      body->AddBox(boxDef);
-    }
-  }
-
+  void Init(q3Scene *scene) override;
   void Shutdown(q3Scene *scene) override { scene->RemoveAllBodies(); }
 };
