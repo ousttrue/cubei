@@ -7,12 +7,17 @@
 #include "demos/RayPush.h"
 #include "demos/Test.h"
 
+#include <__msvc_chrono.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 App::App(GLFWwindow *window)
-    : renderer_(new GL2Renderer), scene_(new q3Scene(dt_)) {
+    : renderer_(new GL2Renderer),
+      scene_(
+          new q3Scene(std::chrono::duration_cast<
+                          std::chrono::duration<float, std::ratio<1, 1>>>(dt_)
+                          .count())) {
   // Setup Dear ImGui context
   const char *glsl_version = "#version 130";
   IMGUI_CHECKVERSION();
@@ -110,7 +115,9 @@ void App::Frame(int w, int h) {
     lastDemo_ = currentDemo_;
   }
 
-  float time = clock_.Start();
+  auto time = std::chrono::high_resolution_clock::now();
+  auto delta = time - time_;
+  time_ = time;
 
   scene_->SetAllowSleep(enableSleep_);
   scene_->SetEnableFriction(enableFriction_);
@@ -119,28 +126,22 @@ void App::Frame(int w, int h) {
   // The time accumulator is used to allow the application to render at
   // a frequency different from the constant frequency the physics sim-
   // ulation is running at (default 60Hz).
-  static float accumulator = 0;
-  accumulator += time;
-
-  accumulator = q3Clamp01(accumulator);
-  while (accumulator >= dt_) {
+  // static float accumulator = 0;
+  // accumulator += time;
+  // accumulator = q3Clamp01(accumulator);
+  // while (accumulator >= dt_)
+  {
     if (!paused_) {
       scene_->Step();
-      demos_[currentDemo_]->Update(scene_.get(), dt_);
-    }
-
-    else {
+      demos_[currentDemo_]->Update(scene_.get(), delta);
+    } else {
       if (singleStep_) {
         scene_->Step();
         demos_[currentDemo_]->Update(scene_.get(), dt_);
         singleStep_ = false;
       }
     }
-
-    accumulator -= dt_;
   }
-
-  clock_.Stop();
 
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();

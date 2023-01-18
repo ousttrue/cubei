@@ -26,14 +26,14 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-
+#include <chrono>
 // Base class for running demos to show off q3
 
 struct Demo {
   virtual ~Demo() {}
 
   virtual void Init(class q3Scene *scene){};
-  virtual void Update(class q3Scene *scene, float dt){};
+  virtual void Update(class q3Scene *scene, std::chrono::nanoseconds dt){};
   virtual void Shutdown(class q3Scene *scene){};
 
   virtual void Render(class q3Render *debugDrawer) { (void)debugDrawer; }

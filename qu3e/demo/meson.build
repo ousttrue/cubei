@@ -4,7 +4,6 @@ imgui_dep = dependency('imgui', default_options: ['default_library=static'])
 executable('demo', [
     'main.cpp',
     'App.cpp',
-    'Clock.cpp',
     'GL2Renderer.cpp',
 ],
     install: true,

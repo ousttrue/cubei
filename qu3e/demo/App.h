@@ -1,6 +1,6 @@
 #pragma once
-#include "Clock.h"
 #include "debug/q3Render.h"
+#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -11,8 +11,8 @@ class App {
   int lastDemo_ = -1;
   std::unique_ptr<class q3Render> renderer_;
 
-  Clock clock_;
-  float dt_ = 1.0f / 60.0f;
+  std::chrono::high_resolution_clock::time_point time_;
+  std::chrono::nanoseconds dt_ = std::chrono::nanoseconds(1000000000 / 60);
   std::unique_ptr<class q3Scene> scene_;
   // Is frame by frame stepping enabled?
   bool paused_ = false;

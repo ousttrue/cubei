@@ -25,6 +25,7 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 #include "Demo.h"
+#include <chrono>
 #include <q3.h>
 class Raycast : public q3QueryCallback {
 public:
@@ -58,7 +59,7 @@ struct RayPush : public Demo {
   Raycast rayCast;
 
   void Init(q3Scene *scene) override {
-    acc = 0;
+    acc = std::chrono::nanoseconds(0);
 
     // Create the floor
     q3BodyDef bodyDef;
@@ -72,11 +73,11 @@ struct RayPush : public Demo {
     body->AddBox(boxDef);
   }
 
-  void Update(q3Scene *scene, float dt) override {
+  void Update(q3Scene *scene, std::chrono::nanoseconds dt) override {
     acc += dt;
 
-    if (acc > 1.0f) {
-      acc = 0;
+    if (acc > std::chrono::seconds(1)) {
+      acc = std::chrono::nanoseconds(0);
 
       q3BodyDef bodyDef;
       bodyDef.position.Set(0.0f, 3.0f, 0.0f);
@@ -132,5 +133,5 @@ struct RayPush : public Demo {
     render->Line(impact.x, impact.y, impact.z);
   }
 
-  float acc;
+  std::chrono::nanoseconds acc;
 };
