@@ -1,0 +1,8 @@
+[wrap-git]
+url = https://github.com/Celtoys/Remotery
+revision = v1.2.1
+depth = 1
+patch_directory = remotery
+
+[provide]
+remotery = remotery_dep

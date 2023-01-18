@@ -3,6 +3,7 @@
 #include <functional>
 #include <gl/glew.h>
 #include <span>
+#include <string_view>
 
 // OpenGL Object
 namespace glo {
