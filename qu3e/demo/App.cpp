@@ -31,7 +31,7 @@ distribution.
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
-#include "../freeglut/freeglut.h"
+#include <freeglut.h>
 #include "../imgui/imgui.h"
 #include "Demo.h"
 #include "stb_image.h"
@@ -348,6 +348,12 @@ void MainLoop(void) {
   glutPostRedisplay();
 }
 
+bool g_close = false;
+void onClose()
+{
+g_close = true;
+}
+
 void InitImGui() {
   int w = glutGet(GLUT_WINDOW_WIDTH);
   int h = glutGet(GLUT_WINDOW_HEIGHT);
@@ -426,16 +432,17 @@ int InitApp(int argc, char **argv) {
   glutInitWindowSize(kWindowWidth, kWindowHeight);
   glutInitWindowPosition((screenWidth - kWindowWidth) / 2,
                          (screenHeight - kWindowHeight) / 2);
-  glutCreateWindow("qu3e Physics by Randy Gaul");
+  auto glutWindow = glutCreateWindow("qu3e Physics by Randy Gaul");
 
-  glutDisplayFunc(DisplayLoop);
+  // glutDisplayFunc(DisplayLoop);
   glutReshapeFunc(Reshape);
   glutKeyboardUpFunc(KeyboardUp);
   glutKeyboardFunc(Keyboard);
   glutMouseFunc(Mouse);
   glutMotionFunc(MouseMotion);
   glutPassiveMotionFunc(MouseMotion);
-  glutIdleFunc(MainLoop);
+  // glutIdleFunc(MainLoop);
+  glutCloseFunc(onClose);
 
   // Setup all the open-gl states we want to use (ones that don't change in the
   // lifetime of the application) Note: These can be changed anywhere, but
@@ -469,7 +476,14 @@ int InitApp(int argc, char **argv) {
   glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
   InitImGui();
-  glutMainLoop();
+
+  // glutMainLoop();
+  while(!g_close){  //message loop
+      glutMainLoopEvent();
+      DemosUpdate();
+      DisplayLoop();
+  }
+  glutDestroyWindow(glutWindow);
 
   return 0;
 }
