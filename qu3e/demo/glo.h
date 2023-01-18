@@ -77,6 +77,21 @@ inline uint32_t BuildShader(std::string_view vs_src, std::string_view fs_src,
   return program;
 }
 
+class UniformVariables {
+  uint32_t program_;
+
+public:
+  UniformVariables(uint32_t program) : program_(program) {}
+
+  void SetMatrix4x4(const char *name, const float values[16]) {
+    auto location = glGetUniformLocation(program_, name);
+    if (location < 0) {
+      return;
+    }
+    glUniformMatrix4fv(location, 1, GL_FALSE, values);
+  }
+};
+
 struct VBO {
   uint32_t vbo_ = 0;
   VBO(const VBO &) = delete;
@@ -89,7 +104,11 @@ struct VBO {
                  data ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
-  void Upload(uint32_t byteSize, const void *data) {}
+  void Upload(uint32_t byteSize, const void *data) {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, byteSize, data);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  }
 };
 
 struct VertexLayout {
@@ -119,7 +138,11 @@ struct VAO {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
   }
-  void Render(uint32_t draw_count) {}
+  void Render(uint32_t draw_count) {
+    glBindVertexArray(vao_);
+    glDrawArrays(GL_TRIANGLES, 0, draw_count);
+    glBindVertexArray(0);
+  }
 };
 
 } // namespace glo

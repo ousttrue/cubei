@@ -37,7 +37,7 @@ class q3Render {
 public:
   virtual ~q3Render() {}
   virtual void BeginFrame(int width, int height, const float *projection, const float *view) {}
-  virtual void EndFrame() {}
+  virtual void EndFrame(const float *projection, const float *view) {}
 
   virtual void SetPenColor(float r, float g, float b, float a = 1.0f) = 0;
   virtual void SetPenPosition(float x, float y, float z) = 0;

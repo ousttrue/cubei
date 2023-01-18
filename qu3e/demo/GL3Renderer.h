@@ -5,6 +5,7 @@
 
 class GL3Renderer : public q3Render {
   float x_, y_, z_;
+  float r_, g_, b_;
   float sx_, sy_, sz_;
   float nx_, ny_, nz_;
 
@@ -26,5 +27,5 @@ public:
   void Point() override;
 
   void BeginFrame(int width, int height, const float *projection, const float *view) override;
-  void EndFrame() override;
+  void EndFrame(const float *projection, const float *view) override;
 };

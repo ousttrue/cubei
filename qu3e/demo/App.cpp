@@ -1,5 +1,7 @@
 #include "App.h"
-#include "GL2Renderer.h"
+// #include "GL2Renderer.h"
+#include "GL3Renderer.h"
+#include <gl/glew.h>
 
 #include "demos/BoxStack.h"
 #include "demos/Demo.h"
@@ -7,16 +9,15 @@
 #include "demos/RayPush.h"
 #include "demos/Test.h"
 
-#include <__msvc_chrono.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-const std::chrono::nanoseconds DELTA = std::chrono::nanoseconds(1000000000 / 60);
+const std::chrono::nanoseconds DELTA =
+    std::chrono::nanoseconds(1000000000 / 60);
 
 App::App(GLFWwindow *window)
-    : renderer_(new GL2Renderer),
-      scene_(
+    : scene_(
           new q3Scene(std::chrono::duration_cast<
                           std::chrono::duration<float, std::ratio<1, 1>>>(DELTA)
                           .count())) {
@@ -35,6 +36,9 @@ App::App(GLFWwindow *window)
   demos_.push_back(std::make_shared<RayPush>());
   demos_.push_back(std::make_shared<BoxStack>());
   demos_.push_back(std::make_shared<Test>());
+
+  glewInit();
+  renderer_.reset(new GL3Renderer);
 }
 
 App::~App() {
@@ -178,7 +182,7 @@ void App::Frame(int w, int h) {
   renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
   scene_->Render(renderer_.get());
   demos_[currentDemo_]->Render(renderer_.get());
-  renderer_->EndFrame();
+  renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);
 
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
