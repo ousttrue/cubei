@@ -7,7 +7,10 @@
 #include <vector>
 
 auto VS = R"(#version 400
-uniform mat4 MVP;
+// uniform mat4 MVP;
+layout (std140) uniform UBO { 
+	mat4 MVP; 
+};
 in vec3 vPos;
 in vec3 vCol;
 out vec3 color;
@@ -55,6 +58,7 @@ class GL3RendererImpl {
   glo::VAO vao_;
   Vertex vertices_[65535];
   uint32_t drawCount_ = 0;
+  glo::UBO ubo_ = {0};
 
 public:
   GL3RendererImpl() {
@@ -69,6 +73,7 @@ public:
         vbo_.vbo_,
     };
     vao_.Initialize(layouts, vbos);
+    ubo_.Initialize(sizeof(float) * 16);
   }
   ~GL3RendererImpl() {}
   void Clear() { drawCount_ = 0; }
@@ -78,13 +83,15 @@ public:
     vertices_[drawCount_++] = v2;
   }
   void Render(const float m[16]) {
-    // upload vertices
+    // upload
     vbo_.Upload(sizeof(vertices_), vertices_);
+    ubo_.Upload(sizeof(float) * 16, m);
 
     // render
     glUseProgram(program_);
-    glo::UniformVariables variables(program_);
-    variables.SetMatrix4x4("MVP", m);
+    ubo_.Bind(program_, "UBO");
+    // glo::UniformVariables variables(program_);
+    // variables.SetMatrix4x4("MVP", m);
     vao_.Render(drawCount_);
     glUseProgram(0);
   }

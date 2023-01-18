@@ -98,7 +98,7 @@ struct VBO {
   VBO &operator=(const VBO &) = delete;
   VBO() { glCreateBuffers(1, &vbo_); }
   ~VBO() { glDeleteBuffers(1, &vbo_); }
-  void Initialize(uint32_t byteSize, const void *data) {
+  void Initialize(uint32_t byteSize, const void *data = nullptr) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBufferData(GL_ARRAY_BUFFER, byteSize, data,
                  data ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
@@ -142,6 +142,35 @@ struct VAO {
     glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLES, 0, draw_count);
     glBindVertexArray(0);
+  }
+};
+
+class UBO {
+  uint32_t ubo_ = 0;
+  uint32_t bindingPoint_ = 0;
+
+public:
+  UBO(const UBO &) = delete;
+  UBO &operator=(const UBO &) = delete;
+  UBO(uint32_t bindingPoint) : bindingPoint_(bindingPoint) {
+    glGenBuffers(1, &ubo_);
+  }
+  ~UBO() { glDeleteBuffers(1, &ubo_); }
+  void Initialize(uint32_t byteSize, const void *data = nullptr) {
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
+    glBufferData(GL_UNIFORM_BUFFER, byteSize, data,
+                 data ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  }
+  void Upload(uint32_t byteSize, const void *data) {
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, byteSize, data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  }
+  void Bind(uint32_t program, const char *block_name) {
+    auto blockIndex = glGetUniformBlockIndex(program, block_name);
+    glUniformBlockBinding(program, blockIndex, bindingPoint_);
+    glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint_, ubo_);
   }
 };
 
