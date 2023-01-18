@@ -31,10 +31,11 @@ distribution.
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
-#include <freeglut.h>
 #include "../imgui/imgui.h"
 #include "Demo.h"
 #include "stb_image.h"
+#include <GLFW/glfw3.h>
+#include <gl/GLU.h>
 
 #include <q3.h>
 
@@ -179,39 +180,34 @@ static void ImImpl_RenderDrawLists(ImDrawList **const cmd_lists,
   glPopAttrib();
 }
 
-void Mouse(int button, int state, int x, int y) {
-  mouseX = x;
-  mouseY = y;
-  ImGuiIO &io = ImGui::GetIO();
-  io.MousePos = ImVec2((float)mouseX, (float)mouseY);
-
-  if (state == GLUT_DOWN) {
+void mouse_button_callback(GLFWwindow *window, int button, int action,
+                           int mods) {
+  if (action == GLFW_PRESS) {
     switch (button) {
-    case GLUT_LEFT_BUTTON: {
+    case GLFW_MOUSE_BUTTON_LEFT: {
       mouseLeftDown = true;
-      DemosMouseLeftDown(x, y);
+      DemosMouseLeftDown(mouseX, mouseY);
     } break;
-    case GLUT_RIGHT_BUTTON: {
+    case GLFW_MOUSE_BUTTON_RIGHT: {
       mouseRightDown = true;
     } break;
     }
-  }
-
-  else if (state == GLUT_UP) {
+  } else if (action == GLFW_RELEASE) {
     switch (button) {
-    case GLUT_LEFT_BUTTON: {
+    case GLFW_MOUSE_BUTTON_LEFT: {
       mouseLeftDown = false;
     } break;
-    case GLUT_RIGHT_BUTTON: {
+    case GLFW_MOUSE_BUTTON_RIGHT: {
       mouseRightDown = false;
     } break;
     }
   }
 }
 
-void MouseMotion(int dx, int dy) {
-  mouseX = dx;
-  mouseY = dy;
+static void cursor_position_callback(GLFWwindow *window, double xpos,
+                                     double ypos) {
+  mouseX = static_cast<int>(xpos);
+  mouseY = static_cast<int>(ypos);
   ImGuiIO &io = ImGui::GetIO();
   io.MousePos = ImVec2((float)mouseX, (float)mouseY);
 }
@@ -227,71 +223,63 @@ float diffuse[4] = {0.2f, 0.4f, 0.7f, 1.0f};
 float specular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 } // namespace Light
 
-void Keyboard(unsigned char key, int x, int y) {
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
   const float increment = 0.2f;
 
-  switch (key) {
-  case 27:
-    exit(0);
-    break;
-  case 'p':
-    DemosTogglePause();
-    break;
-  case ' ':
-    DemosSingleStep();
-    break;
-  case 'w':
-    Camera::position[2] -= increment;
-    Camera::target[2] -= increment;
-    break;
-  case 's':
-    Camera::position[2] += increment;
-    Camera::target[2] += increment;
-    break;
-  case 'a':
-    Camera::position[0] -= increment;
-    Camera::target[0] -= increment;
-    break;
-  case 'd':
-    Camera::position[0] += increment;
-    Camera::target[0] += increment;
-    break;
-  case 'q':
-    Camera::position[1] -= increment;
-    Camera::target[1] -= increment;
-    break;
-  case 'e':
-    Camera::position[1] += increment;
-    Camera::target[1] += increment;
-    break;
-  default:
-    // printf( "%d\n", key );
-    break;
+  if (action == GLFW_PRESS) {
+    switch (key) {
+    case 27:
+      exit(0);
+      break;
+    case 'p':
+      DemosTogglePause();
+      break;
+    case ' ':
+      DemosSingleStep();
+      break;
+    case 'w':
+      Camera::position[2] -= increment;
+      Camera::target[2] -= increment;
+      break;
+    case 's':
+      Camera::position[2] += increment;
+      Camera::target[2] += increment;
+      break;
+    case 'a':
+      Camera::position[0] -= increment;
+      Camera::target[0] -= increment;
+      break;
+    case 'd':
+      Camera::position[0] += increment;
+      Camera::target[0] += increment;
+      break;
+    case 'q':
+      Camera::position[1] -= increment;
+      Camera::target[1] -= increment;
+      break;
+    case 'e':
+      Camera::position[1] += increment;
+      Camera::target[1] += increment;
+      break;
+    default:
+      // printf( "%d\n", key );
+      break;
+    }
+    DemosKeyDown(key);
+  } else if (action == GLFW_RELEASE) {
+    DemosKeyUp(key);
   }
 
   ImGuiIO &io = ImGui::GetIO();
   io.KeysDown[key] = true;
 
-  int mod = glutGetModifiers();
-  io.KeyCtrl = (mod & GLUT_ACTIVE_CTRL) != 0;
-  io.KeyShift = (mod & GLUT_ACTIVE_SHIFT) != 0;
-
-  DemosKeyDown(key);
+  // int mod = glutGetModifiers();
+  io.KeyCtrl = (mods & GLFW_MOD_CONTROL) != 0;
+  io.KeyShift = (mods & GLFW_MOD_SHIFT) != 0;
 }
 
-void KeyboardUp(unsigned char key, int x, int y) {
-
-  ImGuiIO &io = ImGui::GetIO();
-  io.KeysDown[key] = false;
-
-  int mod = glutGetModifiers();
-  io.KeyCtrl = (mod & GLUT_ACTIVE_CTRL) != 0;
-  io.KeyShift = (mod & GLUT_ACTIVE_SHIFT) != 0;
-
-  DemosKeyUp(key);
-}
-
-void Reshape(int width, int height) {
+void window_size_callback(GLFWwindow *window, int width, int height) {
   if (height <= 0)
     height = 1;
 
@@ -324,40 +312,7 @@ void UpdateImGui(float dt) {
   ImGui::NewFrame();
 }
 
-
-void DisplayLoop(void) {
-  int w = glutGet(GLUT_WINDOW_WIDTH);
-  Reshape(w, glutGet(GLUT_WINDOW_HEIGHT));
-
-  UpdateImGui(1.0f / 60.0f);
-
-  DemosGui();
-  
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  DemosRender(&renderer);
-
-  ImGui::Render();
-
-  glutSwapBuffers();
-}
-
-void MainLoop(void) {
-  DemosUpdate();
-
-  glutPostRedisplay();
-}
-
-bool g_close = false;
-void onClose()
-{
-g_close = true;
-}
-
-void InitImGui() {
-  int w = glutGet(GLUT_WINDOW_WIDTH);
-  int h = glutGet(GLUT_WINDOW_HEIGHT);
-
+void InitImGui(int w, int h) {
   ImGuiIO &io = ImGui::GetIO();
   io.DisplaySize = ImVec2(
       (float)w,
@@ -366,14 +321,14 @@ void InitImGui() {
                                // this sample app we'll override this every
                                // frame because our timestep is variable)
   io.PixelCenterOffset = 0.0f; // Align OpenGL texels
-  io.KeyMap[ImGuiKey_Tab] = 9; // Keyboard mapping. ImGui will use those indices
-                               // to peek into the io.KeyDown[] array.
-  io.KeyMap[ImGuiKey_LeftArrow] = GLUT_KEY_LEFT;
-  io.KeyMap[ImGuiKey_RightArrow] = GLUT_KEY_RIGHT;
-  io.KeyMap[ImGuiKey_UpArrow] = GLUT_KEY_UP;
-  io.KeyMap[ImGuiKey_DownArrow] = GLUT_KEY_DOWN;
-  io.KeyMap[ImGuiKey_Home] = GLUT_KEY_HOME;
-  io.KeyMap[ImGuiKey_End] = GLUT_KEY_END;
+  io.KeyMap[ImGuiKey_Tab] = 9; // Keyboard mapping. ImGui will use those
+                               // indices to peek into the io.KeyDown[] array.
+  io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
+  io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
+  io.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
+  io.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
+  io.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
+  io.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
   io.KeyMap[ImGuiKey_Delete] = 127;
   io.KeyMap[ImGuiKey_Backspace] = 8;
   io.KeyMap[ImGuiKey_Enter] = 13;
@@ -418,34 +373,27 @@ int InitApp(int argc, char **argv) {
   const uint32_t kWindowHeight = 600;
 
   // Initialize GLUT
-  glutInit(&argc, argv);
-
-  // Get how big our screen is that we're displaying the window on
-  int screenWidth = glutGet(GLUT_SCREEN_WIDTH);
-  int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
-
-  // Initialize the display mode to utilize double buffering, 4-channel
-  // framebuffer and depth buffer
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_STENCIL);
+  if (!glfwInit()) {
+    return -1;
+  }
 
   // Setup the window
-  glutInitWindowSize(kWindowWidth, kWindowHeight);
-  glutInitWindowPosition((screenWidth - kWindowWidth) / 2,
-                         (screenHeight - kWindowHeight) / 2);
-  auto glutWindow = glutCreateWindow("qu3e Physics by Randy Gaul");
+  auto window = glfwCreateWindow(kWindowWidth, kWindowHeight,
+                                 "qu3e Physics by Randy Gaul", NULL, NULL);
+  if (!window) {
+    glfwTerminate();
+    return -1;
+  }
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
-  // glutDisplayFunc(DisplayLoop);
-  glutReshapeFunc(Reshape);
-  glutKeyboardUpFunc(KeyboardUp);
-  glutKeyboardFunc(Keyboard);
-  glutMouseFunc(Mouse);
-  glutMotionFunc(MouseMotion);
-  glutPassiveMotionFunc(MouseMotion);
-  // glutIdleFunc(MainLoop);
-  glutCloseFunc(onClose);
+  glfwSetWindowSizeCallback(window, window_size_callback);
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  glfwSetCursorPosCallback(window, cursor_position_callback);
 
-  // Setup all the open-gl states we want to use (ones that don't change in the
-  // lifetime of the application) Note: These can be changed anywhere, but
+  // Setup all the open-gl states we want to use (ones that don't change in
+  // the lifetime of the application) Note: These can be changed anywhere, but
   // generally we don't change the back buffer color
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glEnable(GL_CULL_FACE);
@@ -454,9 +402,6 @@ int InitApp(int argc, char **argv) {
   glFrontFace(GL_CCW);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
-
-  // Show the window that we just initailized
-  glutShowWindow();
 
   // Used FFP to setup lights
   float floats[4];
@@ -475,15 +420,26 @@ int InitApp(int argc, char **argv) {
   glEnable(GL_LIGHT0);
   glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
-  InitImGui();
+  int w, h;
+  glfwGetFramebufferSize(window, &w, &h);
+  InitImGui(w, h);
 
-  // glutMainLoop();
-  while(!g_close){  //message loop
-      glutMainLoopEvent();
-      DemosUpdate();
-      DisplayLoop();
+  while (!glfwWindowShouldClose(window)) { // message loop
+    glfwPollEvents();
+    glfwGetFramebufferSize(window, &w, &h);
+
+    DemosUpdate();
+    window_size_callback(window, w, h);
+    UpdateImGui(1.0f / 60.0f);
+    DemosGui();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    DemosRender(&renderer);
+    ImGui::Render();
+
+    glfwSwapBuffers(window);
   }
-  glutDestroyWindow(glutWindow);
 
+  glfwTerminate();
   return 0;
 }
