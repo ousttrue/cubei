@@ -145,9 +145,10 @@ struct VAO {
   }
 };
 
-class UBO {
+template <typename T> struct UBO {
   uint32_t ubo_ = 0;
   uint32_t bindingPoint_ = 0;
+  T value_ = {};
 
 public:
   UBO(const UBO &) = delete;
@@ -156,15 +157,14 @@ public:
     glGenBuffers(1, &ubo_);
   }
   ~UBO() { glDeleteBuffers(1, &ubo_); }
-  void Initialize(uint32_t byteSize, const void *data = nullptr) {
+  void Initialize() {
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
-    glBufferData(GL_UNIFORM_BUFFER, byteSize, data,
-                 data ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(T), &value_, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
   }
-  void Upload(uint32_t byteSize, const void *data) {
+  void Upload() {
     glBindBuffer(GL_UNIFORM_BUFFER, ubo_);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, byteSize, data);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &value_);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
   }
   void Bind(uint32_t program, const char *block_name) {

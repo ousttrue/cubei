@@ -3,9 +3,10 @@
 #include <stdint.h>
 
 struct Light {
-  float ambient[4] = {1.0f, 1.0f, 1.0f, 0.5f};
-  float diffuse[4] = {0.2f, 0.4f, 0.7f, 1.0f};
-  float specular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  DirectX::XMFLOAT4 uLightAmbient = {1.0f, 1.0f, 1.0f, 0.5f};
+  DirectX::XMFLOAT4 uLightDiffuse = {0.2f, 0.4f, 0.7f, 1.0f};
+  DirectX::XMFLOAT4 uLightSpecular = {1.0f, 1.0f, 1.0f, 1.0f};
+  DirectX::XMFLOAT4 uLightPosition = {0, 10, 0, 0};
 };
 
 struct Camera {

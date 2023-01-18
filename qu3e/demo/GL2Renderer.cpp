@@ -20,16 +20,12 @@ GL2Renderer::GL2Renderer() {
   glEnable(GL_BLEND);
 
   // Used FFP to setup lights
-  float floats[4];
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)light_.ambient[i];
-  glLightfv(GL_LIGHT0, GL_AMBIENT, floats);
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)light_.diffuse[i];
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, floats);
-  for (int i = 0; i < 4; ++i)
-    floats[i] = (float)light_.specular[i];
-  glLightfv(GL_LIGHT0, GL_SPECULAR, floats);
+  // float floats[4];
+  // for (int i = 0; i < 4; ++i)
+  //   floats[i] = (float)light_.ambient[i];
+  glLightfv(GL_LIGHT0, GL_AMBIENT, &light_.uLightAmbient.x);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, &light_.uLightDiffuse.x);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, &light_.uLightSpecular.x);
   // for (int i = 0; i < 4; ++i)
   //   floats[i] = (float)camera_.position[i];
   // glLightfv(GL_LIGHT0, GL_POSITION, floats);
@@ -63,7 +59,7 @@ void GL2Renderer::Line(float x, float y, float z) {
 }
 
 void GL2Renderer::Triangle(float x1, float y1, float z1, float x2, float y2,
-                        float z2, float x3, float y3, float z3) {
+                           float z2, float x3, float y3, float z3) {
   glEnable(GL_LIGHTING);
   glBegin(GL_TRIANGLES);
   glNormal3f((float)nx_, (float)ny_, (float)nz_);
@@ -87,7 +83,8 @@ void GL2Renderer::Point() {
   glEnd();
 };
 
-void GL2Renderer::BeginFrame(int width, int height, const float *projection, const float *view) {
+void GL2Renderer::BeginFrame(int width, int height, const float *projection,
+                             const float *view) {
   glViewport(0, 0, width, height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

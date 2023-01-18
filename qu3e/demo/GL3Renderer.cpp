@@ -7,38 +7,61 @@
 #include <vector>
 
 auto VS = R"(#version 400
-// uniform mat4 MVP;
-layout (std140) uniform UBO { 
-	mat4 MVP; 
+layout (std140) uniform VertexUbo { 
+	mat4 uVP;
 };
-in vec3 vPos;
-in vec3 vCol;
-out vec3 color;
+in vec3 aPos;
+in vec3 aNormal;
+in vec3 aColor;
+out vec3 FragPos;
+out vec3 Normal;
+out vec3 Color;
 void main()
 {
-    gl_Position = MVP * vec4(vPos, 1.0);
-    color = vCol;
+    gl_Position = uVP * vec4(aPos, 1.0);
+    FragPos = aPos;
+    Normal = aNormal;
+    Color = aColor;
 }
 )";
+struct VertexUbo {
+  DirectX::XMFLOAT4X4 uVP;
+};
 
 auto FS = R"(#version 400
-in vec3 color;
+layout (std140) uniform FragmentUbo {
+  vec4 uLightAmbient;
+  vec4 uLightDiffuse;
+  vec4 uLightSpecular;
+  vec4 uLightPosition;
+};
+in vec3 FragPos;
+in vec3 Normal;
+in vec3 Color;
 out vec4 FragColor;
 void main()
 {
-    FragColor = vec4(1, 1, 1, 1.0);
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(uLightPosition.xyz - FragPos);
+    float shading = max(dot(norm, lightDir), 0.0);
+    FragColor = vec4(Color * uLightDiffuse.xyz * shading, 1.0);
 }
 )";
 
 glo::VertexLayout layouts[]{
     glo::VertexLayout{
-        .stride = 24,
+        .stride = 36,
         .offset = 0,
         .components = 3,
     },
     glo::VertexLayout{
-        .stride = 24,
+        .stride = 36,
         .offset = 12,
+        .components = 3,
+    },
+    glo::VertexLayout{
+        .stride = 36,
+        .offset = 24,
         .components = 3,
     },
 };
@@ -49,6 +72,7 @@ struct Float3 {
 
 struct Vertex {
   Float3 position;
+  Float3 normal;
   Float3 color;
 };
 
@@ -58,7 +82,9 @@ class GL3RendererImpl {
   glo::VAO vao_;
   Vertex vertices_[65535];
   uint32_t drawCount_ = 0;
-  glo::UBO ubo_ = {0};
+
+  glo::UBO<VertexUbo> vertexUbo_ = {0};
+  glo::UBO<Light> fragmentUbo_ = {1};
 
 public:
   GL3RendererImpl() {
@@ -71,9 +97,11 @@ public:
     uint32_t vbos[] = {
         vbo_.vbo_,
         vbo_.vbo_,
+        vbo_.vbo_,
     };
     vao_.Initialize(layouts, vbos);
-    ubo_.Initialize(sizeof(float) * 16);
+    fragmentUbo_.Initialize();
+    vertexUbo_.Initialize();
   }
   ~GL3RendererImpl() {}
   void Clear() { drawCount_ = 0; }
@@ -85,11 +113,14 @@ public:
   void Render(const float m[16]) {
     // upload
     vbo_.Upload(sizeof(vertices_), vertices_);
-    ubo_.Upload(sizeof(float) * 16, m);
+    vertexUbo_.value_.uVP = *((const DirectX::XMFLOAT4X4 *)m);
+    vertexUbo_.Upload();
+    fragmentUbo_.Upload();
 
     // render
     glUseProgram(program_);
-    ubo_.Bind(program_, "UBO");
+    vertexUbo_.Bind(program_, "VertexUbo");
+    fragmentUbo_.Bind(program_, "FragmentUbo");
     // glo::UniformVariables variables(program_);
     // variables.SetMatrix4x4("MVP", m);
     vao_.Render(drawCount_);
@@ -121,14 +152,17 @@ void GL3Renderer::Triangle(float x1, float y1, float z1, float x2, float y2,
   impl_->PushTriangle(
       Vertex{
           .position{x1, y1, z1},
+          .normal{.x = nx_, .y = ny_, .z = nz_},
           .color{r_, g_, b_},
       },
       Vertex{
           .position{x2, y2, z2},
+          .normal{.x = nx_, .y = ny_, .z = nz_},
           .color{r_, g_, b_},
       },
       Vertex{
           .position{x3, y3, z3},
+          .normal{.x = nx_, .y = ny_, .z = nz_},
           .color{r_, g_, b_},
       });
 }

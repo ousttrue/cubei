@@ -10,7 +10,6 @@ class GL3Renderer : public q3Render {
   float nx_, ny_, nz_;
 
   Camera camera_ = {};
-  Light light_ = {};
 
   class GL3RendererImpl *impl_ = nullptr;
 
