@@ -36,6 +36,9 @@ distribution.
 class q3Render {
 public:
   virtual ~q3Render() {}
+  virtual void BeginFrame(int width, int height) {}
+  virtual void EndFrame() {}
+
   virtual void SetPenColor(float r, float g, float b, float a = 1.0f) = 0;
   virtual void SetPenPosition(float x, float y, float z) = 0;
   virtual void SetScale(float sx, float sy, float sz) = 0;

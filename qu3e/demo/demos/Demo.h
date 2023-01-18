@@ -44,12 +44,3 @@ struct Demo {
     (void)y;
   }
 };
-
-void DemosMouseLeftDown(int x, int y);
-void DemosKeyDown(unsigned char key);
-void DemosKeyUp(unsigned char key);
-void DemosTogglePause();
-void DemosSingleStep();
-void DemosUpdate();
-void DemosRender(int w, int h);
-void DemosGui();

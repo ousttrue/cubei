@@ -1,12 +1,6 @@
 #pragma once
 #include <q3.h>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#endif
-#include <gl/GL.h>
-
 struct Light {
   float ambient[4] = {1.0f, 1.0f, 1.0f, 0.5f};
   float diffuse[4] = {0.2f, 0.4f, 0.7f, 1.0f};
@@ -18,7 +12,7 @@ struct Camera {
   float target[3] = {0.0f, 0.0f, 0.0f};
 };
 
-class Renderer : public q3Render {
+class GL2Renderer : public q3Render {
   float x_, y_, z_;
   float sx_, sy_, sz_;
   float nx_, ny_, nz_;
@@ -27,8 +21,8 @@ class Renderer : public q3Render {
   Light light_ = {};
 
 public:
-  Renderer();
-  ~Renderer();
+  GL2Renderer();
+  ~GL2Renderer();
   void SetPenColor(float r, float g, float b, float a = 1.0f) override;
   void SetPenPosition(float x, float y, float z) override;
   void SetScale(float sx, float sy, float sz) override;
