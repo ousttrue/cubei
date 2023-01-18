@@ -3,19 +3,17 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
-#include <imgui.h>
 #include "Demo.h"
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 #include <gl/GLU.h>
+#include <imgui.h>
 
-int mouseX;
-int mouseY;
-bool mouseLeftDown;
-bool mouseRightDown;
-static GLuint fontTex;
-int windowWidth;
-int windowHeight;
+static int g_mouseX = -1;
+static int g_mouseY = -1;
+static bool g_mouseLeftDown = false;
+static bool g_mouseRightDown = false;
+static GLuint fontTex = 0;
 
 // This is the main rendering function that you have to implement and provide to
 // ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure) If text
@@ -97,20 +95,20 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
   if (action == GLFW_PRESS) {
     switch (button) {
     case GLFW_MOUSE_BUTTON_LEFT: {
-      mouseLeftDown = true;
-      DemosMouseLeftDown(mouseX, mouseY);
+      g_mouseLeftDown = true;
+      DemosMouseLeftDown(g_mouseX, g_mouseY);
     } break;
     case GLFW_MOUSE_BUTTON_RIGHT: {
-      mouseRightDown = true;
+      g_mouseRightDown = true;
     } break;
     }
   } else if (action == GLFW_RELEASE) {
     switch (button) {
     case GLFW_MOUSE_BUTTON_LEFT: {
-      mouseLeftDown = false;
+      g_mouseLeftDown = false;
     } break;
     case GLFW_MOUSE_BUTTON_RIGHT: {
-      mouseRightDown = false;
+      g_mouseRightDown = false;
     } break;
     }
   }
@@ -118,10 +116,10 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
 
 static void cursor_position_callback(GLFWwindow *window, double xpos,
                                      double ypos) {
-  mouseX = static_cast<int>(xpos);
-  mouseY = static_cast<int>(ypos);
+  g_mouseX = static_cast<int>(xpos);
+  g_mouseY = static_cast<int>(ypos);
   ImGuiIO &io = ImGui::GetIO();
-  io.MousePos = ImVec2((float)mouseX, (float)mouseY);
+  io.MousePos = ImVec2((float)g_mouseX, (float)g_mouseY);
 }
 
 namespace Camera {
@@ -135,7 +133,7 @@ float diffuse[4] = {0.2f, 0.4f, 0.7f, 1.0f};
 float specular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 } // namespace Light
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action,
+static void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   const float increment = 0.2f;
 
@@ -191,12 +189,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   io.KeyShift = (mods & GLFW_MOD_SHIFT) != 0;
 }
 
-void window_size_callback(GLFWwindow *window, int width, int height) {
+static void window_size_callback(GLFWwindow *window, int width, int height) {
   if (height <= 0)
     height = 1;
-
-  windowWidth = width;
-  windowHeight = height;
 
   float aspectRatio = (float)width / (float)height;
   glViewport(0, 0, width, height);
@@ -210,21 +205,21 @@ void window_size_callback(GLFWwindow *window, int width, int height) {
             0.0f);
 }
 
-void UpdateImGui(float dt) {
+static void UpdateImGui(int windowWidth, int windowHeight, float dt) {
   ImGuiIO &io = ImGui::GetIO();
 
   io.DeltaTime = dt;
   io.DisplaySize.x = float(windowWidth);
   io.DisplaySize.y = float(windowHeight);
-  io.MousePos = ImVec2((float)mouseX, (float)mouseY + 8);
-  io.MouseDown[0] = mouseLeftDown;
-  io.MouseDown[1] = mouseRightDown;
+  io.MousePos = ImVec2((float)g_mouseX, (float)g_mouseY + 8);
+  io.MouseDown[0] = g_mouseLeftDown;
+  io.MouseDown[1] = g_mouseRightDown;
 
   // Start the frame
   ImGui::NewFrame();
 }
 
-void InitImGui(int w, int h) {
+static void InitImGui(int w, int h) {
   ImGuiIO &io = ImGui::GetIO();
   io.DisplaySize = ImVec2(
       (float)w,
@@ -342,7 +337,7 @@ int InitApp(int argc, char **argv) {
 
     DemosUpdate();
     window_size_callback(window, w, h);
-    UpdateImGui(1.0f / 60.0f);
+    UpdateImGui(w, h, 1.0f / 60.0f);
     DemosGui();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

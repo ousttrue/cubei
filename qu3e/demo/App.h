@@ -1,3 +1,3 @@
 #pragma once
 
-int InitApp( int argc, char** argv );
+int InitApp(int argc, char **argv);
