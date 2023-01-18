@@ -37,7 +37,7 @@
 //--------------------------------------------------------------------------------------------------
 class q3Scene;
 struct q3BodyDef;
-class q3BoxDef;
+struct q3BoxDef;
 struct q3ContactEdge;
 class q3Render;
 struct q3Box;

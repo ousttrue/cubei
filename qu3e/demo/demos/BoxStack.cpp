@@ -2,14 +2,15 @@
 
 void BoxStack::Init(q3Scene *scene) {
   // Create the floor
-  q3BodyDef bodyDef;
+  q3BodyDef bodyDef = {};
   // bodyDef.axis.Set( q3RandomFloat( -1.0f, 1.0f ), q3RandomFloat(
   // -1.0f, 1.0f ), q3RandomFloat( -1.0f, 1.0f ) ); bodyDef.angle = q3PI *
   // q3RandomFloat( -1.0f, 1.0f );
   q3Body *body = scene->CreateBody(bodyDef);
 
-  q3BoxDef boxDef;
-  boxDef.SetRestitution(0);
+  q3BoxDef boxDef{
+      .m_restitution = 0,
+  };
   q3Transform tx;
   q3Identity(tx);
   boxDef.Set(tx, q3Vec3(50.0f, 1.0f, 50.0f));
