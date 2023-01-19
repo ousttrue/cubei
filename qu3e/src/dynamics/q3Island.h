@@ -30,7 +30,7 @@
 #include "../math/q3Math.h"
 #include "../common/q3Geometry.h"
 #include "../common/q3Settings.h"
-
+#include <vector>
 //--------------------------------------------------------------------------------------------------
 // q3Island
 //--------------------------------------------------------------------------------------------------
@@ -52,15 +52,10 @@ struct q3Island
 	void Add( q3ContactConstraint *contact );
 	void Initialize( );
 
-	q3Body **m_bodies;
-	q3VelocityState *m_velocities;
-	int m_bodyCapacity;
-	int m_bodyCount;
-
-	q3ContactConstraint **m_contacts;
-	q3ContactConstraintState *m_contactStates;
-	int m_contactCount;
-	int m_contactCapacity;
+	std::vector<q3Body*> m_bodies;
+	std::vector<q3VelocityState> m_velocities;
+	std::vector<q3ContactConstraint*> m_contacts;
+	std::vector<q3ContactConstraintState> m_contactStates;
 
 	float m_dt;
 	q3Vec3 m_gravity;

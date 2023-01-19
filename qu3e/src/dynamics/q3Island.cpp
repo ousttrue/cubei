@@ -43,7 +43,7 @@ void q3Island::Solve() {
 
   // Apply gravity
   // Integrate velocities and create state buffers, calculate world inertia
-  for (int i = 0; i < m_bodyCount; ++i) {
+  for (int i = 0; i < m_bodies.size(); ++i) {
     q3Body *body = m_bodies[i];
     q3VelocityState *v = &m_velocities[i];
 
@@ -90,7 +90,7 @@ void q3Island::Solve() {
 
   // Copy back state buffers
   // Integrate positions
-  for (int i = 0; i < m_bodyCount; ++i) {
+  for (int i = 0; i < m_bodies.size(); ++i) {
     q3Body *body = m_bodies[i];
     q3VelocityState *v = &m_velocities[i];
 
@@ -110,9 +110,7 @@ void q3Island::Solve() {
   if (m_allowSleep) {
     // Find minimum sleep time of the entire island
     float minSleepTime = Q3_R32_MAX;
-    for (int i = 0; i < m_bodyCount; ++i) {
-      q3Body *body = m_bodies[i];
-
+    for (auto body : m_bodies) {
       if (body->m_flags & q3Body::eStatic)
         continue;
 
@@ -139,33 +137,30 @@ void q3Island::Solve() {
     // sleeping threshold, the entire island will be reformed next step
     // and sleep test will be tried again.
     if (minSleepTime > Q3_SLEEP_TIME) {
-      for (int i = 0; i < m_bodyCount; ++i)
-        m_bodies[i]->SetToSleep();
+      for (auto body : m_bodies)
+        body->SetToSleep();
     }
   }
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Island::Add(q3Body *body) {
-  assert(m_bodyCount < m_bodyCapacity);
-
-  body->m_islandIndex = m_bodyCount;
-
-  m_bodies[m_bodyCount++] = body;
+  body->m_islandIndex = m_bodies.size();
+  m_bodies.push_back(body);
+  m_velocities.push_back({});
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Island::Add(q3ContactConstraint *contact) {
-  assert(m_contactCount < m_contactCapacity);
-
-  m_contacts[m_contactCount++] = contact;
+  m_contacts.push_back(contact);
+  m_contactStates.push_back({});
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Island::Initialize() {
   rmt_ScopedCPUSample(q3IslandInitialize, 0);
 
-  for (int i = 0; i < m_contactCount; ++i) {
+  for (int i = 0; i < m_contacts.size(); ++i) {
     q3ContactConstraint *cc = m_contacts[i];
     q3ContactConstraintState *c = &m_contactStates[i];
 

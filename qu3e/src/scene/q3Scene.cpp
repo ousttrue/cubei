@@ -33,15 +33,13 @@ distribution.
 #include "../dynamics/q3ContactSolver.h"
 #include "../dynamics/q3Island.h"
 #include "q3Scene.h"
-#include <vector>
 #include <Remotery.h>
+#include <vector>
 
 //--------------------------------------------------------------------------------------------------
 // q3Scene
 //--------------------------------------------------------------------------------------------------
-q3Scene::q3Scene(float dt)
-    : m_boxAllocator(sizeof(q3Box), 256), m_dt(dt)
-{}
+q3Scene::q3Scene(float dt) : m_boxAllocator(sizeof(q3Box), 256), m_dt(dt) {}
 
 //--------------------------------------------------------------------------------------------------
 q3Scene::~q3Scene() { Shutdown(); }
@@ -61,22 +59,15 @@ void q3Scene::Step() {
     body->m_flags &= ~q3Body::eIsland;
   }
 
-  std::vector<q3Body*> bodies(m_bodyList.size());
-  std::vector<q3VelocityState> velocities(m_bodyList.size());
-  std::vector<q3ContactConstraint *> contacts(m_contactManager.m_contactCount);
-  std::vector<q3ContactConstraintState> contactStates(m_contactManager.m_contactCount);
-  // Size the stack island, pick worst case size
+  // Size the stack island, pick
+  // worst case size
   q3Island island;
-  island.m_bodyCapacity = m_bodyList.size();
-  island.m_contactCapacity = m_contactManager.m_contactCount;
-  island.m_bodies = bodies.data();
-  island.m_velocities = velocities.data();
-  island.m_contacts = contacts.data();
-  island.m_contactStates = contactStates.data();
+  island.m_bodies.reserve(m_bodyList.size());
+  island.m_velocities.reserve(m_bodyList.size());
+  island.m_contacts.reserve(m_contactManager.m_contactCount);
+  island.m_contactStates.reserve(m_contactManager.m_contactCount);
   island.m_allowSleep = m_allowSleep;
   island.m_enableFriction = m_enableFriction;
-  island.m_bodyCount = 0;
-  island.m_contactCount = 0;
   island.m_dt = m_dt;
   island.m_gravity = m_gravity;
   island.m_iterations = m_iterations;
@@ -100,8 +91,8 @@ void q3Scene::Step() {
 
     int stackCount = 0;
     stack[stackCount++] = seed;
-    island.m_bodyCount = 0;
-    island.m_contactCount = 0;
+    island.m_bodies.clear();
+    island.m_contacts.clear();
 
     // Mark seed as apart of island
     seed->m_flags |= q3Body::eIsland;
@@ -157,16 +148,14 @@ void q3Scene::Step() {
       }
     }
 
-    assert(island.m_bodyCount != 0);
+    assert(island.m_bodies.size() != 0);
 
     island.Initialize();
     island.Solve();
 
     // Reset all static island flags
     // This allows static bodies to participate in other island formations
-    for (int i = 0; i < island.m_bodyCount; i++) {
-      q3Body *body = island.m_bodies[i];
-
+    for (auto body : island.m_bodies) {
       if (body->m_flags & q3Body::eStatic)
         body->m_flags &= ~q3Body::eIsland;
     }
