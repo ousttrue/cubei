@@ -143,10 +143,6 @@ struct q3ContactConstraint {
   void RemoveFlag(q3ContactConstraintFlags flag) {
     m_flags = (q3ContactConstraintFlags)((int)m_flags & ~(int)flag);
   }
-
-  friend class q3ContactManager;
-  friend class q3Scene;
-  friend class q3Island;
 };
 
 #endif // Q3CONTACT_H

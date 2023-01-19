@@ -65,10 +65,10 @@ void q3ContactSolver::PreSolve(float dt) {
   for (int i = 0; i < m_contactCount; ++i) {
     q3ContactConstraintState *cs = m_contacts + i;
 
-    q3Vec3 vA = m_velocities[cs->indexA].v;
-    q3Vec3 wA = m_velocities[cs->indexA].w;
-    q3Vec3 vB = m_velocities[cs->indexB].v;
-    q3Vec3 wB = m_velocities[cs->indexB].w;
+    q3Vec3 vA = m_velocities[cs->A.m_islandIndex].v;
+    q3Vec3 wA = m_velocities[cs->A.m_islandIndex].w;
+    q3Vec3 vB = m_velocities[cs->B.m_islandIndex].v;
+    q3Vec3 wB = m_velocities[cs->B.m_islandIndex].w;
 
     for (int j = 0; j < cs->contactCount; ++j) {
       q3ContactState *c = cs->contacts + j;
@@ -76,18 +76,20 @@ void q3ContactSolver::PreSolve(float dt) {
       // Precalculate JM^-1JT for contact and friction constraints
       q3Vec3 raCn = q3Cross(c->ra, cs->normal);
       q3Vec3 rbCn = q3Cross(c->rb, cs->normal);
-      float nm = cs->mA + cs->mB;
+      float nm = cs->A.m_invMass + cs->B.m_invMass;
       float tm[2];
       tm[0] = nm;
       tm[1] = nm;
 
-      nm += q3Dot(raCn, cs->iA * raCn) + q3Dot(rbCn, cs->iB * rbCn);
+      nm += q3Dot(raCn, cs->A.m_invInertiaWorld * raCn) +
+            q3Dot(rbCn, cs->B.m_invInertiaWorld * rbCn);
       c->normalMass = q3Invert(nm);
 
       for (int i = 0; i < 2; ++i) {
         q3Vec3 raCt = q3Cross(cs->tangentVectors[i], c->ra);
         q3Vec3 rbCt = q3Cross(cs->tangentVectors[i], c->rb);
-        tm[i] += q3Dot(raCt, cs->iA * raCt) + q3Dot(rbCt, cs->iB * rbCt);
+        tm[i] += q3Dot(raCt, cs->A.m_invInertiaWorld * raCt) +
+                 q3Dot(rbCt, cs->B.m_invInertiaWorld * rbCt);
         c->tangentMass[i] = q3Invert(tm[i]);
       }
 
@@ -103,11 +105,11 @@ void q3ContactSolver::PreSolve(float dt) {
         P += cs->tangentVectors[1] * c->tangentImpulse[1];
       }
 
-      vA -= P * cs->mA;
-      wA -= cs->iA * q3Cross(c->ra, P);
+      vA -= P * cs->A.m_invMass;
+      wA -= cs->A.m_invInertiaWorld * q3Cross(c->ra, P);
 
-      vB += P * cs->mB;
-      wB += cs->iB * q3Cross(c->rb, P);
+      vB += P * cs->B.m_invMass;
+      wB += cs->B.m_invInertiaWorld * q3Cross(c->rb, P);
 
       // Add in restitution bias
       float dv =
@@ -117,10 +119,10 @@ void q3ContactSolver::PreSolve(float dt) {
         c->bias += -(cs->restitution) * dv;
     }
 
-    m_velocities[cs->indexA].v = vA;
-    m_velocities[cs->indexA].w = wA;
-    m_velocities[cs->indexB].v = vB;
-    m_velocities[cs->indexB].w = wB;
+    m_velocities[cs->A.m_islandIndex].v = vA;
+    m_velocities[cs->A.m_islandIndex].w = wA;
+    m_velocities[cs->B.m_islandIndex].v = vB;
+    m_velocities[cs->B.m_islandIndex].w = wB;
   }
 }
 
@@ -129,10 +131,10 @@ void q3ContactSolver::Solve() {
   for (int i = 0; i < m_contactCount; ++i) {
     q3ContactConstraintState *cs = m_contacts + i;
 
-    q3Vec3 vA = m_velocities[cs->indexA].v;
-    q3Vec3 wA = m_velocities[cs->indexA].w;
-    q3Vec3 vB = m_velocities[cs->indexB].v;
-    q3Vec3 wB = m_velocities[cs->indexB].w;
+    q3Vec3 vA = m_velocities[cs->A.m_islandIndex].v;
+    q3Vec3 wA = m_velocities[cs->A.m_islandIndex].w;
+    q3Vec3 vB = m_velocities[cs->B.m_islandIndex].v;
+    q3Vec3 wB = m_velocities[cs->B.m_islandIndex].w;
 
     for (int j = 0; j < cs->contactCount; ++j) {
       q3ContactState *c = cs->contacts + j;
@@ -155,11 +157,11 @@ void q3ContactSolver::Solve() {
 
           // Apply friction impulse
           q3Vec3 impulse = cs->tangentVectors[i] * lambda;
-          vA -= impulse * cs->mA;
-          wA -= cs->iA * q3Cross(c->ra, impulse);
+          vA -= impulse * cs->A.m_invMass;
+          wA -= cs->A.m_invInertiaWorld * q3Cross(c->ra, impulse);
 
-          vB += impulse * cs->mB;
-          wB += cs->iB * q3Cross(c->rb, impulse);
+          vB += impulse * cs->B.m_invMass;
+          wB += cs->B.m_invInertiaWorld * q3Cross(c->rb, impulse);
         }
       }
 
@@ -180,17 +182,17 @@ void q3ContactSolver::Solve() {
 
         // Apply impulse
         q3Vec3 impulse = cs->normal * lambda;
-        vA -= impulse * cs->mA;
-        wA -= cs->iA * q3Cross(c->ra, impulse);
+        vA -= impulse * cs->A.m_invMass;
+        wA -= cs->A.m_invInertiaWorld * q3Cross(c->ra, impulse);
 
-        vB += impulse * cs->mB;
-        wB += cs->iB * q3Cross(c->rb, impulse);
+        vB += impulse * cs->B.m_invMass;
+        wB += cs->B.m_invInertiaWorld * q3Cross(c->rb, impulse);
       }
     }
 
-    m_velocities[cs->indexA].v = vA;
-    m_velocities[cs->indexA].w = wA;
-    m_velocities[cs->indexB].v = vB;
-    m_velocities[cs->indexB].w = wB;
+    m_velocities[cs->A.m_islandIndex].v = vA;
+    m_velocities[cs->A.m_islandIndex].w = wA;
+    m_velocities[cs->B.m_islandIndex].v = vB;
+    m_velocities[cs->B.m_islandIndex].w = wB;
   }
 }

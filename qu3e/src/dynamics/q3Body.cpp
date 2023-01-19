@@ -28,6 +28,7 @@ distribution.
 #include "q3Body.h"
 #include "../broadphase/q3BroadPhase.h"
 #include "../collision/q3Box.h"
+#include "../math/q3Math.h"
 #include "../scene/q3Scene.h"
 #include "q3Contact.h"
 
@@ -139,14 +140,14 @@ void q3Body::ApplyLinearForce(const q3Vec3 &force) {
 //--------------------------------------------------------------------------------------------------
 void q3Body::ApplyForceAtWorldPoint(const q3Vec3 &force, const q3Vec3 &point) {
   m_force += force * m_mass;
-  m_torque += q3Cross(point - m_worldCenter, force);
+  m_torque += q3Cross(point - m_state.m_worldCenter, force);
 
   SetToAwake();
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::ApplyLinearImpulse(const q3Vec3 &impulse) {
-  m_linearVelocity += impulse * m_invMass;
+  m_linearVelocity += impulse * m_state.m_invMass;
 
   SetToAwake();
 }
@@ -154,9 +155,9 @@ void q3Body::ApplyLinearImpulse(const q3Vec3 &impulse) {
 //--------------------------------------------------------------------------------------------------
 void q3Body::ApplyLinearImpulseAtWorldPoint(const q3Vec3 &impulse,
                                             const q3Vec3 &point) {
-  m_linearVelocity += impulse * m_invMass;
-  m_angularVelocity +=
-      m_invInertiaWorld * q3Cross(point - m_worldCenter, impulse);
+  m_linearVelocity += impulse * m_state.m_invMass;
+  m_angularVelocity += m_state.m_invInertiaWorld *
+                       q3Cross(point - m_state.m_worldCenter, impulse);
 
   SetToAwake();
 }
@@ -191,7 +192,7 @@ bool q3Body::IsAwake() const {
 float q3Body::GetMass() const { return m_mass; }
 
 //--------------------------------------------------------------------------------------------------
-float q3Body::GetInvMass() const { return m_invMass; }
+float q3Body::GetInvMass() const { return m_state.m_invMass; }
 
 //--------------------------------------------------------------------------------------------------
 float q3Body::GetGravityScale() const { return m_gravityScale; }
@@ -224,7 +225,7 @@ const q3Vec3 q3Body::GetLinearVelocity() const { return m_linearVelocity; }
 
 //--------------------------------------------------------------------------------------------------
 const q3Vec3 q3Body::GetVelocityAtWorldPoint(const q3Vec3 &p) const {
-  q3Vec3 directionToPoint = p - m_worldCenter;
+  q3Vec3 directionToPoint = p - m_state.m_worldCenter;
   q3Vec3 relativeAngularVel = q3Cross(m_angularVelocity, directionToPoint);
 
   return m_linearVelocity + relativeAngularVel;
@@ -280,7 +281,7 @@ const q3Transform q3Body::GetTransform() const { return m_tx; }
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::SetTransform(const q3Vec3 &position) {
-  m_worldCenter = position;
+  m_state.m_worldCenter = position;
 
   SynchronizeProxies();
 }
@@ -288,7 +289,7 @@ void q3Body::SetTransform(const q3Vec3 &position) {
 //--------------------------------------------------------------------------------------------------
 void q3Body::SetTransform(const q3Vec3 &position, const q3Vec3 &axis,
                           float angle) {
-  m_worldCenter = position;
+  m_state.m_worldCenter = position;
   m_q.Set(axis, angle);
   m_tx.rotation = m_q.ToMat3();
 
@@ -319,6 +320,31 @@ void q3Body::SetAngularDamping(float damping) { m_angularDamping = damping; }
 //--------------------------------------------------------------------------------------------------
 float q3Body::GetAngularDamping(float damping) const {
   return m_angularDamping;
+}
+
+void q3Body::Solve(const q3Env &env) {
+  if (HasFlag(q3BodyFlags::eDynamic)) {
+    ApplyLinearForce(env.m_gravity * m_gravityScale);
+
+    // Calculate world space intertia tensor
+    q3Mat3 r = m_tx.rotation;
+    m_state.m_invInertiaWorld = r * m_invInertiaModel * q3Transpose(r);
+
+    // Integrate velocity
+    m_linearVelocity += (m_force * m_state.m_invMass) * env.m_dt;
+    m_angularVelocity += (m_state.m_invInertiaWorld * m_torque) * env.m_dt;
+
+    // From Box2D!
+    // Apply damping.
+    // ODE: dv/dt + c * v = 0
+    // Solution: v(t) = v0 * exp(-c * t)
+    // Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) *
+    // exp(-c * dt) = v * exp(-c * dt) v2 = exp(-c * dt) * v1 Pade
+    // approximation: v2 = v1 * 1 / (1 + c * dt)
+    m_linearVelocity *= float(1.0) / (float(1.0) + env.m_dt * m_linearDamping);
+    m_angularVelocity *=
+        float(1.0) / (float(1.0) + env.m_dt * m_angularDamping);
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -395,18 +421,50 @@ void q3Body::Dump(FILE *file, int index) const {
   fprintf(file, "}\n\n");
 }
 
+void q3Body::SetVelocityState(const q3Env &env, const q3VelocityState &v) {
+  if (HasFlag(q3BodyFlags::eStatic))
+    return;
+  m_linearVelocity = v.v;
+  m_angularVelocity = v.w;
+  // Integrate position
+  m_state.m_worldCenter += m_linearVelocity * env.m_dt;
+  m_q.Integrate(m_angularVelocity, env.m_dt);
+  m_q = q3Normalize(m_q);
+  m_tx.rotation = m_q.ToMat3();
+}
+
+void q3Body::Sleep(const q3Env &env, float *minSleepTime) {
+  if (HasFlag(q3BodyFlags::eStatic))
+    return;
+
+  const float sqrLinVel = q3Dot(m_linearVelocity, m_linearVelocity);
+  const float cbAngVel = q3Dot(m_angularVelocity, m_angularVelocity);
+  const float linTol = Q3_SLEEP_LINEAR;
+  const float angTol = Q3_SLEEP_ANGULAR;
+
+  if (sqrLinVel > linTol || cbAngVel > angTol) {
+    *minSleepTime = float(0.0);
+    m_sleepTime = float(0.0);
+  }
+
+  else {
+    m_sleepTime += env.m_dt;
+    *minSleepTime = q3Min(*minSleepTime, m_sleepTime);
+  }
+}
+
 //--------------------------------------------------------------------------------------------------
 void q3Body::CalculateMassData() {
   q3Mat3 inertia = q3Diagonal(float(0.0));
   m_invInertiaModel = q3Diagonal(float(0.0));
-  m_invInertiaWorld = q3Diagonal(float(0.0));
-  m_invMass = float(0.0);
+  m_state.m_invInertiaWorld = q3Diagonal(float(0.0));
+  m_state.m_invMass = float(0.0);
   m_mass = float(0.0);
   float mass = float(0.0);
 
   if (HasFlag(q3BodyFlags::eStatic) || HasFlag(q3BodyFlags::eKinematic)) {
     m_localCenter = {};
-    m_worldCenter = m_tx.position;
+    m_state.m_worldCenter = m_tx.position;
     return;
   }
 
@@ -424,8 +482,8 @@ void q3Body::CalculateMassData() {
 
   if (mass > float(0.0)) {
     m_mass = mass;
-    m_invMass = float(1.0) / mass;
-    lc *= m_invMass;
+    m_state.m_invMass = float(1.0) / mass;
+    lc *= m_state.m_invMass;
     q3Mat3 identity = {};
     inertia -= (identity * q3Dot(lc, lc) - q3OuterProduct(lc, lc)) * mass;
     m_invInertiaModel = q3Inverse(inertia);
@@ -440,20 +498,20 @@ void q3Body::CalculateMassData() {
       m_invInertiaModel.ez = {};
   } else {
     // Force all dynamic bodies to have some mass
-    m_invMass = float(1.0);
+    m_state.m_invMass = float(1.0);
     m_invInertiaModel = q3Diagonal(float(0.0));
-    m_invInertiaWorld = q3Diagonal(float(0.0));
+    m_state.m_invInertiaWorld = q3Diagonal(float(0.0));
   }
 
   m_localCenter = lc;
-  m_worldCenter = q3Mul(m_tx, lc);
+  m_state.m_worldCenter = q3Mul(m_tx, lc);
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::SynchronizeProxies() {
   q3BroadPhase *broadphase = &m_scene->m_contactManager.m_broadphase;
 
-  m_tx.position = m_worldCenter - q3Mul(m_tx.rotation, m_localCenter);
+  m_tx.position = m_state.m_worldCenter - q3Mul(m_tx.rotation, m_localCenter);
 
   q3AABB aabb;
   q3Transform tx = m_tx;

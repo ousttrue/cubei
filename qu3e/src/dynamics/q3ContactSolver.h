@@ -30,6 +30,7 @@ distribution.
 
 #include "../common/q3Settings.h"
 #include "../math/q3Math.h"
+#include "q3BodyState.h"
 #include <span>
 
 //--------------------------------------------------------------------------------------------------
@@ -54,16 +55,18 @@ struct q3ContactConstraintState {
   int contactCount;
   q3Vec3 tangentVectors[2]; // Tangent vectors
   q3Vec3 normal;            // From A to B
-  q3Vec3 centerA;
-  q3Vec3 centerB;
-  q3Mat3 iA;
-  q3Mat3 iB;
-  float mA;
-  float mB;
+  q3BodyState A;
+  q3BodyState B;
+  // q3Vec3 centerA;
+  // q3Vec3 centerB;
+  // q3Mat3 iA;
+  // q3Mat3 iB;
+  // float mA;
+  // float mB;
+  // int indexA;
+  // int indexB;
   float restitution;
   float friction;
-  int indexA;
-  int indexB;
 
   std::span<q3ContactState> span() {
     return std::span(contacts, contactCount);

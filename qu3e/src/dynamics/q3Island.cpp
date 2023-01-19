@@ -147,35 +147,8 @@ void q3Island::Solve(const q3Env &env) {
   // Integrate velocities and create state buffers, calculate world inertia
   for (int i = 0; i < m_bodies.size(); ++i) {
     q3Body *body = m_bodies[i];
-    q3VelocityState *v = &m_velocities[i];
-
-    if (body->HasFlag(q3BodyFlags::eDynamic)) {
-      body->ApplyLinearForce(env.m_gravity * body->m_gravityScale);
-
-      // Calculate world space intertia tensor
-      q3Mat3 r = body->m_tx.rotation;
-      body->m_invInertiaWorld = r * body->m_invInertiaModel * q3Transpose(r);
-
-      // Integrate velocity
-      body->m_linearVelocity += (body->m_force * body->m_invMass) * env.m_dt;
-      body->m_angularVelocity +=
-          (body->m_invInertiaWorld * body->m_torque) * env.m_dt;
-
-      // From Box2D!
-      // Apply damping.
-      // ODE: dv/dt + c * v = 0
-      // Solution: v(t) = v0 * exp(-c * t)
-      // Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) *
-      // exp(-c * dt) = v * exp(-c * dt) v2 = exp(-c * dt) * v1 Pade
-      // approximation: v2 = v1 * 1 / (1 + c * dt)
-      body->m_linearVelocity *=
-          float(1.0) / (float(1.0) + env.m_dt * body->m_linearDamping);
-      body->m_angularVelocity *=
-          float(1.0) / (float(1.0) + env.m_dt * body->m_angularDamping);
-    }
-
-    v->v = body->m_linearVelocity;
-    v->w = body->m_angularVelocity;
+    body->Solve(env);
+    m_velocities[i] = body->VelocityState();
   }
 
   // Create contact solver, pass in state buffers, create buffers for contacts
@@ -194,44 +167,14 @@ void q3Island::Solve(const q3Env &env) {
   // Integrate positions
   for (int i = 0; i < m_bodies.size(); ++i) {
     q3Body *body = m_bodies[i];
-    q3VelocityState *v = &m_velocities[i];
-
-    if (body->HasFlag(q3BodyFlags::eStatic))
-      continue;
-
-    body->m_linearVelocity = v->v;
-    body->m_angularVelocity = v->w;
-
-    // Integrate position
-    body->m_worldCenter += body->m_linearVelocity * env.m_dt;
-    body->m_q.Integrate(body->m_angularVelocity, env.m_dt);
-    body->m_q = q3Normalize(body->m_q);
-    body->m_tx.rotation = body->m_q.ToMat3();
+    body->SetVelocityState(env, m_velocities[i]);
   }
 
   if (env.m_allowSleep) {
     // Find minimum sleep time of the entire island
     float minSleepTime = Q3_R32_MAX;
     for (auto body : m_bodies) {
-      if (body->HasFlag(q3BodyFlags::eStatic))
-        continue;
-
-      const float sqrLinVel =
-          q3Dot(body->m_linearVelocity, body->m_linearVelocity);
-      const float cbAngVel =
-          q3Dot(body->m_angularVelocity, body->m_angularVelocity);
-      const float linTol = Q3_SLEEP_LINEAR;
-      const float angTol = Q3_SLEEP_ANGULAR;
-
-      if (sqrLinVel > linTol || cbAngVel > angTol) {
-        minSleepTime = float(0.0);
-        body->m_sleepTime = float(0.0);
-      }
-
-      else {
-        body->m_sleepTime += env.m_dt;
-        minSleepTime = q3Min(minSleepTime, body->m_sleepTime);
-      }
+      body->Sleep(env, &minSleepTime);
     }
 
     // Put entire island to sleep so long as the minimum found sleep time
@@ -247,7 +190,7 @@ void q3Island::Solve(const q3Env &env) {
 
 //--------------------------------------------------------------------------------------------------
 void q3Island::Add(q3Body *body) {
-  body->m_islandIndex = m_bodies.size();
+  body->SetIslandIndex(m_bodies.size());
   m_bodies.push_back(body);
   m_velocities.push_back({});
 }
@@ -266,16 +209,10 @@ void q3Island::Initialize() {
     q3ContactConstraint *cc = m_contacts[i];
     q3ContactConstraintState *c = &m_contactStates[i];
 
-    c->centerA = cc->bodyA->m_worldCenter;
-    c->centerB = cc->bodyB->m_worldCenter;
-    c->iA = cc->bodyA->m_invInertiaWorld;
-    c->iB = cc->bodyB->m_invInertiaWorld;
-    c->mA = cc->bodyA->m_invMass;
-    c->mB = cc->bodyB->m_invMass;
+    c->A = cc->bodyA->State();
+    c->B = cc->bodyB->State();
     c->restitution = cc->restitution;
     c->friction = cc->friction;
-    c->indexA = cc->bodyA->m_islandIndex;
-    c->indexB = cc->bodyB->m_islandIndex;
     c->normal = cc->manifold.normal;
     c->tangentVectors[0] = cc->manifold.tangentVectors[0];
     c->tangentVectors[1] = cc->manifold.tangentVectors[1];
@@ -284,8 +221,8 @@ void q3Island::Initialize() {
     int j = 0;
     for (auto &s : c->span()) {
       auto cp = &cc->manifold.contacts[j++];
-      s.ra = cp->position - c->centerA;
-      s.rb = cp->position - c->centerB;
+      s.ra = cp->position - c->A.m_worldCenter;
+      s.rb = cp->position - c->B.m_worldCenter;
       s.penetration = cp->penetration;
       s.normalImpulse = cp->normalImpulse;
       s.tangentImpulse[0] = cp->tangentImpulse[0];

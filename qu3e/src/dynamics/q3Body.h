@@ -30,6 +30,7 @@ distribution.
 
 #include "../math/q3Math.h"
 #include "../math/q3Transform.h"
+#include "q3BodyState.h"
 #include <list>
 #include <stdio.h>
 
@@ -94,11 +95,16 @@ struct q3BodyDef {
   bool lockAxisZ = false; // Locked rotation on the z axis.
 };
 
+struct q3VelocityState {
+  q3Vec3 w;
+  q3Vec3 v;
+};
+
 class q3Body {
+  q3BodyState m_state;
   q3Mat3 m_invInertiaModel;
-  q3Mat3 m_invInertiaWorld;
   float m_mass;
-  float m_invMass;
+
   q3Vec3 m_linearVelocity;
   q3Vec3 m_angularVelocity;
   q3Vec3 m_force;
@@ -106,7 +112,6 @@ class q3Body {
   q3Transform m_tx;
   q3Quaternion m_q;
   q3Vec3 m_localCenter;
-  q3Vec3 m_worldCenter;
   float m_sleepTime;
   float m_gravityScale;
   int m_layers;
@@ -115,20 +120,26 @@ class q3Body {
   std::list<q3Box *> m_boxes;
   void *m_userData;
   q3Scene *m_scene;
-  int m_islandIndex;
 
   float m_linearDamping;
   float m_angularDamping;
 
-  q3ContactEdge *m_contactList;
-
   friend struct q3Manifold;
   friend class q3ContactManager;
-  friend class q3Island;
-  friend struct q3ContactSolver;
 
 public:
+  q3ContactEdge *m_contactList;
   q3Body(const q3BodyDef &def, q3Scene *scene);
+  q3BodyState State() const { return m_state; }
+  void SetIslandIndex(size_t index) { m_state.m_islandIndex = index; }
+  q3VelocityState VelocityState() const {
+    return {
+        .w = m_angularVelocity,
+        .v = m_linearVelocity,
+    };
+  }
+  void SetVelocityState(const struct q3Env &env, const q3VelocityState &v);
+  void Sleep(const q3Env &env, float *minSleepTime);
   void ClearForce() {
     m_force = {};
     m_torque = {};
@@ -193,6 +204,8 @@ public:
   // can be updated.
   void SetTransform(const q3Vec3 &position);
   void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle);
+
+  void Solve(const struct q3Env &env);
 
   // Used for debug rendering lines, triangles and basic lighting
   void Render(q3Render *render) const;
