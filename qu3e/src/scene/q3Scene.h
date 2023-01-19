@@ -72,25 +72,20 @@ class q3Scene {
 private:
   q3ContactManager m_contactManager;
   q3PagedAllocator m_boxAllocator;
+  q3Stack m_stack;
+  q3Vec3 m_gravity = q3Vec3{float(0.0), float(-9.8), float(0.0)};
+  float m_dt;
+  int m_iterations = 20;
 
   std::list<q3Body *> m_bodyList;
-
-  q3Stack m_stack;
-
-  q3Vec3 m_gravity;
-  float m_dt;
-  int m_iterations;
-
-  bool m_newBox;
-  bool m_allowSleep;
-  bool m_enableFriction;
+  bool m_newBox = false;
+  bool m_allowSleep = true;
+  bool m_enableFriction = true;
 
   friend class q3Body;
 
 public:
-  q3Scene(float dt,
-          const q3Vec3 &gravity = q3Vec3{float(0.0), float(-9.8), float(0.0)},
-          int iterations = 20);
+  q3Scene(float dt);
   ~q3Scene();
 
   // Run the simulation forward in time by dt (fixed timestep). Variable

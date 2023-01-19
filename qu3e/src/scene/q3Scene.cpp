@@ -39,10 +39,9 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3Scene
 //--------------------------------------------------------------------------------------------------
-q3Scene::q3Scene(float dt, const q3Vec3 &gravity, int iterations)
-    : m_contactManager(&m_stack), m_boxAllocator(sizeof(q3Box), 256),
-      m_gravity(gravity), m_dt(dt), m_iterations(iterations), m_newBox(false),
-      m_allowSleep(true), m_enableFriction(true) {}
+q3Scene::q3Scene(float dt)
+    : m_contactManager(&m_stack), m_boxAllocator(sizeof(q3Box), 256), m_dt(dt)
+{}
 
 //--------------------------------------------------------------------------------------------------
 q3Scene::~q3Scene() { Shutdown(); }
@@ -237,7 +236,7 @@ void q3Scene::SetAllowSleep(bool allowSleep) {
   m_allowSleep = allowSleep;
 
   if (!allowSleep) {
-    for (auto body: m_bodyList)
+    for (auto body : m_bodyList)
       body->SetToAwake();
   }
 }
@@ -252,7 +251,7 @@ void q3Scene::SetEnableFriction(bool enabled) { m_enableFriction = enabled; }
 
 //--------------------------------------------------------------------------------------------------
 void q3Scene::Render(q3Render *render) const {
-  for (auto body: m_bodyList) {
+  for (auto body : m_bodyList) {
     body->Render(render);
   }
   m_contactManager.RenderContacts(render);
@@ -377,7 +376,7 @@ void q3Scene::Dump(FILE *file) const {
           m_bodyList.size());
 
   int i = 0;
-  for (auto body: m_bodyList) {
+  for (auto body : m_bodyList) {
     body->Dump(file, i++);
   }
 
