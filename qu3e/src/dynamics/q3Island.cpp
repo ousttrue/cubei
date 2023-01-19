@@ -97,12 +97,12 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
         q3ContactConstraint *contact = edge->constraint;
 
         // Skip contacts that have been added to an island already
-        if (contact->m_flags & q3ContactConstraint::eIsland)
+        if (contact->HasFlag(q3ContactConstraintFlags::eIsland))
           continue;
 
         // Can safely skip this contact if it didn't actually collide with
         // anything
-        if (!(contact->m_flags & q3ContactConstraint::eColliding))
+        if (!contact->HasFlag(q3ContactConstraintFlags::eColliding))
           continue;
 
         // Skip sensors
@@ -110,7 +110,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
           continue;
 
         // Mark island flag and add to island
-        contact->m_flags |= q3ContactConstraint::eIsland;
+        contact->AddFlag(q3ContactConstraintFlags::eIsland);
         Add(contact);
 
         // Attempt to add the other body in the contact to the island

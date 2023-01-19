@@ -70,7 +70,7 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   contact->bodyA = A->body;
   contact->bodyB = B->body;
   contact->manifold.SetPair(A, B);
-  contact->m_flags = 0;
+  contact->m_flags = {};
   contact->friction = q3MixFriction(A, B);
   contact->restitution = q3MixRestitution(A, B);
   contact->manifold.contactCount = 0;
@@ -177,7 +177,7 @@ void q3ContactManager::TestCollisions(bool newBox) {
     q3Body *bodyA = A->body;
     q3Body *bodyB = B->body;
 
-    constraint->m_flags &= ~q3ContactConstraint::eIsland;
+    constraint->RemoveFlag(q3ContactConstraintFlags::eIsland);
 
     if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
       ++it;
@@ -226,15 +226,16 @@ void q3ContactManager::TestCollisions(bool newBox) {
     }
 
     if (m_contactListener) {
-      int now_colliding = constraint->m_flags & q3ContactConstraint::eColliding;
-      int was_colliding =
-          constraint->m_flags & q3ContactConstraint::eWasColliding;
+      auto now_colliding =
+          (int)constraint->m_flags & (int)q3ContactConstraintFlags::eColliding;
+      auto was_colliding = (int)constraint->m_flags &
+                           (int)q3ContactConstraintFlags::eWasColliding;
 
-      if (now_colliding && !was_colliding)
+      if (now_colliding && !was_colliding) {
         m_contactListener->BeginContact(constraint);
-
-      else if (!now_colliding && was_colliding)
+      } else if (!now_colliding && was_colliding) {
         m_contactListener->EndContact(constraint);
+      }
     }
     ++it;
   }
@@ -245,7 +246,7 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
   for (auto contact : m_contactList) {
     const q3Manifold *m = &contact->manifold;
 
-    if (!(contact->m_flags & q3ContactConstraint::eColliding)) {
+    if (!contact->HasFlag(q3ContactConstraintFlags::eColliding)) {
       continue;
     }
 
@@ -273,7 +274,8 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
   render->SetScale(1.0f, 1.0f, 1.0f);
 }
 
-void q3ContactManager::QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const {
+void q3ContactManager::QueryAABB(q3QueryCallback *cb,
+                                 const q3AABB &aabb) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
       q3AABB aabb;
@@ -300,7 +302,8 @@ void q3ContactManager::QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const 
   m_broadphase.m_tree.Query(&wrapper, aabb);
 }
 
-void q3ContactManager::QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const {
+void q3ContactManager::QueryPoint(q3QueryCallback *cb,
+                                  const q3Vec3 &point) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
       q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
@@ -329,7 +332,8 @@ void q3ContactManager::QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) cons
   m_broadphase.m_tree.Query(&wrapper, aabb);
 }
 
-void q3ContactManager::RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const {
+void q3ContactManager::RayCast(q3QueryCallback *cb,
+                               q3RaycastData &rayCast) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
       q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);

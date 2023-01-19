@@ -111,6 +111,13 @@ struct q3ContactEdge {
   q3ContactEdge *prev;
 };
 
+enum class q3ContactConstraintFlags {
+  eNone = 0,
+  eColliding = 0x00000001,    // Set when contact collides during a step
+  eWasColliding = 0x00000002, // Set when two objects stop colliding
+  eIsland = 0x00000004,       // For internal marking during island forming
+};
+
 struct q3ContactConstraint {
   void SolveCollision(void);
 
@@ -125,18 +132,21 @@ struct q3ContactConstraint {
 
   q3Manifold manifold;
 
-  enum {
-    eColliding = 0x00000001,    // Set when contact collides during a step
-    eWasColliding = 0x00000002, // Set when two objects stop colliding
-    eIsland = 0x00000004,       // For internal marking during island forming
-  };
+  q3ContactConstraintFlags m_flags = {};
 
-  int m_flags;
+  bool HasFlag(q3ContactConstraintFlags flag) const {
+    return ((int)m_flags & (int)flag) != 0;
+  }
+  void AddFlag(q3ContactConstraintFlags flag) {
+    m_flags = (q3ContactConstraintFlags)((int)m_flags | (int)flag);
+  }
+  void RemoveFlag(q3ContactConstraintFlags flag) {
+    m_flags = (q3ContactConstraintFlags)((int)m_flags & ~(int)flag);
+  }
 
   friend class q3ContactManager;
   friend class q3Scene;
   friend class q3Island;
-  friend struct q3ContactSolver;
 };
 
 #endif // Q3CONTACT_H

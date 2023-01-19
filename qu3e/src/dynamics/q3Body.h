@@ -45,8 +45,8 @@ struct q3Box;
 
 enum q3BodyType { eStaticBody, eDynamicBody, eKinematicBody };
 
-enum q3BodyFlags {
-  eNone = 0x0000,
+enum class q3BodyFlags {
+  eNone = 0,
   eAwake = 0x001,
   eActive = 0x002,
   eAllowSleep = 0x004,
@@ -137,10 +137,15 @@ public:
   q3Transform Transform() const { return m_tx; }
   void CalculateMassData();
   void SynchronizeProxies();
-  bool HasFlag(q3BodyFlags flag) const { return (m_flags & flag) != 0; }
-  void AddFlag(q3BodyFlags flag) { m_flags = (q3BodyFlags)(m_flags | flag); }
+  q3BodyFlags GetFlags() const { return m_flags; }
+  bool HasFlag(q3BodyFlags flag) const {
+    return ((int)m_flags & (int)flag) != 0;
+  }
+  void AddFlag(q3BodyFlags flag) {
+    m_flags = (q3BodyFlags)((int)m_flags | (int)flag);
+  }
   void RemoveFlag(q3BodyFlags flag) {
-    m_flags = (q3BodyFlags)(m_flags & ~flag);
+    m_flags = (q3BodyFlags)((int)m_flags & ~(int)flag);
   }
   // Removes this box from the body and broadphase. Forces the body
   // to recompute its mass if the body is dynamic. Frees the memory
@@ -172,7 +177,6 @@ public:
   void SetAngularVelocity(const q3Vec3 v);
   bool CanCollide(const q3Body *other) const;
   const q3Transform GetTransform() const;
-  int GetFlags() const;
   void SetLayers(int layers);
   int GetLayers() const;
   const q3Quaternion GetQuaternion() const;
