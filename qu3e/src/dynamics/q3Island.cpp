@@ -45,7 +45,7 @@ void q3Island::Solve() {
   // Integrate velocities and create state buffers, calculate world inertia
   for (int i = 0; i < m_bodyCount; ++i) {
     q3Body *body = m_bodies[i];
-    q3VelocityState *v = m_velocities + i;
+    q3VelocityState *v = &m_velocities[i];
 
     if (body->m_flags & q3Body::eDynamic) {
       body->ApplyLinearForce(m_gravity * body->m_gravityScale);
@@ -92,7 +92,7 @@ void q3Island::Solve() {
   // Integrate positions
   for (int i = 0; i < m_bodyCount; ++i) {
     q3Body *body = m_bodies[i];
-    q3VelocityState *v = m_velocities + i;
+    q3VelocityState *v = &m_velocities[i];
 
     if (body->m_flags & q3Body::eStatic)
       continue;
@@ -167,8 +167,7 @@ void q3Island::Initialize() {
 
   for (int i = 0; i < m_contactCount; ++i) {
     q3ContactConstraint *cc = m_contacts[i];
-
-    q3ContactConstraintState *c = m_contactStates + i;
+    q3ContactConstraintState *c = &m_contactStates[i];
 
     c->centerA = cc->bodyA->m_worldCenter;
     c->centerB = cc->bodyB->m_worldCenter;
