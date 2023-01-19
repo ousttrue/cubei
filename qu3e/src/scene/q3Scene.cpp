@@ -40,7 +40,7 @@ distribution.
 // q3Scene
 //--------------------------------------------------------------------------------------------------
 q3Scene::q3Scene(float dt)
-    : m_contactManager(&m_stack), m_boxAllocator(sizeof(q3Box), 256), m_dt(dt)
+    : m_boxAllocator(sizeof(q3Box), 256), m_dt(dt)
 {}
 
 //--------------------------------------------------------------------------------------------------
