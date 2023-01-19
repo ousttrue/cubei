@@ -48,7 +48,7 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
   }
 
   rayCast.Init({3.0f, 5.0f, 3.0f}, {-1.0f, -1.0f, -1.0f});
-  scene->RayCast(&rayCast, rayCast.data);
+  scene->m_contactManager.RayCast(&rayCast, rayCast.data);
 
   if (rayCast.impactBody) {
     rayCast.impactBody->SetToAwake();

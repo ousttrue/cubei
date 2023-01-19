@@ -37,8 +37,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
-q3ContactManager::q3ContactManager(): m_broadphase(this) {
-}
+q3ContactManager::q3ContactManager() : m_broadphase(this) {}
 
 //--------------------------------------------------------------------------------------------------
 void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
@@ -272,4 +271,84 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
   }
 
   render->SetScale(1.0f, 1.0f, 1.0f);
+}
+
+void q3ContactManager::QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const {
+  struct SceneQueryWrapper {
+    bool TreeCallBack(int id) {
+      q3AABB aabb;
+      q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
+
+      box->ComputeAABB(box->body->GetTransform(), &aabb);
+
+      if (q3AABBtoAABB(m_aabb, aabb)) {
+        return cb->ReportShape(box);
+      }
+
+      return true;
+    }
+
+    q3QueryCallback *cb;
+    const q3BroadPhase *broadPhase;
+    q3AABB m_aabb;
+  };
+
+  SceneQueryWrapper wrapper;
+  wrapper.m_aabb = aabb;
+  wrapper.broadPhase = &m_broadphase;
+  wrapper.cb = cb;
+  m_broadphase.m_tree.Query(&wrapper, aabb);
+}
+
+void q3ContactManager::QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const {
+  struct SceneQueryWrapper {
+    bool TreeCallBack(int id) {
+      q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
+
+      if (box->TestPoint(box->body->GetTransform(), m_point)) {
+        cb->ReportShape(box);
+      }
+
+      return true;
+    }
+
+    q3QueryCallback *cb;
+    const q3BroadPhase *broadPhase;
+    q3Vec3 m_point;
+  };
+
+  SceneQueryWrapper wrapper;
+  wrapper.m_point = point;
+  wrapper.broadPhase = &m_broadphase;
+  wrapper.cb = cb;
+  const float k_fattener = float(0.5);
+  q3Vec3 v{k_fattener, k_fattener, k_fattener};
+  q3AABB aabb;
+  aabb.min = point - v;
+  aabb.max = point + v;
+  m_broadphase.m_tree.Query(&wrapper, aabb);
+}
+
+void q3ContactManager::RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const {
+  struct SceneQueryWrapper {
+    bool TreeCallBack(int id) {
+      q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
+
+      if (box->Raycast(box->body->GetTransform(), m_rayCast)) {
+        return cb->ReportShape(box);
+      }
+
+      return true;
+    }
+
+    q3QueryCallback *cb;
+    const q3BroadPhase *broadPhase;
+    q3RaycastData *m_rayCast;
+  };
+
+  SceneQueryWrapper wrapper;
+  wrapper.m_rayCast = &rayCast;
+  wrapper.broadPhase = &m_broadphase;
+  wrapper.cb = cb;
+  m_broadphase.m_tree.Query(&wrapper, rayCast);
 }

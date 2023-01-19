@@ -80,6 +80,7 @@ private:
 	bool TreeCallBack( int index );
 
 	friend class q3DynamicAABBTree;
+	friend class q3ContactManager;
 	friend class q3Scene;
 };
 

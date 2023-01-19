@@ -53,26 +53,14 @@ public:
   virtual void EndContact(const q3ContactConstraint *contact) = 0;
 };
 
-// This class represents general queries for points, AABBs and Raycasting.
-// ReportShape is called the moment a valid shape is found. The return
-// value of ReportShape controls whether to continue or stop the query.
-// By returning only true, all shapes that fulfill the query will be re-
-// ported.
-class q3QueryCallback {
-public:
-  virtual ~q3QueryCallback() {}
-
-  virtual bool ReportShape(q3Box *box) = 0;
-};
-
 class q3Scene {
-  q3ContactManager m_contactManager;
   std::list<q3Body *> m_bodyList;
   bool m_newBox = false;
   q3Island m_island;
   friend class q3Body;
 
 public:
+  q3ContactManager m_contactManager;
   ~q3Scene();
 
   // Run the simulation forward in time by dt (fixed timestep). Variable
@@ -91,18 +79,6 @@ public:
   // Render the scene with an interpolated time between the last frame and
   // the current simulation step.
   void Render(q3Render *render) const;
-
-  // Query the world to find any shapes that can potentially intersect
-  // the provided AABB. This works by querying the broadphase with an
-  // AAABB -- only *potential* intersections are reported. Perhaps the
-  // user might use lmDistance as fine-grained collision detection.
-  void QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const;
-
-  // Query the world to find any shapes intersecting a world space point.
-  void QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const;
-
-  // Query the world to find any shapes intersecting a ray.
-  void RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const;
 
   // Dump all rigid bodies and shapes into a log file. The log can be
   // used as C++ code to re-create an initial scene setup. Contacts
