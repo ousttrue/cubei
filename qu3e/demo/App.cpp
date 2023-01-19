@@ -14,6 +14,7 @@
 #include <imgui_impl_opengl3.h>
 
 #include <Remotery.h>
+#include <numbers>
 
 const std::chrono::nanoseconds DELTA =
     std::chrono::nanoseconds(1000000000 / 60);
@@ -159,6 +160,21 @@ void App::Frame(int w, int h) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    auto &io = ImGui::GetIO();
+    camera_.Resize(io.DisplaySize.x, io.DisplaySize.y);
+    if (!io.WantCaptureMouse) {
+      // update camera
+      auto TO_RAD = static_cast<float>(std::numbers::pi / 180.0);
+      if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+        camera_.YawPitch(io.MouseDelta.x * TO_RAD, io.MouseDelta.y * TO_RAD);
+      }
+      if (ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+        camera_.Shift(io.MouseDelta.x, io.MouseDelta.y);
+      }
+      camera_.Dolly(io.MouseWheel);
+    }
+
     // ImGui::SetNewWindowDefaultPos(ImVec2(float(w - 300 - 30), 30));
     ImGui::SetNextWindowSize(ImVec2(300, 225), ImGuiCond_Appearing);
     ImGui::Begin("q3Scene Settings");
@@ -187,8 +203,7 @@ void App::Frame(int w, int h) {
   {
     rmt_ScopedCPUSample(Render, 0);
 
-    float aspectRatio = (float)w / (float)(h <= 0 ? 1 : h);
-    camera_.Update(aspectRatio);
+    camera_.Update();
     renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
     scene_->Render(renderer_.get());
     demos_[currentDemo_]->Render(renderer_.get());
