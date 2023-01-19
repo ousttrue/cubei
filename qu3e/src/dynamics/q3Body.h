@@ -122,18 +122,21 @@ class q3Body {
 
   q3ContactEdge *m_contactList;
 
-  friend class q3Scene;
   friend struct q3Manifold;
   friend class q3ContactManager;
   friend class q3Island;
   friend struct q3ContactSolver;
 
+public:
   q3Body(const q3BodyDef &def, q3Scene *scene);
-
+  void ClearForce() {
+    m_force = {};
+    m_torque = {};
+  }
+  void AddBox(q3Box *box) { m_boxes.push_back(box); }
+  q3Transform Transform() const { return m_tx; }
   void CalculateMassData();
   void SynchronizeProxies();
-
-public:
   bool HasFlag(q3BodyFlags flag) const { return (m_flags & flag) != 0; }
   void AddFlag(q3BodyFlags flag) { m_flags = (q3BodyFlags)(m_flags | flag); }
   void RemoveFlag(q3BodyFlags flag) {

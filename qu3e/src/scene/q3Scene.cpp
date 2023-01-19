@@ -56,8 +56,7 @@ void q3Scene::Step(const q3Env &env) {
 
   // Clear all forces
   for (auto body : m_bodyList) {
-    body->m_force = {};
-    body->m_torque = {};
+    body->ClearForce();
   }
 }
 
@@ -73,10 +72,9 @@ const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
   auto box = new q3Box;
   box->local = def.m_tx;
   box->e = def.m_e;
-  body->m_boxes.push_back(box);
 
   q3AABB aabb;
-  box->ComputeAABB(body->m_tx, &aabb);
+  box->ComputeAABB(body->Transform(), &aabb);
 
   box->body = body;
   box->friction = def.m_friction;
@@ -84,6 +82,7 @@ const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
   box->density = def.m_density;
   box->sensor = def.m_sensor;
 
+  body->AddBox(box);
   body->CalculateMassData();
 
   m_contactManager.m_broadphase.InsertBox(box, aabb);
