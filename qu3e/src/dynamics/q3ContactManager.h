@@ -71,9 +71,8 @@ public:
 private:
   std::list<q3ContactConstraint *> m_contactList;
 
-  q3PagedAllocator m_allocator;
   q3BroadPhase m_broadphase;
-  q3ContactListener *m_contactListener;
+  q3ContactListener *m_contactListener=nullptr;
 
   friend class q3BroadPhase;
   friend class q3Scene;

@@ -37,9 +37,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
-q3ContactManager::q3ContactManager()
-    : m_allocator(sizeof(q3ContactConstraint), 256), m_broadphase(this) {
-  m_contactListener = NULL;
+q3ContactManager::q3ContactManager(): m_broadphase(this) {
 }
 
 //--------------------------------------------------------------------------------------------------
