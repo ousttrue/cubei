@@ -36,7 +36,8 @@ distribution.
 class q3Render {
 public:
   virtual ~q3Render() {}
-  virtual void BeginFrame(int width, int height, const float *projection, const float *view) {}
+  virtual void BeginFrame(int width, int height, const float *projection,
+                          const float *view) {}
   virtual void EndFrame(const float *projection, const float *view) {}
 
   virtual void SetPenColor(float r, float g, float b, float a = 1.0f) = 0;
@@ -55,6 +56,9 @@ public:
 
   // Draw a point with the scale from SetScale
   virtual void Point() = 0;
+
+  void RenderScene(const class q3Scene *scene);
+  void RenderContact(const class q3ContactManager *contactManager);
 };
 
 #endif // Q3RENDER_H

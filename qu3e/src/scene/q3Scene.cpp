@@ -85,14 +85,6 @@ void q3Scene::RemoveAllBodies() {
   m_bodyList.clear();
 }
 
-void q3Scene::Render(q3Render *render) const {
-  for (auto body : m_bodyList) {
-    body->Render(render);
-  }
-  m_contactManager.RenderContacts(render);
-  m_contactManager.m_broadphase.m_tree.Render(render);
-}
-
 void q3Scene::Dump(FILE *file, const q3Env &m_env) const {
   fprintf(file,
           "// Ensure 64/32-bit memory compatability with the dump contents\n");

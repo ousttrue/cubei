@@ -62,6 +62,7 @@ public:
 
 	bool TestOverlap( int A, int B ) const;
 
+	q3DynamicAABBTree m_tree;
 private:
 	q3ContactManager *m_manager;
 
@@ -73,7 +74,6 @@ private:
 	int m_moveCount;
 	int m_moveCapacity;
 
-	q3DynamicAABBTree m_tree;
 	int m_currentIndex;
 
 	void BufferMove( int id );

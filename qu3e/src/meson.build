@@ -13,6 +13,7 @@ qu3e_lib = static_library('qu3e', [
 	'math/q3Mat3.cpp',
 	'math/q3Quaternion.cpp',
 	'scene/q3Scene.cpp',
+	'debug/q3Render.cpp',
 ],
 	dependencies: [remotery_dep],
 )

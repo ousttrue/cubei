@@ -54,12 +54,12 @@ public:
 };
 
 class q3Scene {
-  std::list<q3Body *> m_bodyList;
   bool m_newBox = false;
   q3Island m_island;
   friend class q3Body;
 
 public:
+  std::list<q3Body *> m_bodyList;
   q3ContactManager m_contactManager;
   ~q3Scene();
 
@@ -75,10 +75,6 @@ public:
   // all shapes and contacts associated and attached to this body.
   void RemoveBody(q3Body *body);
   void RemoveAllBodies();
-
-  // Render the scene with an interpolated time between the last frame and
-  // the current simulation step.
-  void Render(q3Render *render) const;
 
   // Dump all rigid bodies and shapes into a log file. The log can be
   // used as C++ code to re-create an initial scene setup. Contacts

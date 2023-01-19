@@ -55,7 +55,17 @@ public:
 };
 
 class q3ContactManager {
+  std::list<q3ContactConstraint *> m_contactList;
+
+  q3ContactListener *m_contactListener = nullptr;
+
+  friend class q3BroadPhase;
+  friend class q3Scene;
+  friend struct q3Box;
+  friend class q3Body;
+
 public:
+  q3BroadPhase m_broadphase;
   q3ContactManager();
 
   // Add a new contact constraint for a pair of objects
@@ -103,17 +113,6 @@ public:
 
   // Query the world to find any shapes intersecting a ray.
   void RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const;
-
-private:
-  std::list<q3ContactConstraint *> m_contactList;
-
-  q3BroadPhase m_broadphase;
-  q3ContactListener *m_contactListener = nullptr;
-
-  friend class q3BroadPhase;
-  friend class q3Scene;
-  friend struct q3Box;
-  friend class q3Body;
 };
 
 #endif // Q3CONTACTMANAGER_H
