@@ -27,8 +27,8 @@ int main(int argc, char **argv) {
   glfwSetErrorCallback(glfw_error_callback);
 
   // Starting width / height of the window
-  const uint32_t kWindowWidth = 1000;
-  const uint32_t kWindowHeight = 600;
+  const uint32_t kWindowWidth = 1800;
+  const uint32_t kWindowHeight = 1000;
 
   // Initialize GLUT
   if (!glfwInit()) {

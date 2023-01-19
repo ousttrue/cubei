@@ -139,9 +139,9 @@ struct VAO {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
   }
-  void Render(uint32_t draw_count) {
+  void Render(uint32_t draw_count, uint32_t topology = GL_TRIANGLES) {
     glBindVertexArray(vao_);
-    glDrawArrays(GL_TRIANGLES, 0, draw_count);
+    glDrawArrays(topology, 0, draw_count);
     glBindVertexArray(0);
   }
 };

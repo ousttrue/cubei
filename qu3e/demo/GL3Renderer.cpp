@@ -6,19 +6,48 @@
 #include <string_view>
 #include <vector>
 
+struct Float3 {
+  float x, y, z;
+};
+
+struct Vertex {
+  Float3 position;
+  Float3 normal;
+  Float3 color;
+};
+
+glo::VertexLayout layouts[]{
+    glo::VertexLayout{
+        .stride = 36,
+        .offset = 0,
+        .components = 3,
+    },
+    glo::VertexLayout{
+        .stride = 36,
+        .offset = 12,
+        .components = 3,
+    },
+    glo::VertexLayout{
+        .stride = 36,
+        .offset = 24,
+        .components = 3,
+    },
+};
+
 auto VS = R"(#version 400
 layout (std140) uniform VertexUbo { 
 	mat4 uVP;
 };
-in vec3 aPos;
-in vec3 aNormal;
-in vec3 aColor;
+layout (location=0) in vec3 aPos;
+layout (location=1) in vec3 aNormal;
+layout (location=2) in vec3 aColor;
 out vec3 FragPos;
 out vec3 Normal;
 out vec3 Color;
 void main()
 {
     gl_Position = uVP * vec4(aPos, 1.0);
+    gl_PointSize=5;
     FragPos = aPos;
     Normal = aNormal;
     Color = aColor;
@@ -43,45 +72,18 @@ void main()
 {
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(uLightPosition.xyz - FragPos);
-    float shading = max(dot(norm, lightDir), 0.0);
-    FragColor = vec4(Color * uLightDiffuse.xyz * shading, 1.0);
+    float shading = Normal==vec3(0, 0, 0) ? 1 : max(dot(norm, lightDir), 0.0);
+    FragColor = vec4(Color * shading, 1.0);
 }
 )";
-
-glo::VertexLayout layouts[]{
-    glo::VertexLayout{
-        .stride = 36,
-        .offset = 0,
-        .components = 3,
-    },
-    glo::VertexLayout{
-        .stride = 36,
-        .offset = 12,
-        .components = 3,
-    },
-    glo::VertexLayout{
-        .stride = 36,
-        .offset = 24,
-        .components = 3,
-    },
-};
-
-struct Float3 {
-  float x, y, z;
-};
-
-struct Vertex {
-  Float3 position;
-  Float3 normal;
-  Float3 color;
-};
 
 class GL3RendererImpl {
   uint32_t program_ = 0;
   glo::VBO vbo_;
   glo::VAO vao_;
-  Vertex vertices_[65535];
-  uint32_t drawCount_ = 0;
+  std::vector<Vertex> triangles_;
+  std::vector<Vertex> lines_;
+  std::vector<Vertex> points_;
 
   glo::UBO<VertexUbo> vertexUbo_ = {0};
   glo::UBO<Light> fragmentUbo_ = {1};
@@ -93,7 +95,7 @@ public:
       PLOG_FATAL << msg;
     };
     program_ = glo::BuildShader(VS, FS, errorMessage);
-    vbo_.Initialize(sizeof(vertices_), nullptr);
+    vbo_.Initialize(sizeof(triangles_), nullptr);
     uint32_t vbos[] = {
         vbo_.vbo_,
         vbo_.vbo_,
@@ -104,15 +106,23 @@ public:
     vertexUbo_.Initialize();
   }
   ~GL3RendererImpl() {}
-  void Clear() { drawCount_ = 0; }
-  void PushTriangle(const Vertex &v0, const Vertex &v1, const Vertex &v2) {
-    vertices_[drawCount_++] = v0;
-    vertices_[drawCount_++] = v1;
-    vertices_[drawCount_++] = v2;
+  void Clear() {
+    triangles_.clear();
+    lines_.clear();
+    points_.clear();
   }
+  void PushTriangle(const Vertex &v0, const Vertex &v1, const Vertex &v2) {
+    triangles_.push_back(v0);
+    triangles_.push_back(v1);
+    triangles_.push_back(v2);
+  }
+  void PushLine(const Vertex &v0, const Vertex &v1) {
+    lines_.push_back(v0);
+    lines_.push_back(v1);
+  }
+  void PushPoint(const Vertex &v0) { points_.push_back(v0); }
   void Render(const float m[16]) {
     // upload
-    vbo_.Upload(sizeof(vertices_), vertices_);
     vertexUbo_.value_.uVP = *((const DirectX::XMFLOAT4X4 *)m);
     vertexUbo_.Upload();
     fragmentUbo_.Upload();
@@ -121,9 +131,20 @@ public:
     glUseProgram(program_);
     vertexUbo_.Bind(program_, "VertexUbo");
     fragmentUbo_.Bind(program_, "FragmentUbo");
-    // glo::UniformVariables variables(program_);
-    // variables.SetMatrix4x4("MVP", m);
-    vao_.Render(drawCount_);
+    {
+      vbo_.Initialize(triangles_.size() * sizeof(Vertex), triangles_.data());
+      vao_.Render(triangles_.size(), GL_TRIANGLES);
+    }
+    {
+      vbo_.Initialize(lines_.size() * sizeof(Vertex), lines_.data());
+      vao_.Render(lines_.size(), GL_LINES);
+    }
+    {
+      glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+      vbo_.Upload(points_.size() * sizeof(Vertex), points_.data());
+      vao_.Render(lines_.size(), GL_POINTS);
+      glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    }
     glUseProgram(0);
   }
 };
@@ -146,24 +167,37 @@ void GL3Renderer::SetScale(float sx, float sy, float sz) {
   sy_ = sy;
   sz_ = sz;
 }
-void GL3Renderer::Line(float x, float y, float z) {}
+void GL3Renderer::Line(float x, float y, float z) {
+  impl_->PushLine(
+      Vertex{
+          .position{x_, y_, z_},
+          .normal{0, 0, 0},
+          .color{r_, g_, b_},
+      },
+      Vertex{
+          .position{x, y, z},
+          .normal{0, 0, 0},
+          .color{r_, g_, b_},
+      });
+}
 void GL3Renderer::Triangle(float x1, float y1, float z1, float x2, float y2,
                            float z2, float x3, float y3, float z3) {
+  Float3 rgb = {0.2f, 0.4f, 0.7};
   impl_->PushTriangle(
       Vertex{
           .position{x1, y1, z1},
           .normal{.x = nx_, .y = ny_, .z = nz_},
-          .color{r_, g_, b_},
+          .color = rgb,
       },
       Vertex{
           .position{x2, y2, z2},
           .normal{.x = nx_, .y = ny_, .z = nz_},
-          .color{r_, g_, b_},
+          .color = rgb,
       },
       Vertex{
           .position{x3, y3, z3},
           .normal{.x = nx_, .y = ny_, .z = nz_},
-          .color{r_, g_, b_},
+          .color = rgb,
       });
 }
 void GL3Renderer::SetTriNormal(float x, float y, float z) {
@@ -171,7 +205,13 @@ void GL3Renderer::SetTriNormal(float x, float y, float z) {
   ny_ = y;
   nz_ = z;
 }
-void GL3Renderer::Point() {}
+void GL3Renderer::Point() {
+  impl_->PushPoint(Vertex{
+      .position{x_, y_, z_},
+      .normal{0, 0, 0},
+      .color{r_, g_, b_},
+  });
+}
 void GL3Renderer::BeginFrame(int width, int height, const float *projection,
                              const float *view) {
   glViewport(0, 0, width, height);

@@ -280,15 +280,11 @@ void q3Scene::SetEnableFriction(bool enabled) { m_enableFriction = enabled; }
 
 //--------------------------------------------------------------------------------------------------
 void q3Scene::Render(q3Render *render) const {
-  q3Body *body = m_bodyList;
-
-  while (body) {
+  for (q3Body *body = m_bodyList; body; body = body->m_next) {
     body->Render(render);
-    body = body->m_next;
   }
-
   m_contactManager.RenderContacts(render);
-  // m_contactManager.m_broadphase.m_tree.Render( render );
+  m_contactManager.m_broadphase.m_tree.Render(render);
 }
 
 //--------------------------------------------------------------------------------------------------

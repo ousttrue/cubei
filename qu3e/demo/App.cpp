@@ -1,5 +1,5 @@
 #include "App.h"
-// #include "GL2Renderer.h"
+#include "GL2Renderer.h"
 #include "GL3Renderer.h"
 #include <gl/glew.h>
 
@@ -41,6 +41,7 @@ App::App(GLFWwindow *window)
 
   glewInit();
   renderer_.reset(new GL3Renderer);
+  // renderer_.reset(new GL2Renderer);
 }
 
 App::~App() {
