@@ -33,6 +33,7 @@ distribution.
 #include "../common/q3Memory.h"
 #include "../common/q3Settings.h"
 #include "../dynamics/q3ContactManager.h"
+#include <list>
 
 //--------------------------------------------------------------------------------------------------
 // q3Scene
@@ -148,8 +149,7 @@ private:
   q3ContactManager m_contactManager;
   q3PagedAllocator m_boxAllocator;
 
-  int m_bodyCount;
-  q3Body *m_bodyList;
+  std::list<q3Body *> m_bodyList;
 
   q3Stack m_stack;
   q3Heap m_heap;

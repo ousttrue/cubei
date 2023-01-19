@@ -146,8 +146,6 @@ private:
   q3Box *m_boxes;
   void *m_userData;
   q3Scene *m_scene;
-  q3Body *m_next;
-  q3Body *m_prev;
   int m_islandIndex;
 
   float m_linearDamping;
