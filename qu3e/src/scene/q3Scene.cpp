@@ -34,9 +34,7 @@ distribution.
 #include <stdlib.h>
 #include <vector>
 
-q3Scene::q3Scene() : m_boxAllocator(sizeof(q3Box), 256) {}
-
-q3Scene::~q3Scene() { Shutdown(); }
+q3Scene::~q3Scene() { RemoveAllBodies(); }
 
 void q3Scene::Step(const q3Env &env) {
   rmt_ScopedCPUSample(qSceneStep, 0);
@@ -93,11 +91,6 @@ void q3Scene::Render(q3Render *render) const {
   }
   m_contactManager.RenderContacts(render);
   m_contactManager.m_broadphase.m_tree.Render(render);
-}
-
-void q3Scene::Shutdown() {
-  RemoveAllBodies();
-  m_boxAllocator.Clear();
 }
 
 void q3Scene::SetContactListener(q3ContactListener *listener) {

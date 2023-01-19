@@ -185,7 +185,7 @@ void GL3Renderer::Line(float x, float y, float z) {
 }
 void GL3Renderer::Triangle(float x1, float y1, float z1, float x2, float y2,
                            float z2, float x3, float y3, float z3) {
-  Float3 rgb = {0.2f, 0.4f, 0.7};
+  Float3 rgb = {0.2f, 0.4f, 0.7f};
   impl_->PushTriangle(
       Vertex{
           .position{x1, y1, z1},

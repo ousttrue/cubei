@@ -67,14 +67,12 @@ public:
 
 class q3Scene {
   q3ContactManager m_contactManager;
-  q3PagedAllocator m_boxAllocator;
   std::list<q3Body *> m_bodyList;
   bool m_newBox = false;
   q3Island m_island;
   friend class q3Body;
 
 public:
-  q3Scene();
   ~q3Scene();
 
   // Run the simulation forward in time by dt (fixed timestep). Variable
@@ -93,9 +91,6 @@ public:
   // Render the scene with an interpolated time between the last frame and
   // the current simulation step.
   void Render(q3Render *render) const;
-
-  // Removes all bodies from the scene.
-  void Shutdown();
 
   // Sets the listener to report collision start/end. Provides the user
   // with a pointer to an q3ContactConstraint. The q3ContactConstraint

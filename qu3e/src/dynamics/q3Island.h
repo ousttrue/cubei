@@ -28,6 +28,7 @@ distribution.
 #ifndef Q3ISLAND_H
 #define Q3ISLAND_H
 
+#include "q3ContactSolver.h"
 #include "../common/q3Geometry.h"
 #include "../common/q3Settings.h"
 #include "../math/q3Math.h"
@@ -36,11 +37,6 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3Island
 //--------------------------------------------------------------------------------------------------
-class q3BroadPhase;
-class q3Body;
-struct q3ContactConstraint;
-struct q3ContactConstraintState;
-
 struct q3VelocityState {
   q3Vec3 w;
   q3Vec3 v;
@@ -82,20 +78,20 @@ struct q3Env {
 };
 
 class q3Island {
-  std::vector<q3Body *> m_bodies;
+  std::vector<class q3Body *> m_bodies;
 
 public:
   q3Env m_env;
   std::vector<q3VelocityState> m_velocities;
-  std::vector<q3ContactConstraint *> m_contacts;
-  std::vector<q3ContactConstraintState> m_contactStates;
-  void Process(const std::list<q3Body *> &bodyList, size_t contactCount,
+  std::vector<struct q3ContactConstraint *> m_contacts;
+  std::vector<struct q3ContactConstraintState> m_contactStates;
+  void Process(const std::list<class q3Body *> &bodyList, size_t contactCount,
                const q3Env &env);
 
 private:
   void Solve(const q3Env &env);
-  void Add(q3Body *body);
-  void Add(q3ContactConstraint *contact);
+  void Add(class q3Body *body);
+  void Add(struct q3ContactConstraint *contact);
   void Initialize();
 };
 
