@@ -5,7 +5,7 @@
 #include "../scene/q3Scene.h"
 
 void q3Render::RenderScene(const class q3Scene *scene) {
-  for (auto body : scene->m_bodyList) {
+  for (auto body : *scene) {
     body->Render(this);
   }
 }

@@ -124,9 +124,6 @@ class q3Body {
   float m_linearDamping;
   float m_angularDamping;
 
-  friend struct q3Manifold;
-  friend class q3ContactManager;
-
 public:
   q3ContactEdge *m_contactList;
   q3Body(const q3BodyDef &def, q3Scene *scene);
@@ -138,6 +135,8 @@ public:
         .v = m_linearVelocity,
     };
   }
+  std::list<q3Box *>::const_iterator begin() const { return m_boxes.begin(); }
+  std::list<q3Box *>::const_iterator end() const { return m_boxes.end(); }
   void SetVelocityState(const struct q3Env &env, const q3VelocityState &v);
   void Sleep(const q3Env &env, float *minSleepTime);
   void ClearForce() {

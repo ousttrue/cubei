@@ -36,7 +36,19 @@ distribution.
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
 struct q3ContactConstraint;
-class q3ContactListener;
+
+// This listener is used to gather information about two shapes colliding. This
+// can be used for game logic and sounds. Physics objects created in these
+// callbacks will not be reported until the following frame. These callbacks
+// can be called frequently, so make them efficient.
+class q3ContactListener {
+public:
+  virtual ~q3ContactListener() {}
+
+  virtual void BeginContact(const q3ContactConstraint *contact) = 0;
+  virtual void EndContact(const q3ContactConstraint *contact) = 0;
+};
+
 struct q3Box;
 class q3Body;
 class q3Render;

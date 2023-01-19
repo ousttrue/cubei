@@ -26,41 +26,25 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../common/q3Memory.h"
-#include "../common/q3Settings.h"
 #include "../dynamics/q3ContactManager.h"
 #include "../dynamics/q3Island.h"
 #include <list>
 #include <stdio.h>
 
-//--------------------------------------------------------------------------------------------------
-// q3Scene
-//--------------------------------------------------------------------------------------------------
 class q3Body;
 struct q3BodyDef;
-struct q3ContactConstraint;
-class q3Render;
-
-// This listener is used to gather information about two shapes colliding. This
-// can be used for game logic and sounds. Physics objects created in these
-// callbacks will not be reported until the following frame. These callbacks
-// can be called frequently, so make them efficient.
-class q3ContactListener {
-public:
-  virtual ~q3ContactListener() {}
-
-  virtual void BeginContact(const q3ContactConstraint *contact) = 0;
-  virtual void EndContact(const q3ContactConstraint *contact) = 0;
-};
-
 class q3Scene {
   bool m_newBox = false;
   q3Island m_island;
+  std::list<q3Body *> m_bodyList;
 
 public:
-  std::list<q3Body *> m_bodyList;
   q3ContactManager m_contactManager;
   ~q3Scene();
+  std::list<q3Body *>::const_iterator begin() const {
+    return m_bodyList.begin();
+  }
+  std::list<q3Body *>::const_iterator end() const { return m_bodyList.end(); }
 
   // Run the simulation forward in time by dt (fixed timestep). Variable
   // timestep is not supported.
