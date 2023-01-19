@@ -131,7 +131,7 @@ void App::Frame(int w, int h) {
 
   scene_->SetAllowSleep(enableSleep_);
   scene_->SetEnableFriction(enableFriction_);
-  scene_->SetIterations(velocityIterations_);
+  scene_->m_env.SetIterations(velocityIterations_);
 
   // The time accumulator is used to allow the application to render at
   // a frequency different from the constant frequency the physics sim-

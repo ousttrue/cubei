@@ -156,7 +156,7 @@ private:
   friend class q3Scene;
   friend struct q3Manifold;
   friend class q3ContactManager;
-  friend struct q3Island;
+  friend class q3Island;
   friend struct q3ContactSolver;
 
   q3Body(const q3BodyDef &def, q3Scene *scene);

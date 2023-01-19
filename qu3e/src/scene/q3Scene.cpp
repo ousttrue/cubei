@@ -1,4 +1,4 @@
-//--------------------------------------------------------------------------------------------------
+
 /**
 @file	q3Scene.h
 
@@ -23,28 +23,23 @@ not be misrepresented as being the original software.
           3. This notice may not be removed or altered from any source
 distribution.
 */
-//--------------------------------------------------------------------------------------------------
 
-#include <stdlib.h>
-
+#include "q3Scene.h"
 #include "../collision/q3Box.h"
 #include "../dynamics/q3Body.h"
 #include "../dynamics/q3Contact.h"
 #include "../dynamics/q3ContactSolver.h"
 #include "../dynamics/q3Island.h"
-#include "q3Scene.h"
 #include <Remotery.h>
+#include <stdlib.h>
 #include <vector>
 
-//--------------------------------------------------------------------------------------------------
-// q3Scene
-//--------------------------------------------------------------------------------------------------
-q3Scene::q3Scene(float dt) : m_boxAllocator(sizeof(q3Box), 256), m_dt(dt) {}
+q3Scene::q3Scene(float dt) : m_boxAllocator(sizeof(q3Box), 256) {
+  m_env.m_dt = dt;
+}
 
-//--------------------------------------------------------------------------------------------------
 q3Scene::~q3Scene() { Shutdown(); }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::Step() {
   rmt_ScopedCPUSample(qSceneStep, 0);
 
@@ -55,111 +50,7 @@ void q3Scene::Step() {
 
   m_contactManager.TestCollisions();
 
-  for (auto body : m_bodyList) {
-    body->m_flags &= ~q3Body::eIsland;
-  }
-
-  // Size the stack island, pick
-  // worst case size
-  q3Island island;
-  island.m_bodies.reserve(m_bodyList.size());
-  island.m_velocities.reserve(m_bodyList.size());
-  island.m_contacts.reserve(m_contactManager.m_contactCount);
-  island.m_contactStates.reserve(m_contactManager.m_contactCount);
-  island.m_allowSleep = m_allowSleep;
-  island.m_enableFriction = m_enableFriction;
-  island.m_dt = m_dt;
-  island.m_gravity = m_gravity;
-  island.m_iterations = m_iterations;
-
-  // Build each active island and then solve each built island
-  int stackSize = m_bodyList.size();
-  std::vector<q3Body *> stack(stackSize);
-  for (auto seed : m_bodyList) {
-    // Seed cannot be apart of an island already
-    if (seed->m_flags & q3Body::eIsland)
-      continue;
-
-    // Seed must be awake
-    if (!(seed->m_flags & q3Body::eAwake))
-      continue;
-
-    // Seed cannot be a static body in order to keep islands
-    // as small as possible
-    if (seed->m_flags & q3Body::eStatic)
-      continue;
-
-    int stackCount = 0;
-    stack[stackCount++] = seed;
-    island.m_bodies.clear();
-    island.m_contacts.clear();
-
-    // Mark seed as apart of island
-    seed->m_flags |= q3Body::eIsland;
-
-    // Perform DFS on constraint graph
-    while (stackCount > 0) {
-      // Decrement stack to implement iterative backtracking
-      q3Body *body = stack[--stackCount];
-      island.Add(body);
-
-      // Awaken all bodies connected to the island
-      body->SetToAwake();
-
-      // Do not search across static bodies to keep island
-      // formations as small as possible, however the static
-      // body itself should be apart of the island in order
-      // to properly represent a full contact
-      if (body->m_flags & q3Body::eStatic)
-        continue;
-
-      // Search all contacts connected to this body
-      q3ContactEdge *contacts = body->m_contactList;
-      for (q3ContactEdge *edge = contacts; edge; edge = edge->next) {
-        q3ContactConstraint *contact = edge->constraint;
-
-        // Skip contacts that have been added to an island already
-        if (contact->m_flags & q3ContactConstraint::eIsland)
-          continue;
-
-        // Can safely skip this contact if it didn't actually collide with
-        // anything
-        if (!(contact->m_flags & q3ContactConstraint::eColliding))
-          continue;
-
-        // Skip sensors
-        if (contact->A->sensor || contact->B->sensor)
-          continue;
-
-        // Mark island flag and add to island
-        contact->m_flags |= q3ContactConstraint::eIsland;
-        island.Add(contact);
-
-        // Attempt to add the other body in the contact to the island
-        // to simulate contact awakening propogation
-        q3Body *other = edge->other;
-        if (other->m_flags & q3Body::eIsland)
-          continue;
-
-        assert(stackCount < stackSize);
-
-        stack[stackCount++] = other;
-        other->m_flags |= q3Body::eIsland;
-      }
-    }
-
-    assert(island.m_bodies.size() != 0);
-
-    island.Initialize();
-    island.Solve();
-
-    // Reset all static island flags
-    // This allows static bodies to participate in other island formations
-    for (auto body : island.m_bodies) {
-      if (body->m_flags & q3Body::eStatic)
-        body->m_flags &= ~q3Body::eIsland;
-    }
-  }
+  m_island.Process(m_bodyList, m_contactManager.m_contactCount, m_env);
 
   // Update the broadphase AABBs
   for (auto body : m_bodyList) {
@@ -179,7 +70,6 @@ void q3Scene::Step() {
   }
 }
 
-//--------------------------------------------------------------------------------------------------
 q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
   auto body = new q3Body(def, this);
   // Add body to scene bodyList
@@ -187,18 +77,14 @@ q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
   return body;
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::RemoveBody(q3Body *body) {
   m_contactManager.RemoveContactsFromBody(body);
-
   body->RemoveAllBoxes();
-
   // Remove body from scene bodyList
   m_bodyList.remove(body);
   delete body;
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::RemoveAllBodies() {
   for (auto body : m_bodyList) {
     body->RemoveAllBoxes();
@@ -207,25 +93,14 @@ void q3Scene::RemoveAllBodies() {
   m_bodyList.clear();
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::SetAllowSleep(bool allowSleep) {
-  m_allowSleep = allowSleep;
-
+  m_env.m_allowSleep = allowSleep;
   if (!allowSleep) {
     for (auto body : m_bodyList)
       body->SetToAwake();
   }
 }
 
-//--------------------------------------------------------------------------------------------------
-void q3Scene::SetIterations(int iterations) {
-  m_iterations = q3Max(1, iterations);
-}
-
-//--------------------------------------------------------------------------------------------------
-void q3Scene::SetEnableFriction(bool enabled) { m_enableFriction = enabled; }
-
-//--------------------------------------------------------------------------------------------------
 void q3Scene::Render(q3Render *render) const {
   for (auto body : m_bodyList) {
     body->Render(render);
@@ -234,25 +109,16 @@ void q3Scene::Render(q3Render *render) const {
   m_contactManager.m_broadphase.m_tree.Render(render);
 }
 
-//--------------------------------------------------------------------------------------------------
-const q3Vec3 q3Scene::GetGravity() const { return m_gravity; }
-
-//--------------------------------------------------------------------------------------------------
-void q3Scene::SetGravity(const q3Vec3 &gravity) { m_gravity = gravity; }
-
-//--------------------------------------------------------------------------------------------------
 void q3Scene::Shutdown() {
   RemoveAllBodies();
 
   m_boxAllocator.Clear();
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::SetContactListener(q3ContactListener *listener) {
   m_contactManager.m_contactListener = listener;
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
@@ -280,7 +146,6 @@ void q3Scene::QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const {
   m_contactManager.m_broadphase.m_tree.Query(&wrapper, aabb);
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
@@ -310,7 +175,6 @@ void q3Scene::QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const {
   m_contactManager.m_broadphase.m_tree.Query(&wrapper, aabb);
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
@@ -335,20 +199,19 @@ void q3Scene::RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const {
   m_contactManager.m_broadphase.m_tree.Query(&wrapper, rayCast);
 }
 
-//--------------------------------------------------------------------------------------------------
 void q3Scene::Dump(FILE *file) const {
   fprintf(file,
           "// Ensure 64/32-bit memory compatability with the dump contents\n");
   fprintf(file, "assert( sizeof( int* ) == %zu );\n", sizeof(int *));
   fprintf(file, "scene.SetGravity( q3Vec3( %.15lf, %.15lf, %.15lf ) );\n",
-          m_gravity.x, m_gravity.y, m_gravity.z);
+          m_env.m_gravity.x, m_env.m_gravity.y, m_env.m_gravity.z);
   fprintf(file, "scene.SetAllowSleep( %s );\n",
-          m_allowSleep ? "true" : "false");
+          m_env.m_allowSleep ? "true" : "false");
   fprintf(file, "scene.SetEnableFriction( %s );\n",
-          m_enableFriction ? "true" : "false");
+          m_env.m_enableFriction ? "true" : "false");
 
   fprintf(file,
-          "q3Body** bodies = (q3Body**)q3Alloc( sizeof( q3Body* ) * %d );\n",
+          "q3Body** bodies = (q3Body**)q3Alloc( sizeof( q3Body* ) * %zu );\n",
           m_bodyList.size());
 
   int i = 0;

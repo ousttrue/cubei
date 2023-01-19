@@ -144,7 +144,7 @@ struct q3ContactConstraint
 
 	friend class q3ContactManager;
 	friend class q3Scene;
-	friend struct q3Island;
+	friend class q3Island;
 	friend struct q3ContactSolver;
 };
 

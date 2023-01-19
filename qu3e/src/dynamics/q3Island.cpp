@@ -38,7 +38,109 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3Island
 //--------------------------------------------------------------------------------------------------
-void q3Island::Solve() {
+void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
+                       const q3Env &env) {
+  for (auto body : bodyList) {
+    body->m_flags &= ~q3Body::eIsland;
+  }
+
+  m_bodies.reserve(bodyList.size());
+  m_velocities.reserve(bodyList.size());
+  m_contacts.reserve(contactCount);
+  m_contactStates.reserve(contactCount);
+  m_env = env;
+
+  // Build each active island and then solve each built island
+  int stackSize = bodyList.size();
+  std::vector<q3Body *> stack(stackSize);
+  for (auto seed : bodyList) {
+    // Seed cannot be apart of an island already
+    if (seed->m_flags & q3Body::eIsland)
+      continue;
+
+    // Seed must be awake
+    if (!(seed->m_flags & q3Body::eAwake))
+      continue;
+
+    // Seed cannot be a static body in order to keep islands
+    // as small as possible
+    if (seed->m_flags & q3Body::eStatic)
+      continue;
+
+    int stackCount = 0;
+    stack[stackCount++] = seed;
+    m_bodies.clear();
+    m_contacts.clear();
+
+    // Mark seed as apart of island
+    seed->m_flags |= q3Body::eIsland;
+
+    // Perform DFS on constraint graph
+    while (stackCount > 0) {
+      // Decrement stack to implement iterative backtracking
+      q3Body *body = stack[--stackCount];
+      Add(body);
+
+      // Awaken all bodies connected to the island
+      body->SetToAwake();
+
+      // Do not search across static bodies to keep island
+      // formations as small as possible, however the static
+      // body itself should be apart of the island in order
+      // to properly represent a full contact
+      if (body->m_flags & q3Body::eStatic)
+        continue;
+
+      // Search all contacts connected to this body
+      q3ContactEdge *contacts = body->m_contactList;
+      for (q3ContactEdge *edge = contacts; edge; edge = edge->next) {
+        q3ContactConstraint *contact = edge->constraint;
+
+        // Skip contacts that have been added to an island already
+        if (contact->m_flags & q3ContactConstraint::eIsland)
+          continue;
+
+        // Can safely skip this contact if it didn't actually collide with
+        // anything
+        if (!(contact->m_flags & q3ContactConstraint::eColliding))
+          continue;
+
+        // Skip sensors
+        if (contact->A->sensor || contact->B->sensor)
+          continue;
+
+        // Mark island flag and add to island
+        contact->m_flags |= q3ContactConstraint::eIsland;
+        Add(contact);
+
+        // Attempt to add the other body in the contact to the island
+        // to simulate contact awakening propogation
+        q3Body *other = edge->other;
+        if (other->m_flags & q3Body::eIsland)
+          continue;
+
+        assert(stackCount < stackSize);
+
+        stack[stackCount++] = other;
+        other->m_flags |= q3Body::eIsland;
+      }
+    }
+
+    assert(m_bodies.size() != 0);
+
+    Initialize();
+    Solve(m_env);
+
+    // Reset all static island flags
+    // This allows static bodies to participate in other island formations
+    for (auto body : m_bodies) {
+      if (body->m_flags & q3Body::eStatic)
+        body->m_flags &= ~q3Body::eIsland;
+    }
+  }
+}
+
+void q3Island::Solve(const q3Env &env) {
   rmt_ScopedCPUSample(q3IslandSolve, 0);
 
   // Apply gravity
@@ -48,16 +150,16 @@ void q3Island::Solve() {
     q3VelocityState *v = &m_velocities[i];
 
     if (body->m_flags & q3Body::eDynamic) {
-      body->ApplyLinearForce(m_gravity * body->m_gravityScale);
+      body->ApplyLinearForce(env.m_gravity * body->m_gravityScale);
 
       // Calculate world space intertia tensor
       q3Mat3 r = body->m_tx.rotation;
       body->m_invInertiaWorld = r * body->m_invInertiaModel * q3Transpose(r);
 
       // Integrate velocity
-      body->m_linearVelocity += (body->m_force * body->m_invMass) * m_dt;
+      body->m_linearVelocity += (body->m_force * body->m_invMass) * env.m_dt;
       body->m_angularVelocity +=
-          (body->m_invInertiaWorld * body->m_torque) * m_dt;
+          (body->m_invInertiaWorld * body->m_torque) * env.m_dt;
 
       // From Box2D!
       // Apply damping.
@@ -67,9 +169,9 @@ void q3Island::Solve() {
       // exp(-c * dt) = v * exp(-c * dt) v2 = exp(-c * dt) * v1 Pade
       // approximation: v2 = v1 * 1 / (1 + c * dt)
       body->m_linearVelocity *=
-          float(1.0) / (float(1.0) + m_dt * body->m_linearDamping);
+          float(1.0) / (float(1.0) + env.m_dt * body->m_linearDamping);
       body->m_angularVelocity *=
-          float(1.0) / (float(1.0) + m_dt * body->m_angularDamping);
+          float(1.0) / (float(1.0) + env.m_dt * body->m_angularDamping);
     }
 
     v->v = body->m_linearVelocity;
@@ -80,10 +182,10 @@ void q3Island::Solve() {
   // Initialize velocity constraint for normal + friction and warm start
   q3ContactSolver contactSolver;
   contactSolver.Initialize(this);
-  contactSolver.PreSolve(m_dt);
+  contactSolver.PreSolve(env.m_dt);
 
   // Solve contacts
-  for (int i = 0; i < m_iterations; ++i)
+  for (int i = 0; i < env.m_iterations; ++i)
     contactSolver.Solve();
 
   contactSolver.ShutDown();
@@ -101,13 +203,13 @@ void q3Island::Solve() {
     body->m_angularVelocity = v->w;
 
     // Integrate position
-    body->m_worldCenter += body->m_linearVelocity * m_dt;
-    body->m_q.Integrate(body->m_angularVelocity, m_dt);
+    body->m_worldCenter += body->m_linearVelocity * env.m_dt;
+    body->m_q.Integrate(body->m_angularVelocity, env.m_dt);
     body->m_q = q3Normalize(body->m_q);
     body->m_tx.rotation = body->m_q.ToMat3();
   }
 
-  if (m_allowSleep) {
+  if (env.m_allowSleep) {
     // Find minimum sleep time of the entire island
     float minSleepTime = Q3_R32_MAX;
     for (auto body : m_bodies) {
@@ -127,7 +229,7 @@ void q3Island::Solve() {
       }
 
       else {
-        body->m_sleepTime += m_dt;
+        body->m_sleepTime += env.m_dt;
         minSleepTime = q3Min(minSleepTime, body->m_sleepTime);
       }
     }

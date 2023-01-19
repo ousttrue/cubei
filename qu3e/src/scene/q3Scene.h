@@ -33,6 +33,7 @@ distribution.
 #include "../common/q3Memory.h"
 #include "../common/q3Settings.h"
 #include "../dynamics/q3ContactManager.h"
+#include "../dynamics/q3Island.h"
 #include <list>
 
 //--------------------------------------------------------------------------------------------------
@@ -42,7 +43,6 @@ class q3Body;
 struct q3BodyDef;
 struct q3ContactConstraint;
 class q3Render;
-struct q3Island;
 
 // This listener is used to gather information about two shapes colliding. This
 // can be used for game logic and sounds. Physics objects created in these
@@ -69,21 +69,15 @@ public:
 };
 
 class q3Scene {
-private:
   q3ContactManager m_contactManager;
   q3PagedAllocator m_boxAllocator;
-  q3Vec3 m_gravity = q3Vec3{float(0.0), float(-9.8), float(0.0)};
-  float m_dt;
-  int m_iterations = 20;
-
   std::list<q3Body *> m_bodyList;
   bool m_newBox = false;
-  bool m_allowSleep = true;
-  bool m_enableFriction = true;
-
+  q3Island m_island;
   friend class q3Body;
 
 public:
+  q3Env m_env;
   q3Scene(float dt);
   ~q3Scene();
 
@@ -106,24 +100,17 @@ public:
   // touched by something that wakes them up. The default is enabled.
   void SetAllowSleep(bool allowSleep);
 
-  // Increasing the iteration count increases the CPU cost of simulating
-  // Scene.Step(). Decreasing the iterations makes the simulation less
-  // realistic (convergent). A good iteration number range is 5 to 20.
-  // Only positive numbers are accepted. Non-positive and negative
-  // inputs set the iteration count to 1.
-  void SetIterations(int iterations);
-
   // Friction occurs when two rigid bodies have shapes that slide along one
   // another. The friction force resists this sliding motion.
-  void SetEnableFriction(bool enabled);
+  void SetEnableFriction(bool enabled) { m_env.m_enableFriction = enabled; }
 
   // Render the scene with an interpolated time between the last frame and
   // the current simulation step.
   void Render(q3Render *render) const;
 
   // Gets and sets the global gravity vector used during integration
-  const q3Vec3 GetGravity() const;
-  void SetGravity(const q3Vec3 &gravity);
+  const q3Vec3 GetGravity() const { return m_env.m_gravity; }
+  void SetGravity(const q3Vec3 &gravity) { m_env.m_gravity = gravity; }
 
   // Removes all bodies from the scene.
   void Shutdown();
