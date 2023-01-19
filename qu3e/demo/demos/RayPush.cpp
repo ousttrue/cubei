@@ -4,15 +4,14 @@ void RayPush::Init(q3Scene *scene) {
   acc = std::chrono::nanoseconds(0);
 
   // Create the floor
-  q3BodyDef bodyDef;
-  q3Body *body = scene->CreateBody(bodyDef);
-
-  q3BoxDef boxDef = {
-      .m_restitution = 0,
-  };
-  q3Transform tx = {};
-  boxDef.Set(tx, {50.0f, 1.0f, 50.0f});
-  body->AddBox(boxDef);
+  {
+    auto body = scene->CreateBody({});
+    body->AddBox({
+        .m_tx = {},
+        .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
+        .m_restitution = 0,
+    });
+  }
 }
 
 void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
@@ -21,26 +20,31 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
   if (acc > std::chrono::seconds(1)) {
     acc = std::chrono::nanoseconds(0);
 
-    q3BodyDef bodyDef;
-    bodyDef.position.Set(0.0f, 3.0f, 0.0f);
-    bodyDef.axis.Set(q3RandomFloat(-1.0f, 1.0f), q3RandomFloat(-1.0f, 1.0f),
-                     q3RandomFloat(-1.0f, 1.0f));
-    bodyDef.angle = q3PI * q3RandomFloat(-1.0f, 1.0f);
-    bodyDef.bodyType = eDynamicBody;
-    bodyDef.angularVelocity.Set(q3RandomFloat(1.0f, 3.0f),
-                                q3RandomFloat(1.0f, 3.0f),
-                                q3RandomFloat(1.0f, 3.0f));
-    bodyDef.angularVelocity *= q3Sign(q3RandomFloat(-1.0f, 1.0f));
-    bodyDef.linearVelocity.Set(q3RandomFloat(1.0f, 3.0f),
-                               q3RandomFloat(1.0f, 3.0f),
-                               q3RandomFloat(1.0f, 3.0f));
-    bodyDef.linearVelocity *= q3Sign(q3RandomFloat(-1.0f, 1.0f));
-    q3Body *body = scene->CreateBody(bodyDef);
+    q3BodyDef bodyDef{
+        .axis =
+            {
+                q3RandomFloat(-1.0f, 1.0f),
+                q3RandomFloat(-1.0f, 1.0f),
+                q3RandomFloat(-1.0f, 1.0f),
+            },
+        .angle = q3PI * q3RandomFloat(-1.0f, 1.0f),
+        .position = {0.0f, 3.0f, 0.0f},
+        .linearVelocity =
+            q3Vec3{q3RandomFloat(1.0f, 3.0f), q3RandomFloat(1.0f, 3.0f),
+                   q3RandomFloat(1.0f, 3.0f)} *
+            q3Sign(q3RandomFloat(-1.0f, 1.0f)),
+        .angularVelocity =
+            q3Vec3{q3RandomFloat(1.0f, 3.0f), q3RandomFloat(1.0f, 3.0f),
+                   q3RandomFloat(1.0f, 3.0f)} *
+            q3Sign(q3RandomFloat(-1.0f, 1.0f)),
+        .bodyType = eDynamicBody,
+    };
+    auto body = scene->CreateBody(bodyDef);
 
-    q3Transform tx = {};
-    q3BoxDef boxDef = {};
-    boxDef.Set(tx, {1.0f, 1.0f, 1.0f});
-    body->AddBox(boxDef);
+    body->AddBox({
+        .m_tx = {},
+        .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
+    });
   }
 
   rayCast.Init({3.0f, 5.0f, 3.0f}, {-1.0f, -1.0f, -1.0f});

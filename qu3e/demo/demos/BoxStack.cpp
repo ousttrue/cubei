@@ -2,18 +2,18 @@
 
 void BoxStack::Init(q3Scene *scene) {
   // Create the floor
-  q3BodyDef bodyDef = {};
   // bodyDef.axis.Set( q3RandomFloat( -1.0f, 1.0f ), q3RandomFloat(
   // -1.0f, 1.0f ), q3RandomFloat( -1.0f, 1.0f ) ); bodyDef.angle = q3PI *
   // q3RandomFloat( -1.0f, 1.0f );
-  q3Body *body = scene->CreateBody(bodyDef);
-
-  q3BoxDef boxDef{
-      .m_restitution = 0,
-  };
-  q3Transform tx = {};
-  boxDef.Set(tx, {50.0f, 1.0f, 50.0f});
-  body->AddBox(boxDef);
+  {
+    auto body = scene->CreateBody({});
+    q3BoxDef boxDef{
+        .m_tx = {},
+        .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
+        .m_restitution = 0,
+    };
+    body->AddBox(boxDef);
+  }
 
   // Create boxes
   // for ( int i = 0; i < 10; ++i )
@@ -29,16 +29,23 @@ void BoxStack::Init(q3Scene *scene) {
   //	body->AddBox( boxDef );
   //}
 
-  bodyDef.bodyType = eDynamicBody;
-  boxDef.Set(tx, {1.0f, 1.0f, 1.0f});
-
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
       for (int k = 0; k < 10; ++k) {
-        bodyDef.position.Set(-16.0f + 1.0f * j, 1.0f * i + 5.0f,
-                             -16.0f + 1.0f * k);
-        body = scene->CreateBody(bodyDef);
-        body->AddBox(boxDef);
+        auto body = scene->CreateBody({
+            .position =
+                {
+                    -16.0f + 1.0f * j,
+                    1.0f * i + 5.0f,
+                    -16.0f + 1.0f * k,
+                },
+            .bodyType = eDynamicBody,
+        });
+        body->AddBox({
+            .m_tx = {},
+            .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
+            .m_restitution = 0,
+        });
       }
     }
   }

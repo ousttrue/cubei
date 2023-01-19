@@ -77,11 +77,6 @@ struct q3BoxDef {
   float m_restitution = 0.2f;
   float m_density = 1.0f;
   bool m_sensor = false;
-
-  void Set(const q3Transform &tx, const q3Vec3 &extents) {
-    m_tx = tx;
-    m_e = extents * float(0.5);
-  }
 };
 
 #endif // Q3BOX_H
