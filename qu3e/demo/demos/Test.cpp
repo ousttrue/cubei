@@ -3,7 +3,7 @@
 void Test::Init(q3Scene *scene) {
   {
     auto body = scene->CreateBody({});
-    body->AddBox({
+    scene->AddBox(body, {
         .m_tx = {},
         .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
         .m_restitution = 0,
@@ -29,7 +29,7 @@ void Test::Init(q3Scene *scene) {
           .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
           .m_restitution = 0,
       };
-      body->AddBox(boxDef);
+      scene->AddBox(body, boxDef);
     }
   }
 }

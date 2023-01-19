@@ -47,11 +47,6 @@ enum q3BodyType { eStaticBody, eDynamicBody, eKinematicBody };
 
 class q3Body {
 public:
-  // Adds a box to this body. Boxes are all defined in local space
-  // of their owning body. Boxes cannot be defined relative to one
-  // another. The body will recalculate its mass values. No contacts
-  // will be created until the next q3Scene::Step( ) call.
-  const q3Box *AddBox(const q3BoxDef &def);
 
   // Removes this box from the body and broadphase. Forces the body
   // to recompute its mass if the body is dynamic. Frees the memory

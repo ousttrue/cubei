@@ -9,11 +9,11 @@ void DropBoxes::Init(q3Scene *scene) {
   // q3RandomFloat( -1.0f, 1.0f );
   {
     auto body = scene->CreateBody({});
-    body->AddBox({
-        .m_tx = {},
-        .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
-        .m_restitution = 0,
-    });
+    scene->AddBox(body, {
+                            .m_tx = {},
+                            .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
+                            .m_restitution = 0,
+                        });
   }
 
   // Create boxes
@@ -26,11 +26,11 @@ void DropBoxes::Init(q3Scene *scene) {
         .position = {0.0f, 1.2f * (i + 1), -0.0f},
         .bodyType = eDynamicBody,
     });
-    body->AddBox({
-        .m_tx = {},
-        .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
-        .m_restitution = 0,
-    });
+    scene->AddBox(body, {
+                            .m_tx = {},
+                            .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
+                            .m_restitution = 0,
+                        });
   }
 }
 
@@ -60,9 +60,9 @@ void DropBoxes::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
     };
     auto body = scene->CreateBody(bodyDef);
 
-    body->AddBox({
-        .m_tx = {},
-        .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
-    });
+    scene->AddBox(body, {
+                            .m_tx = {},
+                            .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
+                        });
   }
 }

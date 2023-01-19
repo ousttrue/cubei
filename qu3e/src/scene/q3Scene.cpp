@@ -69,6 +69,30 @@ q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
   return body;
 }
 
+//--------------------------------------------------------------------------------------------------
+const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
+  auto box = new q3Box;
+  box->local = def.m_tx;
+  box->e = def.m_e;
+  body->m_boxes.push_back(box);
+
+  q3AABB aabb;
+  box->ComputeAABB(body->m_tx, &aabb);
+
+  box->body = body;
+  box->friction = def.m_friction;
+  box->restitution = def.m_restitution;
+  box->density = def.m_density;
+  box->sensor = def.m_sensor;
+
+  body->CalculateMassData();
+
+  m_contactManager.m_broadphase.InsertBox(box, aabb);
+  m_newBox = true;
+
+  return box;
+}
+
 void q3Scene::RemoveBody(q3Body *body) {
   m_contactManager.RemoveContactsFromBody(body);
   body->RemoveAllBoxes();

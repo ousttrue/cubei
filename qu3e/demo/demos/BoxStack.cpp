@@ -7,12 +7,11 @@ void BoxStack::Init(q3Scene *scene) {
   // q3RandomFloat( -1.0f, 1.0f );
   {
     auto body = scene->CreateBody({});
-    q3BoxDef boxDef{
-        .m_tx = {},
-        .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
-        .m_restitution = 0,
-    };
-    body->AddBox(boxDef);
+    scene->AddBox(body, {
+                            .m_tx = {},
+                            .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
+                            .m_restitution = 0,
+                        });
   }
 
   // Create boxes
@@ -41,11 +40,11 @@ void BoxStack::Init(q3Scene *scene) {
                 },
             .bodyType = eDynamicBody,
         });
-        body->AddBox({
-            .m_tx = {},
-            .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
-            .m_restitution = 0,
-        });
+        scene->AddBox(body, {
+                                .m_tx = {},
+                                .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
+                                .m_restitution = 0,
+                            });
       }
     }
   }

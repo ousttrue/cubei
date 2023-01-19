@@ -6,11 +6,11 @@ void RayPush::Init(q3Scene *scene) {
   // Create the floor
   {
     auto body = scene->CreateBody({});
-    body->AddBox({
-        .m_tx = {},
-        .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
-        .m_restitution = 0,
-    });
+    scene->AddBox(body, {
+                            .m_tx = {},
+                            .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
+                            .m_restitution = 0,
+                        });
   }
 }
 
@@ -41,10 +41,10 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
     };
     auto body = scene->CreateBody(bodyDef);
 
-    body->AddBox({
-        .m_tx = {},
-        .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
-    });
+    scene->AddBox(body, {
+                            .m_tx = {},
+                            .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
+                        });
   }
 
   rayCast.Init({3.0f, 5.0f, 3.0f}, {-1.0f, -1.0f, -1.0f});

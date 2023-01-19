@@ -56,7 +56,6 @@ public:
 class q3Scene {
   bool m_newBox = false;
   q3Island m_island;
-  friend class q3Body;
 
 public:
   std::list<q3Body *> m_bodyList;
@@ -70,6 +69,12 @@ public:
   // Construct a new rigid body. The BodyDef can be reused at the user's
   // discretion, as no reference to the BodyDef is kept.
   q3Body *CreateBody(const q3BodyDef &def);
+
+  // Adds a box to this body. Boxes are all defined in local space
+  // of their owning body. Boxes cannot be defined relative to one
+  // another. The body will recalculate its mass values. No contacts
+  // will be created until the next q3Scene::Step( ) call.
+  const q3Box *AddBox(q3Body *body, const struct q3BoxDef &def);
 
   // Frees a body, removes all shapes associated with the body and frees
   // all shapes and contacts associated and attached to this body.
