@@ -90,7 +90,7 @@ q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
 
 //--------------------------------------------------------------------------------------------------
 const q3Box *q3Body::AddBox(const q3BoxDef &def) {
-  q3Box *box = (q3Box *)m_scene->m_heap.Allocate(sizeof(q3Box));
+  auto box = new q3Box;
   box->local = def.m_tx;
   box->e = def.m_e;
   m_boxes.push_back(box);
@@ -140,15 +140,14 @@ void q3Body::RemoveBox(const q3Box *box) {
   m_scene->m_contactManager.m_broadphase.RemoveBox(box);
 
   CalculateMassData();
-
-  m_scene->m_heap.Free((void *)box);
+  delete box;
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::RemoveAllBoxes() {
   for (auto box : m_boxes) {
     m_scene->m_contactManager.m_broadphase.RemoveBox(box);
-    m_scene->m_heap.Free((void *)box);
+    delete box;
   }
   m_boxes.clear();
   m_scene->m_contactManager.RemoveContactsFromBody(this);

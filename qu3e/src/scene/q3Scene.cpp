@@ -206,8 +206,7 @@ void q3Scene::Step() {
 
 //--------------------------------------------------------------------------------------------------
 q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
-  q3Body *body = (q3Body *)m_heap.Allocate(sizeof(q3Body));
-  new (body) q3Body(def, this);
+  auto body = new q3Body(def, this);
   // Add body to scene bodyList
   m_bodyList.push_back(body);
   return body;
@@ -221,15 +220,14 @@ void q3Scene::RemoveBody(q3Body *body) {
 
   // Remove body from scene bodyList
   m_bodyList.remove(body);
-
-  m_heap.Free(body);
+  delete body;
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Scene::RemoveAllBodies() {
   for (auto body : m_bodyList) {
     body->RemoveAllBoxes();
-    m_heap.Free(body);
+    delete body;
   }
   m_bodyList.clear();
 }

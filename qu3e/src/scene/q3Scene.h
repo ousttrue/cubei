@@ -76,7 +76,6 @@ private:
   std::list<q3Body *> m_bodyList;
 
   q3Stack m_stack;
-  q3Heap m_heap;
 
   q3Vec3 m_gravity;
   float m_dt;
