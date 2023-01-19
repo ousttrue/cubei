@@ -65,7 +65,7 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   }
 
   // Create new contact
-  q3ContactConstraint *contact = (q3ContactConstraint *)m_allocator.Allocate();
+  auto contact = new q3ContactConstraint;
   contact->A = A;
   contact->B = B;
   contact->bodyA = A->body;
@@ -141,7 +141,7 @@ q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   auto it = std::find(m_contactList.begin(), m_contactList.end(), contact);
   assert(it != m_contactList.end());
   it = m_contactList.erase(it);
-  m_allocator.Free(contact);
+  delete contact;
   return it;
 }
 

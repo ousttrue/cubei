@@ -55,7 +55,8 @@ public:
   void FindNewContacts(void);
 
   // Remove a specific contact
-  std::list<q3ContactConstraint *>::iterator RemoveContact(q3ContactConstraint *contact);
+  std::list<q3ContactConstraint *>::iterator
+  RemoveContact(q3ContactConstraint *contact);
 
   // Remove all contacts from a body
   void RemoveContactsFromBody(q3Body *body);
@@ -68,11 +69,22 @@ public:
 
   void RenderContacts(q3Render *debugDrawer) const;
 
+  // Sets the listener to report collision start/end. Provides the user
+  // with a pointer to an q3ContactConstraint. The q3ContactConstraint
+  // holds pointers to the two shapes involved in a collision, and the
+  // two bodies connected to each shape. The q3ContactListener will be
+  // called very often, so it is recommended for the funciton to be very
+  // efficient. Provide a NULL pointer to remove the previously set
+  // listener.
+  void SetContactListener(q3ContactListener *listener) {
+    m_contactListener = listener;
+  }
+
 private:
   std::list<q3ContactConstraint *> m_contactList;
 
   q3BroadPhase m_broadphase;
-  q3ContactListener *m_contactListener=nullptr;
+  q3ContactListener *m_contactListener = nullptr;
 
   friend class q3BroadPhase;
   friend class q3Scene;

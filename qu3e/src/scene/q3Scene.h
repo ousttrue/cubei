@@ -92,15 +92,6 @@ public:
   // the current simulation step.
   void Render(q3Render *render) const;
 
-  // Sets the listener to report collision start/end. Provides the user
-  // with a pointer to an q3ContactConstraint. The q3ContactConstraint
-  // holds pointers to the two shapes involved in a collision, and the
-  // two bodies connected to each shape. The q3ContactListener will be
-  // called very often, so it is recommended for the funciton to be very
-  // efficient. Provide a NULL pointer to remove the previously set
-  // listener.
-  void SetContactListener(q3ContactListener *listener);
-
   // Query the world to find any shapes that can potentially intersect
   // the provided AABB. This works by querying the broadphase with an
   // AAABB -- only *potential* intersections are reported. Perhaps the

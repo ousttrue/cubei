@@ -93,10 +93,6 @@ void q3Scene::Render(q3Render *render) const {
   m_contactManager.m_broadphase.m_tree.Render(render);
 }
 
-void q3Scene::SetContactListener(q3ContactListener *listener) {
-  m_contactManager.m_contactListener = listener;
-}
-
 void q3Scene::QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
