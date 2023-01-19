@@ -29,7 +29,7 @@ distribution.
 #define Q3BODY_H
 
 #include <stdio.h>
-
+#include <list>
 #include "../math/q3Math.h"
 #include "../math/q3Transform.h"
 
@@ -143,7 +143,7 @@ private:
   int m_layers;
   int m_flags;
 
-  q3Box *m_boxes;
+  std::list<q3Box *> m_boxes;
   void *m_userData;
   q3Scene *m_scene;
   int m_islandIndex;

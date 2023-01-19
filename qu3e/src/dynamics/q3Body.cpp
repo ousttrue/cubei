@@ -85,18 +85,17 @@ q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
   if (def.lockAxisZ)
     m_flags |= eLockAxisZ;
 
-  m_boxes = NULL;
   m_contactList = NULL;
 }
 
 //--------------------------------------------------------------------------------------------------
 const q3Box *q3Body::AddBox(const q3BoxDef &def) {
-  q3AABB aabb;
   q3Box *box = (q3Box *)m_scene->m_heap.Allocate(sizeof(q3Box));
   box->local = def.m_tx;
   box->e = def.m_e;
-  box->next = m_boxes;
-  m_boxes = box;
+  m_boxes.push_back(box);
+
+  q3AABB aabb;
   box->ComputeAABB(m_tx, &aabb);
 
   box->body = this;
@@ -118,28 +117,12 @@ void q3Body::RemoveBox(const q3Box *box) {
   assert(box);
   assert(box->body == this);
 
-  q3Box *node = m_boxes;
-
-  bool found = false;
-  if (node == box) {
-    m_boxes = node->next;
-    found = true;
-  }
-
-  else {
-    while (node) {
-      if (node->next == box) {
-        node->next = box->next;
-        found = true;
-        break;
-      }
-
-      node = node->next;
-    }
-  }
+  auto node = std::find(m_boxes.begin(), m_boxes.end(), box);
+  bool found = node != m_boxes.end();
 
   // This shape was not connected to this body.
   assert(found);
+  m_boxes.erase(node);
 
   // Remove all contacts associated with this shape
   q3ContactEdge *edge = m_contactList;
@@ -163,15 +146,11 @@ void q3Body::RemoveBox(const q3Box *box) {
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::RemoveAllBoxes() {
-  while (m_boxes) {
-    q3Box *next = m_boxes->next;
-
-    m_scene->m_contactManager.m_broadphase.RemoveBox(m_boxes);
-    m_scene->m_heap.Free((void *)m_boxes);
-
-    m_boxes = next;
+  for (auto box : m_boxes) {
+    m_scene->m_contactManager.m_broadphase.RemoveBox(box);
+    m_scene->m_heap.Free((void *)box);
   }
-
+  m_boxes.clear();
   m_scene->m_contactManager.RemoveContactsFromBody(this);
 }
 
@@ -370,11 +349,8 @@ float q3Body::GetAngularDamping(float damping) const {
 //--------------------------------------------------------------------------------------------------
 void q3Body::Render(q3Render *render) const {
   bool awake = IsAwake();
-  q3Box *box = m_boxes;
-
-  while (box) {
+  for (auto box : m_boxes) {
     box->Render(m_tx, awake, render);
-    box = box->next;
   }
 }
 
@@ -427,9 +403,7 @@ void q3Body::Dump(FILE *file, int index) const {
   fprintf(file, "\tbd.lockAxisZ = bool( %d );\n", m_flags & eLockAxisZ);
   fprintf(file, "\tbodies[ %d ] = scene.CreateBody( bd );\n\n", index);
 
-  q3Box *box = m_boxes;
-
-  while (box) {
+  for (auto box : m_boxes) {
     fprintf(file, "\t{\n");
     fprintf(file, "\t\tq3BoxDef sd;\n");
     fprintf(file, "\t\tsd.SetFriction( float( %.15lf ) );\n", box->friction);
@@ -466,7 +440,6 @@ void q3Body::Dump(FILE *file, int index) const {
             box->e.x * 2.0f, box->e.y * 2.0f, box->e.z * 2.0f);
     fprintf(file, "\t\tbodies[ %d ]->AddBox( sd );\n", index);
     fprintf(file, "\t}\n");
-    box = box->next;
   }
 
   fprintf(file, "}\n\n");
@@ -488,7 +461,7 @@ void q3Body::CalculateMassData() {
   }
 
   q3Vec3 lc = {};
-  for (q3Box *box = m_boxes; box; box = box->next) {
+  for (auto box : m_boxes) {
     if (box->density == float(0.0))
       continue;
 
@@ -503,7 +476,7 @@ void q3Body::CalculateMassData() {
     m_mass = mass;
     m_invMass = float(1.0) / mass;
     lc *= m_invMass;
-    q3Mat3 identity={};
+    q3Mat3 identity = {};
     inertia -= (identity * q3Dot(lc, lc) - q3OuterProduct(lc, lc)) * mass;
     m_invInertiaModel = q3Inverse(inertia);
 
@@ -535,10 +508,8 @@ void q3Body::SynchronizeProxies() {
   q3AABB aabb;
   q3Transform tx = m_tx;
 
-  q3Box *box = m_boxes;
-  while (box) {
+  for (auto box : m_boxes) {
     box->ComputeAABB(tx, &aabb);
     broadphase->Update(box->broadPhaseIndex, aabb);
-    box = box->next;
   }
 }

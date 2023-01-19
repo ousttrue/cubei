@@ -69,6 +69,25 @@ public:
 };
 
 class q3Scene {
+private:
+  q3ContactManager m_contactManager;
+  q3PagedAllocator m_boxAllocator;
+
+  std::list<q3Body *> m_bodyList;
+
+  q3Stack m_stack;
+  q3Heap m_heap;
+
+  q3Vec3 m_gravity;
+  float m_dt;
+  int m_iterations;
+
+  bool m_newBox;
+  bool m_allowSleep;
+  bool m_enableFriction;
+
+  friend class q3Body;
+
 public:
   q3Scene(float dt,
           const q3Vec3 &gravity = q3Vec3{float(0.0), float(-9.8), float(0.0)},
@@ -144,25 +163,6 @@ public:
   // accurate when dumped upon scene initialization, instead of mid-
   // simulation.
   void Dump(FILE *file) const;
-
-private:
-  q3ContactManager m_contactManager;
-  q3PagedAllocator m_boxAllocator;
-
-  std::list<q3Body *> m_bodyList;
-
-  q3Stack m_stack;
-  q3Heap m_heap;
-
-  q3Vec3 m_gravity;
-  float m_dt;
-  int m_iterations;
-
-  bool m_newBox;
-  bool m_allowSleep;
-  bool m_enableFriction;
-
-  friend class q3Body;
 };
 
 #endif // Q3SCENE_H
