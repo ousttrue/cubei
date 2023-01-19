@@ -39,8 +39,6 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 q3ContactManager::q3ContactManager()
     : m_allocator(sizeof(q3ContactConstraint), 256), m_broadphase(this) {
-  m_contactList = NULL;
-  m_contactCount = 0;
   m_contactListener = NULL;
 }
 
@@ -83,11 +81,7 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   for (int i = 0; i < 8; ++i)
     contact->manifold.contacts[i].warmStarted = 0;
 
-  contact->prev = NULL;
-  contact->next = m_contactList;
-  if (m_contactList)
-    m_contactList->prev = contact;
-  m_contactList = contact;
+  m_contactList.push_back(contact);
 
   // Connect A
   contact->edgeA.constraint = contact;
@@ -111,15 +105,14 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
 
   bodyA->SetToAwake();
   bodyB->SetToAwake();
-
-  ++m_contactCount;
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3ContactManager::FindNewContacts() { m_broadphase.UpdatePairs(); }
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
+std::list<q3ContactConstraint *>::iterator
+q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   q3Body *A = contact->bodyA;
   q3Body *B = contact->bodyB;
 
@@ -147,18 +140,11 @@ void q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   B->SetToAwake();
 
   // Remove contact from the manager
-  if (contact->prev)
-    contact->prev->next = contact->next;
-
-  if (contact->next)
-    contact->next->prev = contact->prev;
-
-  if (contact == m_contactList)
-    m_contactList = contact->next;
-
-  --m_contactCount;
-
+  auto it = std::find(m_contactList.begin(), m_contactList.end(), contact);
+  assert(it != m_contactList.end());
+  it = m_contactList.erase(it);
   m_allocator.Free(contact);
+  return it;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -186,9 +172,9 @@ void q3ContactManager::TestCollisions(bool newBox) {
     m_broadphase.UpdatePairs();
   }
 
-  q3ContactConstraint *constraint = m_contactList;
-
-  while (constraint) {
+  auto it = m_contactList.begin();
+  for (; it != m_contactList.end();) {
+    auto constraint = *it;
     q3Box *A = constraint->A;
     q3Box *B = constraint->B;
     q3Body *bodyA = A->body;
@@ -197,22 +183,18 @@ void q3ContactManager::TestCollisions(bool newBox) {
     constraint->m_flags &= ~q3ContactConstraint::eIsland;
 
     if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
-      constraint = constraint->next;
+      ++it;
       continue;
     }
 
     if (!bodyA->CanCollide(bodyB)) {
-      q3ContactConstraint *next = constraint->next;
-      RemoveContact(constraint);
-      constraint = next;
+      it = RemoveContact(constraint);
       continue;
     }
 
     // Check if contact should persist
     if (!m_broadphase.TestOverlap(A->broadPhaseIndex, B->broadPhaseIndex)) {
-      q3ContactConstraint *next = constraint->next;
-      RemoveContact(constraint);
-      constraint = next;
+      it = RemoveContact(constraint);
       continue;
     }
     q3Manifold *manifold = &constraint->manifold;
@@ -257,20 +239,16 @@ void q3ContactManager::TestCollisions(bool newBox) {
       else if (!now_colliding && was_colliding)
         m_contactListener->EndContact(constraint);
     }
-
-    constraint = constraint->next;
+    ++it;
   }
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3ContactManager::RenderContacts(q3Render *render) const {
-  const q3ContactConstraint *contact = m_contactList;
-
-  while (contact) {
+  for (auto contact : m_contactList) {
     const q3Manifold *m = &contact->manifold;
 
     if (!(contact->m_flags & q3ContactConstraint::eColliding)) {
-      contact = contact->next;
       continue;
     }
 
@@ -293,8 +271,6 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
                    c->position.y + m->normal.y * 0.5f,
                    c->position.z + m->normal.z * 0.5f);
     }
-
-    contact = contact->next;
   }
 
   render->SetScale(1.0f, 1.0f, 1.0f);

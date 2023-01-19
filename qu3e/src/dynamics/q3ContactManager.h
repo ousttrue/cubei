@@ -31,7 +31,7 @@ distribution.
 #include "../broadphase/q3BroadPhase.h"
 #include "../common/q3Memory.h"
 #include "../common/q3Types.h"
-
+#include <list>
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ public:
   void FindNewContacts(void);
 
   // Remove a specific contact
-  void RemoveContact(q3ContactConstraint *contact);
+  std::list<q3ContactConstraint *>::iterator RemoveContact(q3ContactConstraint *contact);
 
   // Remove all contacts from a body
   void RemoveContactsFromBody(q3Body *body);
@@ -69,8 +69,8 @@ public:
   void RenderContacts(q3Render *debugDrawer) const;
 
 private:
-  q3ContactConstraint *m_contactList;
-  int m_contactCount;
+  std::list<q3ContactConstraint *> m_contactList;
+
   q3PagedAllocator m_allocator;
   q3BroadPhase m_broadphase;
   q3ContactListener *m_contactListener;

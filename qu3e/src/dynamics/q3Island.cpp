@@ -52,7 +52,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
 
   // Build each active island and then solve each built island
   int stackSize = bodyList.size();
-  std::vector<q3Body *> stack(stackSize);
+  m_stack.resize(stackSize);
   for (auto seed : bodyList) {
     // Seed cannot be apart of an island already
     if (seed->m_flags & q3Body::eIsland)
@@ -68,7 +68,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
       continue;
 
     int stackCount = 0;
-    stack[stackCount++] = seed;
+    m_stack[stackCount++] = seed;
     m_bodies.clear();
     m_contacts.clear();
 
@@ -78,7 +78,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
     // Perform DFS on constraint graph
     while (stackCount > 0) {
       // Decrement stack to implement iterative backtracking
-      q3Body *body = stack[--stackCount];
+      q3Body *body = m_stack[--stackCount];
       Add(body);
 
       // Awaken all bodies connected to the island
@@ -121,7 +121,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
 
         assert(stackCount < stackSize);
 
-        stack[stackCount++] = other;
+        m_stack[stackCount++] = other;
         other->m_flags |= q3Body::eIsland;
       }
     }

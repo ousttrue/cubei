@@ -42,7 +42,7 @@ void q3Scene::Step(const q3Env &env) {
   m_contactManager.TestCollisions(m_newBox);
   m_newBox = false;
 
-  m_island.Process(m_bodyList, m_contactManager.m_contactCount, env);
+  m_island.Process(m_bodyList, m_contactManager.m_contactList.size(), env);
 
   // Update the broadphase AABBs
   for (auto body : m_bodyList) {

@@ -79,6 +79,7 @@ struct q3Env {
 
 class q3Island {
   std::vector<class q3Body *> m_bodies;
+  std::vector<class q3Body *> m_stack;
 
 public:
   q3Env m_env;
