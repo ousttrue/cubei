@@ -41,7 +41,7 @@ distribution.
 void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
                        const q3Env &env) {
   for (auto body : bodyList) {
-    body->m_flags &= ~q3Body::eIsland;
+    body->RemoveFlag(q3BodyFlags::eIsland);
   }
 
   m_bodies.reserve(bodyList.size());
@@ -55,16 +55,16 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
   m_stack.resize(stackSize);
   for (auto seed : bodyList) {
     // Seed cannot be apart of an island already
-    if (seed->m_flags & q3Body::eIsland)
+    if (seed->HasFlag(q3BodyFlags::eIsland))
       continue;
 
     // Seed must be awake
-    if (!(seed->m_flags & q3Body::eAwake))
+    if (!seed->HasFlag(q3BodyFlags::eAwake))
       continue;
 
     // Seed cannot be a static body in order to keep islands
     // as small as possible
-    if (seed->m_flags & q3Body::eStatic)
+    if (seed->HasFlag(q3BodyFlags::eStatic))
       continue;
 
     int stackCount = 0;
@@ -73,7 +73,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
     m_contacts.clear();
 
     // Mark seed as apart of island
-    seed->m_flags |= q3Body::eIsland;
+    seed->AddFlag(q3BodyFlags::eIsland);
 
     // Perform DFS on constraint graph
     while (stackCount > 0) {
@@ -88,7 +88,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
       // formations as small as possible, however the static
       // body itself should be apart of the island in order
       // to properly represent a full contact
-      if (body->m_flags & q3Body::eStatic)
+      if (body->HasFlag(q3BodyFlags::eStatic))
         continue;
 
       // Search all contacts connected to this body
@@ -116,13 +116,13 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
         // Attempt to add the other body in the contact to the island
         // to simulate contact awakening propogation
         q3Body *other = edge->other;
-        if (other->m_flags & q3Body::eIsland)
+        if (other->HasFlag(q3BodyFlags::eIsland))
           continue;
 
         assert(stackCount < stackSize);
 
         m_stack[stackCount++] = other;
-        other->m_flags |= q3Body::eIsland;
+        other->AddFlag(q3BodyFlags::eIsland);
       }
     }
 
@@ -134,8 +134,8 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
     // Reset all static island flags
     // This allows static bodies to participate in other island formations
     for (auto body : m_bodies) {
-      if (body->m_flags & q3Body::eStatic)
-        body->m_flags &= ~q3Body::eIsland;
+      if (body->HasFlag(q3BodyFlags::eStatic))
+        body->RemoveFlag(q3BodyFlags::eIsland);
     }
   }
 }
@@ -149,7 +149,7 @@ void q3Island::Solve(const q3Env &env) {
     q3Body *body = m_bodies[i];
     q3VelocityState *v = &m_velocities[i];
 
-    if (body->m_flags & q3Body::eDynamic) {
+    if (body->HasFlag(q3BodyFlags::eDynamic)) {
       body->ApplyLinearForce(env.m_gravity * body->m_gravityScale);
 
       // Calculate world space intertia tensor
@@ -196,7 +196,7 @@ void q3Island::Solve(const q3Env &env) {
     q3Body *body = m_bodies[i];
     q3VelocityState *v = &m_velocities[i];
 
-    if (body->m_flags & q3Body::eStatic)
+    if (body->HasFlag(q3BodyFlags::eStatic))
       continue;
 
     body->m_linearVelocity = v->v;
@@ -213,7 +213,7 @@ void q3Island::Solve(const q3Env &env) {
     // Find minimum sleep time of the entire island
     float minSleepTime = Q3_R32_MAX;
     for (auto body : m_bodies) {
-      if (body->m_flags & q3Body::eStatic)
+      if (body->HasFlag(q3BodyFlags::eStatic))
         continue;
 
       const float sqrLinVel =

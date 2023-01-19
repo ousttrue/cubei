@@ -47,16 +47,16 @@ q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
   m_layers = def.layers;
   m_userData = def.userData;
   m_scene = scene;
-  m_flags = 0;
+  m_flags = q3BodyFlags::eNone;
   m_linearDamping = def.linearDamping;
   m_angularDamping = def.angularDamping;
 
   if (def.bodyType == eDynamicBody)
-    m_flags |= q3Body::eDynamic;
+    AddFlag(q3BodyFlags::eDynamic);
 
   else {
     if (def.bodyType == eStaticBody) {
-      m_flags |= q3Body::eStatic;
+      AddFlag(q3BodyFlags::eStatic);
       m_linearVelocity = {};
       m_angularVelocity = {};
       m_force = {};
@@ -64,26 +64,26 @@ q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
     }
 
     else if (def.bodyType == eKinematicBody)
-      m_flags |= q3Body::eKinematic;
+      AddFlag(q3BodyFlags::eKinematic);
   }
 
   if (def.allowSleep)
-    m_flags |= eAllowSleep;
+    AddFlag(eAllowSleep);
 
   if (def.awake)
-    m_flags |= eAwake;
+    AddFlag(eAwake);
 
   if (def.active)
-    m_flags |= eActive;
+    AddFlag(eActive);
 
   if (def.lockAxisX)
-    m_flags |= eLockAxisX;
+    AddFlag(eLockAxisX);
 
   if (def.lockAxisY)
-    m_flags |= eLockAxisY;
+    AddFlag(eLockAxisY);
 
   if (def.lockAxisZ)
-    m_flags |= eLockAxisZ;
+    AddFlag(eLockAxisZ);
 
   m_contactList = NULL;
 }
@@ -166,15 +166,15 @@ void q3Body::ApplyTorque(const q3Vec3 &torque) { m_torque += torque; }
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::SetToAwake() {
-  if (!(m_flags & eAwake)) {
-    m_flags |= eAwake;
+  if (!HasFlag(eAwake)) {
+    AddFlag(eAwake);
     m_sleepTime = float(0.0);
   }
 }
 
 //--------------------------------------------------------------------------------------------------
 void q3Body::SetToSleep() {
-  m_flags &= ~eAwake;
+  RemoveFlag(eAwake);
   m_sleepTime = float(0.0);
   m_linearVelocity = {};
   m_angularVelocity = {};
@@ -379,42 +379,7 @@ void q3Body::Dump(FILE *file, int index) const {
   fprintf(file, "\tbodies[ %d ] = scene.CreateBody( bd );\n\n", index);
 
   for (auto box : m_boxes) {
-    fprintf(file, "\t{\n");
-    fprintf(file, "\t\tq3BoxDef sd;\n");
-    fprintf(file, "\t\tsd.SetFriction( float( %.15lf ) );\n", box->friction);
-    fprintf(file, "\t\tsd.SetRestitution( float( %.15lf ) );\n",
-            box->restitution);
-    fprintf(file, "\t\tsd.SetDensity( float( %.15lf ) );\n", box->density);
-    int sensor = (int)box->sensor;
-    fprintf(file, "\t\tsd.SetSensor( bool( %d ) );\n", sensor);
-    fprintf(file, "\t\tq3Transform boxTx;\n");
-    q3Transform boxTx = box->local;
-    q3Vec3 xAxis = boxTx.rotation.ex;
-    q3Vec3 yAxis = boxTx.rotation.ey;
-    q3Vec3 zAxis = boxTx.rotation.ez;
-    fprintf(file,
-            "\t\tq3Vec3 xAxis( float( %.15lf ), float( %.15lf ), float( %.15lf "
-            ") );\n",
-            xAxis.x, xAxis.y, xAxis.z);
-    fprintf(file,
-            "\t\tq3Vec3 yAxis( float( %.15lf ), float( %.15lf ), float( %.15lf "
-            ") );\n",
-            yAxis.x, yAxis.y, yAxis.z);
-    fprintf(file,
-            "\t\tq3Vec3 zAxis( float( %.15lf ), float( %.15lf ), float( %.15lf "
-            ") );\n",
-            zAxis.x, zAxis.y, zAxis.z);
-    fprintf(file, "\t\tboxTx.rotation.SetRows( xAxis, yAxis, zAxis );\n");
-    fprintf(file,
-            "\t\tboxTx.position.Set( float( %.15lf ), float( %.15lf ), float( "
-            "%.15lf ) );\n",
-            boxTx.position.x, boxTx.position.y, boxTx.position.z);
-    fprintf(file,
-            "\t\tsd.Set( boxTx, q3Vec3( float( %.15lf ), float( %.15lf ), "
-            "float( %.15lf ) ) );\n",
-            box->e.x * 2.0f, box->e.y * 2.0f, box->e.z * 2.0f);
-    fprintf(file, "\t\tbodies[ %d ]->AddBox( sd );\n", index);
-    fprintf(file, "\t}\n");
+    box->Dump(file, index);
   }
 
   fprintf(file, "}\n\n");

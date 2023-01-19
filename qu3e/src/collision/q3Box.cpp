@@ -180,3 +180,42 @@ void q3Box::Render(const q3Transform &tx, bool awake, q3Render *render) const {
     render->Triangle(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
   }
 }
+
+void q3Box::Dump(FILE *file, int index) {
+  fprintf(file, "\t{\n");
+  fprintf(file, "\t\tq3BoxDef sd;\n");
+  fprintf(file, "\t\tsd.SetFriction( float( %.15lf ) );\n", this->friction);
+  fprintf(file, "\t\tsd.SetRestitution( float( %.15lf ) );\n",
+          this->restitution);
+  fprintf(file, "\t\tsd.SetDensity( float( %.15lf ) );\n", this->density);
+  int sensor = (int)this->sensor;
+  fprintf(file, "\t\tsd.SetSensor( bool( %d ) );\n", sensor);
+  fprintf(file, "\t\tq3Transform boxTx;\n");
+  q3Transform boxTx = this->local;
+  q3Vec3 xAxis = boxTx.rotation.ex;
+  q3Vec3 yAxis = boxTx.rotation.ey;
+  q3Vec3 zAxis = boxTx.rotation.ez;
+  fprintf(file,
+          "\t\tq3Vec3 xAxis( float( %.15lf ), float( %.15lf ), float( %.15lf "
+          ") );\n",
+          xAxis.x, xAxis.y, xAxis.z);
+  fprintf(file,
+          "\t\tq3Vec3 yAxis( float( %.15lf ), float( %.15lf ), float( %.15lf "
+          ") );\n",
+          yAxis.x, yAxis.y, yAxis.z);
+  fprintf(file,
+          "\t\tq3Vec3 zAxis( float( %.15lf ), float( %.15lf ), float( %.15lf "
+          ") );\n",
+          zAxis.x, zAxis.y, zAxis.z);
+  fprintf(file, "\t\tboxTx.rotation.SetRows( xAxis, yAxis, zAxis );\n");
+  fprintf(file,
+          "\t\tboxTx.position.Set( float( %.15lf ), float( %.15lf ), float( "
+          "%.15lf ) );\n",
+          boxTx.position.x, boxTx.position.y, boxTx.position.z);
+  fprintf(file,
+          "\t\tsd.Set( boxTx, q3Vec3( float( %.15lf ), float( %.15lf ), "
+          "float( %.15lf ) ) );\n",
+          this->e.x * 2.0f, this->e.y * 2.0f, this->e.z * 2.0f);
+  fprintf(file, "\t\tbodies[ %d ]->AddBox( sd );\n", index);
+  fprintf(file, "\t}\n");
+}

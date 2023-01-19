@@ -28,10 +28,10 @@ distribution.
 #ifndef Q3BODY_H
 #define Q3BODY_H
 
-#include <stdio.h>
-#include <list>
 #include "../math/q3Math.h"
 #include "../math/q3Transform.h"
+#include <list>
+#include <stdio.h>
 
 //--------------------------------------------------------------------------------------------------
 // q3Body
@@ -45,9 +45,100 @@ struct q3Box;
 
 enum q3BodyType { eStaticBody, eDynamicBody, eKinematicBody };
 
-class q3Body {
-public:
+enum q3BodyFlags {
+  eNone = 0x0000,
+  eAwake = 0x001,
+  eActive = 0x002,
+  eAllowSleep = 0x004,
+  eIsland = 0x010,
+  eStatic = 0x020,
+  eDynamic = 0x040,
+  eKinematic = 0x080,
+  eLockAxisX = 0x100,
+  eLockAxisY = 0x200,
+  eLockAxisZ = 0x400,
+};
 
+//--------------------------------------------------------------------------------------------------
+// q3BodyDef
+//--------------------------------------------------------------------------------------------------
+struct q3BodyDef {
+  q3Vec3 axis = {};            // Initial world transformation.
+  float angle = {};            // Initial world transformation. Radians.
+  q3Vec3 position = {};        // Initial world transformation.
+  q3Vec3 linearVelocity = {};  // Initial linear velocity in world space.
+  q3Vec3 angularVelocity = {}; // Initial angular velocity in world space.
+                               // Usually a gravity scale of 1 is the best
+  float gravityScale = 1.0f;   // Convenient scale values for gravity x, y and z
+                               // directions.
+  int layers = 0x000000001; // Bitmask of collision layers. Bodies matching at
+                            // least one layer can collide.
+  void *userData = nullptr; // Use to store application specific data.
+
+  float linearDamping = 0;
+  float angularDamping = 0.1f;
+
+  // Static, dynamic or kinematic. Dynamic bodies with zero mass are defaulted
+  // to a mass of 1. Static bodies never move or integrate, and are very CPU
+  // efficient. Static bodies have infinite mass. Kinematic bodies have
+  // infinite mass, but *do* integrate and move around. Kinematic bodies do not
+  // resolve any collisions.
+  q3BodyType bodyType = eStaticBody;
+
+  bool allowSleep = true; // Sleeping lets a body assume a non-moving state.
+                          // Greatly reduces CPU usage.
+  bool awake = true;      // Initial sleep state. True means awake.
+  bool active = true; // A body can start out inactive and just sits in memory.
+  bool lockAxisX = false; // Locked rotation on the x axis.
+  bool lockAxisY = false; // Locked rotation on the y axis.
+  bool lockAxisZ = false; // Locked rotation on the z axis.
+};
+
+class q3Body {
+  q3Mat3 m_invInertiaModel;
+  q3Mat3 m_invInertiaWorld;
+  float m_mass;
+  float m_invMass;
+  q3Vec3 m_linearVelocity;
+  q3Vec3 m_angularVelocity;
+  q3Vec3 m_force;
+  q3Vec3 m_torque;
+  q3Transform m_tx;
+  q3Quaternion m_q;
+  q3Vec3 m_localCenter;
+  q3Vec3 m_worldCenter;
+  float m_sleepTime;
+  float m_gravityScale;
+  int m_layers;
+  q3BodyFlags m_flags = {};
+
+  std::list<q3Box *> m_boxes;
+  void *m_userData;
+  q3Scene *m_scene;
+  int m_islandIndex;
+
+  float m_linearDamping;
+  float m_angularDamping;
+
+  q3ContactEdge *m_contactList;
+
+  friend class q3Scene;
+  friend struct q3Manifold;
+  friend class q3ContactManager;
+  friend class q3Island;
+  friend struct q3ContactSolver;
+
+  q3Body(const q3BodyDef &def, q3Scene *scene);
+
+  void CalculateMassData();
+  void SynchronizeProxies();
+
+public:
+  bool HasFlag(q3BodyFlags flag) const { return (m_flags & flag) != 0; }
+  void AddFlag(q3BodyFlags flag) { m_flags = (q3BodyFlags)(m_flags | flag); }
+  void RemoveFlag(q3BodyFlags flag) {
+    m_flags = (q3BodyFlags)(m_flags & ~flag);
+  }
   // Removes this box from the body and broadphase. Forces the body
   // to recompute its mass if the body is dynamic. Frees the memory
   // pointed to by the box pointer.
@@ -105,94 +196,6 @@ public:
 
   float GetMass() const;
   float GetInvMass() const;
-
-private:
-  // m_flags
-  enum {
-    eAwake = 0x001,
-    eActive = 0x002,
-    eAllowSleep = 0x004,
-    eIsland = 0x010,
-    eStatic = 0x020,
-    eDynamic = 0x040,
-    eKinematic = 0x080,
-    eLockAxisX = 0x100,
-    eLockAxisY = 0x200,
-    eLockAxisZ = 0x400,
-  };
-
-  q3Mat3 m_invInertiaModel;
-  q3Mat3 m_invInertiaWorld;
-  float m_mass;
-  float m_invMass;
-  q3Vec3 m_linearVelocity;
-  q3Vec3 m_angularVelocity;
-  q3Vec3 m_force;
-  q3Vec3 m_torque;
-  q3Transform m_tx;
-  q3Quaternion m_q;
-  q3Vec3 m_localCenter;
-  q3Vec3 m_worldCenter;
-  float m_sleepTime;
-  float m_gravityScale;
-  int m_layers;
-  int m_flags;
-
-  std::list<q3Box *> m_boxes;
-  void *m_userData;
-  q3Scene *m_scene;
-  int m_islandIndex;
-
-  float m_linearDamping;
-  float m_angularDamping;
-
-  q3ContactEdge *m_contactList;
-
-  friend class q3Scene;
-  friend struct q3Manifold;
-  friend class q3ContactManager;
-  friend class q3Island;
-  friend struct q3ContactSolver;
-
-  q3Body(const q3BodyDef &def, q3Scene *scene);
-
-  void CalculateMassData();
-  void SynchronizeProxies();
-};
-
-//--------------------------------------------------------------------------------------------------
-// q3BodyDef
-//--------------------------------------------------------------------------------------------------
-struct q3BodyDef {
-  q3Vec3 axis = {};            // Initial world transformation.
-  float angle = {};            // Initial world transformation. Radians.
-  q3Vec3 position = {};        // Initial world transformation.
-  q3Vec3 linearVelocity = {};  // Initial linear velocity in world space.
-  q3Vec3 angularVelocity = {}; // Initial angular velocity in world space.
-                               // Usually a gravity scale of 1 is the best
-  float gravityScale = 1.0f;   // Convenient scale values for gravity x, y and z
-                               // directions.
-  int layers = 0x000000001; // Bitmask of collision layers. Bodies matching at
-                            // least one layer can collide.
-  void *userData = nullptr; // Use to store application specific data.
-
-  float linearDamping = 0;
-  float angularDamping = 0.1f;
-
-  // Static, dynamic or kinematic. Dynamic bodies with zero mass are defaulted
-  // to a mass of 1. Static bodies never move or integrate, and are very CPU
-  // efficient. Static bodies have infinite mass. Kinematic bodies have
-  // infinite mass, but *do* integrate and move around. Kinematic bodies do not
-  // resolve any collisions.
-  q3BodyType bodyType = eStaticBody;
-
-  bool allowSleep = true; // Sleeping lets a body assume a non-moving state.
-                          // Greatly reduces CPU usage.
-  bool awake = true;      // Initial sleep state. True means awake.
-  bool active = true; // A body can start out inactive and just sits in memory.
-  bool lockAxisX = false; // Locked rotation on the x axis.
-  bool lockAxisY = false; // Locked rotation on the y axis.
-  bool lockAxisZ = false; // Locked rotation on the z axis.
 };
 
 #endif // Q3BODY_H

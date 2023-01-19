@@ -46,9 +46,8 @@ void q3Scene::Step(const q3Env &env) {
 
   // Update the broadphase AABBs
   for (auto body : m_bodyList) {
-    if (body->m_flags & q3Body::eStatic)
+    if (body->HasFlag(q3BodyFlags::eStatic))
       continue;
-
     body->SynchronizeProxies();
   }
 

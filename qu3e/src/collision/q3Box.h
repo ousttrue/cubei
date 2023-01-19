@@ -43,6 +43,18 @@ struct q3MassData {
 };
 
 //--------------------------------------------------------------------------------------------------
+// q3BoxDef
+//--------------------------------------------------------------------------------------------------
+struct q3BoxDef {
+  q3Transform m_tx = {};
+  q3Vec3 m_e = {};
+  float m_friction = 0.4f;
+  float m_restitution = 0.2f;
+  float m_density = 1.0f;
+  bool m_sensor = false;
+};
+
+//--------------------------------------------------------------------------------------------------
 // q3Box
 //--------------------------------------------------------------------------------------------------
 struct q3Box {
@@ -64,18 +76,7 @@ struct q3Box {
   void ComputeAABB(const q3Transform &tx, q3AABB *aabb) const;
   void ComputeMass(q3MassData *md) const;
   void Render(const q3Transform &tx, bool awake, q3Render *render) const;
-};
-
-//--------------------------------------------------------------------------------------------------
-// q3BoxDef
-//--------------------------------------------------------------------------------------------------
-struct q3BoxDef {
-  q3Transform m_tx = {};
-  q3Vec3 m_e = {};
-  float m_friction = 0.4f;
-  float m_restitution = 0.2f;
-  float m_density = 1.0f;
-  bool m_sensor = false;
+  void Dump(FILE *file, int index);
 };
 
 #endif // Q3BOX_H
