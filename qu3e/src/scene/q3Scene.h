@@ -72,7 +72,6 @@ class q3Scene {
 private:
   q3ContactManager m_contactManager;
   q3PagedAllocator m_boxAllocator;
-  q3Stack m_stack;
   q3Vec3 m_gravity = q3Vec3{float(0.0), float(-9.8), float(0.0)};
   float m_dt;
   int m_iterations = 20;

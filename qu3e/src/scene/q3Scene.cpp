@@ -33,7 +33,7 @@ distribution.
 #include "../dynamics/q3ContactSolver.h"
 #include "../dynamics/q3Island.h"
 #include "q3Scene.h"
-
+#include <vector>
 #include <Remotery.h>
 
 //--------------------------------------------------------------------------------------------------
@@ -61,25 +61,18 @@ void q3Scene::Step() {
     body->m_flags &= ~q3Body::eIsland;
   }
 
+  std::vector<q3Body*> bodies(m_bodyList.size());
+  std::vector<q3VelocityState> velocities(m_bodyList.size());
+  std::vector<q3ContactConstraint *> contacts(m_contactManager.m_contactCount);
+  std::vector<q3ContactConstraintState> contactStates(m_contactManager.m_contactCount);
   // Size the stack island, pick worst case size
-  m_stack.Reserve(
-      sizeof(q3Body *) * m_bodyList.size() +
-      sizeof(q3VelocityState) * m_bodyList.size() +
-      sizeof(q3ContactConstraint *) * m_contactManager.m_contactCount +
-      sizeof(q3ContactConstraintState) * m_contactManager.m_contactCount +
-      sizeof(q3Body *) * m_bodyList.size());
-
   q3Island island;
   island.m_bodyCapacity = m_bodyList.size();
   island.m_contactCapacity = m_contactManager.m_contactCount;
-  island.m_bodies =
-      (q3Body **)m_stack.Allocate(sizeof(q3Body *) * m_bodyList.size());
-  island.m_velocities = (q3VelocityState *)m_stack.Allocate(
-      sizeof(q3VelocityState) * m_bodyList.size());
-  island.m_contacts = (q3ContactConstraint **)m_stack.Allocate(
-      sizeof(q3ContactConstraint *) * island.m_contactCapacity);
-  island.m_contactStates = (q3ContactConstraintState *)m_stack.Allocate(
-      sizeof(q3ContactConstraintState) * island.m_contactCapacity);
+  island.m_bodies = bodies.data();
+  island.m_velocities = velocities.data();
+  island.m_contacts = contacts.data();
+  island.m_contactStates = contactStates.data();
   island.m_allowSleep = m_allowSleep;
   island.m_enableFriction = m_enableFriction;
   island.m_bodyCount = 0;
@@ -90,7 +83,7 @@ void q3Scene::Step() {
 
   // Build each active island and then solve each built island
   int stackSize = m_bodyList.size();
-  q3Body **stack = (q3Body **)m_stack.Allocate(sizeof(q3Body *) * stackSize);
+  std::vector<q3Body *> stack(stackSize);
   for (auto seed : m_bodyList) {
     // Seed cannot be apart of an island already
     if (seed->m_flags & q3Body::eIsland)
@@ -178,12 +171,6 @@ void q3Scene::Step() {
         body->m_flags &= ~q3Body::eIsland;
     }
   }
-
-  m_stack.Free(stack);
-  m_stack.Free(island.m_contactStates);
-  m_stack.Free(island.m_contacts);
-  m_stack.Free(island.m_velocities);
-  m_stack.Free(island.m_bodies);
 
   // Update the broadphase AABBs
   for (auto body : m_bodyList) {
