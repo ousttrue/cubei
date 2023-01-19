@@ -34,23 +34,17 @@ distribution.
 #include <stdlib.h>
 #include <vector>
 
-q3Scene::q3Scene(float dt) : m_boxAllocator(sizeof(q3Box), 256) {
-  m_env.m_dt = dt;
-}
+q3Scene::q3Scene() : m_boxAllocator(sizeof(q3Box), 256) {}
 
 q3Scene::~q3Scene() { Shutdown(); }
 
-void q3Scene::Step() {
+void q3Scene::Step(const q3Env &env) {
   rmt_ScopedCPUSample(qSceneStep, 0);
 
-  if (m_newBox) {
-    m_contactManager.m_broadphase.UpdatePairs();
-    m_newBox = false;
-  }
+  m_contactManager.TestCollisions(m_newBox);
+  m_newBox = false;
 
-  m_contactManager.TestCollisions();
-
-  m_island.Process(m_bodyList, m_contactManager.m_contactCount, m_env);
+  m_island.Process(m_bodyList, m_contactManager.m_contactCount, env);
 
   // Update the broadphase AABBs
   for (auto body : m_bodyList) {
@@ -93,14 +87,6 @@ void q3Scene::RemoveAllBodies() {
   m_bodyList.clear();
 }
 
-void q3Scene::SetAllowSleep(bool allowSleep) {
-  m_env.m_allowSleep = allowSleep;
-  if (!allowSleep) {
-    for (auto body : m_bodyList)
-      body->SetToAwake();
-  }
-}
-
 void q3Scene::Render(q3Render *render) const {
   for (auto body : m_bodyList) {
     body->Render(render);
@@ -111,7 +97,6 @@ void q3Scene::Render(q3Render *render) const {
 
 void q3Scene::Shutdown() {
   RemoveAllBodies();
-
   m_boxAllocator.Clear();
 }
 
@@ -199,7 +184,7 @@ void q3Scene::RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const {
   m_contactManager.m_broadphase.m_tree.Query(&wrapper, rayCast);
 }
 
-void q3Scene::Dump(FILE *file) const {
+void q3Scene::Dump(FILE *file, const q3Env &m_env) const {
   fprintf(file,
           "// Ensure 64/32-bit memory compatability with the dump contents\n");
   fprintf(file, "assert( sizeof( int* ) == %zu );\n", sizeof(int *));

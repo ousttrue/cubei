@@ -25,16 +25,13 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3SCENE_H
-#define Q3SCENE_H
-
-#include <stdio.h>
-
+#pragma once
 #include "../common/q3Memory.h"
 #include "../common/q3Settings.h"
 #include "../dynamics/q3ContactManager.h"
 #include "../dynamics/q3Island.h"
 #include <list>
+#include <stdio.h>
 
 //--------------------------------------------------------------------------------------------------
 // q3Scene
@@ -77,13 +74,12 @@ class q3Scene {
   friend class q3Body;
 
 public:
-  q3Env m_env;
-  q3Scene(float dt);
+  q3Scene();
   ~q3Scene();
 
   // Run the simulation forward in time by dt (fixed timestep). Variable
   // timestep is not supported.
-  void Step();
+  void Step(const q3Env &env);
 
   // Construct a new rigid body. The BodyDef can be reused at the user's
   // discretion, as no reference to the BodyDef is kept.
@@ -94,23 +90,9 @@ public:
   void RemoveBody(q3Body *body);
   void RemoveAllBodies();
 
-  // Enables or disables rigid body sleeping. Sleeping is an effective CPU
-  // optimization where bodies are put to sleep if they don't move much.
-  // Sleeping bodies sit in memory without being updated, until the are
-  // touched by something that wakes them up. The default is enabled.
-  void SetAllowSleep(bool allowSleep);
-
-  // Friction occurs when two rigid bodies have shapes that slide along one
-  // another. The friction force resists this sliding motion.
-  void SetEnableFriction(bool enabled) { m_env.m_enableFriction = enabled; }
-
   // Render the scene with an interpolated time between the last frame and
   // the current simulation step.
   void Render(q3Render *render) const;
-
-  // Gets and sets the global gravity vector used during integration
-  const q3Vec3 GetGravity() const { return m_env.m_gravity; }
-  void SetGravity(const q3Vec3 &gravity) { m_env.m_gravity = gravity; }
 
   // Removes all bodies from the scene.
   void Shutdown();
@@ -142,7 +124,5 @@ public:
   // not be saved to the log file. This means the log file will be most
   // accurate when dumped upon scene initialization, instead of mid-
   // simulation.
-  void Dump(FILE *file) const;
+  void Dump(FILE *file, const q3Env &env) const;
 };
-
-#endif // Q3SCENE_H

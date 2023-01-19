@@ -38,8 +38,7 @@ distribution.
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
 q3ContactManager::q3ContactManager()
-    : m_allocator(sizeof(q3ContactConstraint), 256),
-      m_broadphase(this) {
+    : m_allocator(sizeof(q3ContactConstraint), 256), m_broadphase(this) {
   m_contactList = NULL;
   m_contactCount = 0;
   m_contactListener = NULL;
@@ -181,8 +180,11 @@ void q3ContactManager::RemoveFromBroadphase(q3Body *body) {
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactManager::TestCollisions(void) {
+void q3ContactManager::TestCollisions(bool newBox) {
   rmt_ScopedCPUSample(qTestCollisions, 0);
+  if (newBox) {
+    m_broadphase.UpdatePairs();
+  }
 
   q3ContactConstraint *constraint = m_contactList;
 

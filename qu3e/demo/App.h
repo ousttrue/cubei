@@ -1,8 +1,9 @@
 #pragma once
-#include "debug/q3Render.h"
 #include "GLTypes.h"
+#include "debug/q3Render.h"
 #include <chrono>
 #include <memory>
+#include <q3.h>
 #include <vector>
 
 class App {
@@ -18,12 +19,14 @@ class App {
   bool paused_ = false;
   // Can the simulation take a step, while paused is enabled?
   bool singleStep_ = false;
-  // Globals for running the scene
-  bool enableSleep_ = true;
-  bool enableFriction_ = true;
-  int velocityIterations_ = 10;
 
   Camera camera_;
+  // Globals for running the scene
+  q3Env env_ = {
+      .m_iterations = 10,
+      .m_allowSleep = true,
+      .m_enableFriction = true,
+  };
 
 public:
   App(struct GLFWwindow *window);

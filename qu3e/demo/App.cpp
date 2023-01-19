@@ -19,11 +19,12 @@
 const std::chrono::nanoseconds DELTA =
     std::chrono::nanoseconds(1000000000 / 60);
 
-App::App(GLFWwindow *window)
-    : scene_(
-          new q3Scene(std::chrono::duration_cast<
-                          std::chrono::duration<float, std::ratio<1, 1>>>(DELTA)
-                          .count())) {
+App::App(GLFWwindow *window) : scene_(new q3Scene) {
+
+  env_.m_dt = std::chrono::duration_cast<
+                  std::chrono::duration<float, std::ratio<1, 1>>>(DELTA)
+                  .count();
+
   // Setup Dear ImGui context
   const char *glsl_version = "#version 130";
   IMGUI_CHECKVERSION();
@@ -109,7 +110,7 @@ void App::DemosSingleStep() {
 
 void App::DemosSceneDump() {
   FILE *fp = fopen(sceneFileName_, "w");
-  scene_->Dump(fp);
+  scene_->Dump(fp, env_);
   fclose(fp);
 }
 
@@ -129,10 +130,6 @@ void App::Frame(int w, int h) {
   auto delta = time - time_;
   time_ = time;
 
-  scene_->SetAllowSleep(enableSleep_);
-  scene_->SetEnableFriction(enableFriction_);
-  scene_->m_env.SetIterations(velocityIterations_);
-
   // The time accumulator is used to allow the application to render at
   // a frequency different from the constant frequency the physics sim-
   // ulation is running at (default 60Hz).
@@ -143,11 +140,11 @@ void App::Frame(int w, int h) {
   {
     rmt_ScopedCPUSample(Qu3eStep, 0);
     if (!paused_) {
-      scene_->Step();
+      scene_->Step(env_);
       demos_[currentDemo_]->Update(scene_.get(), delta);
     } else {
       if (singleStep_) {
-        scene_->Step();
+        scene_->Step(env_);
         demos_[currentDemo_]->Update(scene_.get(), DELTA);
         singleStep_ = false;
       }
@@ -183,9 +180,9 @@ void App::Frame(int w, int h) {
     ImGui::Checkbox("Pause", &paused_);
     if (paused_)
       ImGui::Checkbox("Single Step", &singleStep_);
-    ImGui::Checkbox("Sleeping", &enableSleep_);
-    ImGui::Checkbox("Friction", &enableFriction_);
-    ImGui::SliderInt("Iterations", &velocityIterations_, 1, 50);
+    ImGui::Checkbox("Sleeping", &env_.m_allowSleep);
+    ImGui::Checkbox("Friction", &env_.m_enableFriction);
+    ImGui::SliderInt("Iterations", &env_.m_iterations, 1, 50);
     int flags = (1 << 0) | (1 << 1) | (1 << 2);
     ImGui::InputText("Dump File Name", sceneFileName_,
                      ((int)(sizeof(sceneFileName_) / sizeof(*sceneFileName_))),
