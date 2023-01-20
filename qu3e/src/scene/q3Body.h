@@ -123,7 +123,6 @@ class q3Body {
   int m_layers;
   q3BodyFlags m_flags = {};
   std::list<q3Box *> m_boxes;
-  void *m_userData;
   float m_linearDamping;
   float m_angularDamping;
 
@@ -271,7 +270,6 @@ public:
   void SetLayers(int layers) { m_layers = layers; }
   int GetLayers() const { return m_layers; }
   const q3Quaternion GetQuaternion() const { return m_q; }
-  void *GetUserData() const { return m_userData; }
   void SetLinearDamping(float damping) { m_linearDamping = damping; }
   float GetLinearDamping(float damping) const { return m_linearDamping; }
   void SetAngularDamping(float damping) { m_angularDamping = damping; }

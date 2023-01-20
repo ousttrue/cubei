@@ -41,7 +41,6 @@ q3Body::q3Body(const q3BodyDef &def) {
   m_tx.position = def.position;
   m_gravityScale = def.gravityScale;
   m_layers = def.layers;
-  m_userData = def.userData;
   m_linearDamping = def.linearDamping;
   m_angularDamping = def.angularDamping;
 

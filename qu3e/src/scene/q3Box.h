@@ -63,7 +63,6 @@ struct q3Box {
   float restitution;
   float density;
   int broadPhaseIndex;
-  mutable void *userData = nullptr;
   mutable bool sensor;
 
   void SetSensor(bool isSensor);
