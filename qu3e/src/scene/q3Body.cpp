@@ -25,49 +25,44 @@ distribution.
 */
 
 #include "q3Body.h"
-#include "../broadphase/q3BroadPhase.h"
 #include "../dynamics/q3Contact.h"
 #include "../math/q3Math.h"
 #include "q3Box.h"
 #include "q3Scene.h"
 
-// q3Body
-
 q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
   m_transformUpdated = [scene, self = this]() {
     scene->m_contactManager.m_broadphase.SynchronizeProxies(self);
   };
+  m_onRemoveBox = [scene](const q3Box *box) {
+    scene->m_contactManager.m_broadphase.RemoveBox(box);
+  };
+  m_onRemoveConstraint = [scene](q3ContactConstraint *constraint) {
+    scene->m_contactManager.RemoveContact(constraint);
+  };
 
   m_linearVelocity = def.linearVelocity;
   m_angularVelocity = def.angularVelocity;
-  m_force = {};
-  m_torque = {};
   m_q.Set(q3Normalize(def.axis), def.angle);
   m_tx.rotation = m_q.ToMat3();
   m_tx.position = def.position;
-  m_sleepTime = float(0.0);
   m_gravityScale = def.gravityScale;
   m_layers = def.layers;
   m_userData = def.userData;
-  m_scene = scene;
-  m_flags = {};
   m_linearDamping = def.linearDamping;
   m_angularDamping = def.angularDamping;
+  // m_scene = scene;
 
   if (def.bodyType == eDynamicBody)
     AddFlag(q3BodyFlags::eDynamic);
-
-  else {
-    if (def.bodyType == eStaticBody) {
-      AddFlag(q3BodyFlags::eStatic);
-      m_linearVelocity = {};
-      m_angularVelocity = {};
-      m_force = {};
-      m_torque = {};
-    }
-
-    else if (def.bodyType == eKinematicBody)
-      AddFlag(q3BodyFlags::eKinematic);
+  else if (def.bodyType == eStaticBody) {
+    AddFlag(q3BodyFlags::eStatic);
+    m_linearVelocity = {};
+    m_angularVelocity = {};
+    m_force = {};
+    m_torque = {};
+  } else if (def.bodyType == eKinematicBody) {
+    AddFlag(q3BodyFlags::eKinematic);
   }
 
   if (def.allowSleep)
@@ -87,8 +82,6 @@ q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
 
   if (def.lockAxisZ)
     AddFlag(q3BodyFlags::eLockAxisZ);
-
-  m_contactList = NULL;
 }
 
 void q3Body::RemoveBox(const q3Box *box) {
@@ -111,11 +104,12 @@ void q3Body::RemoveBox(const q3Box *box) {
     q3Box *A = contact->A;
     q3Box *B = contact->B;
 
-    if (box == A || box == B)
-      m_scene->m_contactManager.RemoveContact(contact);
+    if (box == A || box == B) {
+      m_onRemoveConstraint(contact);
+    }
   }
 
-  m_scene->m_contactManager.m_broadphase.RemoveBox(box);
+  m_onRemoveBox(box);
 
   CalculateMassData();
   delete box;
@@ -123,11 +117,10 @@ void q3Body::RemoveBox(const q3Box *box) {
 
 void q3Body::RemoveAllBoxes() {
   for (auto box : m_boxes) {
-    m_scene->m_contactManager.m_broadphase.RemoveBox(box);
+    m_onRemoveBox(box);
     delete box;
   }
   m_boxes.clear();
-  m_scene->m_contactManager.RemoveContactsFromBody(this);
 }
 
 void q3Body::ApplyLinearForce(const q3Vec3 &force) {

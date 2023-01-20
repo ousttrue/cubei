@@ -114,26 +114,28 @@ class q3Body {
 
   q3Vec3 m_linearVelocity;
   q3Vec3 m_angularVelocity;
-  q3Vec3 m_force;
-  q3Vec3 m_torque;
+  q3Vec3 m_force = {};
+  q3Vec3 m_torque = {};
   q3Transform m_tx;
   q3Quaternion m_q;
   q3Vec3 m_localCenter;
-  float m_sleepTime;
+  float m_sleepTime = {};
   float m_gravityScale;
   int m_layers;
   q3BodyFlags m_flags = {};
 
   std::list<q3Box *> m_boxes;
   void *m_userData;
-  q3Scene *m_scene;
+  // q3Scene *m_scene;
 
   float m_linearDamping;
   float m_angularDamping;
 
+  std::function<void(const q3Box *)> m_onRemoveBox;
+  std::function<void(struct q3ContactConstraint *)> m_onRemoveConstraint;
 public:
   std::function<void()> m_transformUpdated;
-  q3ContactEdge *m_contactList;
+  q3ContactEdge *m_contactList = nullptr;
   q3Body(const q3BodyDef &def, q3Scene *scene);
   q3BodyState State() const { return m_state; }
   void SetIslandIndex(size_t index) { m_state.m_islandIndex = index; }

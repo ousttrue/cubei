@@ -25,11 +25,11 @@ distribution.
 */
 
 #include "q3Scene.h"
-#include "q3Box.h"
-#include "q3Body.h"
 #include "../dynamics/q3Contact.h"
 #include "../dynamics/q3ContactSolver.h"
 #include "../dynamics/q3Island.h"
+#include "q3Body.h"
+#include "q3Box.h"
 #include <Remotery.h>
 #include <stdlib.h>
 #include <vector>
@@ -94,6 +94,8 @@ const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
 void q3Scene::RemoveBody(q3Body *body) {
   m_contactManager.RemoveContactsFromBody(body);
   body->RemoveAllBoxes();
+  m_contactManager.RemoveContactsFromBody(body);
+
   // Remove body from scene bodyList
   m_bodyList.remove(body);
   delete body;
@@ -102,6 +104,7 @@ void q3Scene::RemoveBody(q3Body *body) {
 void q3Scene::RemoveAllBodies() {
   for (auto body : m_bodyList) {
     body->RemoveAllBoxes();
+    m_contactManager.RemoveContactsFromBody(body);
     delete body;
   }
   m_bodyList.clear();
