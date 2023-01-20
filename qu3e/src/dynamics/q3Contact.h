@@ -29,7 +29,6 @@ distribution.
 #define Q3CONTACT_H
 
 #include "../collision/q3Box.h"
-#include "../collision/q3Collide.h"
 #include "../common/q3Settings.h"
 #include "../math/q3Math.h"
 
@@ -144,5 +143,7 @@ struct q3ContactConstraint {
     m_flags = (q3ContactConstraintFlags)((int)m_flags & ~(int)flag);
   }
 };
+
+void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b);
 
 #endif // Q3CONTACT_H
