@@ -67,7 +67,7 @@ App::App(GLFWwindow *window) {
   scene_->OnBoxRemove =
       [contactManager = contactManager_.get()](q3Body *body, const q3Box *box) {
         // Remove all contacts associated with this shape
-        for (q3ContactEdge *edge = body->m_contactList; edge;) {
+        for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;) {
           q3ContactConstraint *contact = edge->constraint;
           edge = edge->next;
           if (box == contact->A || box == contact->B) {

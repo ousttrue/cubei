@@ -30,6 +30,7 @@ distribution.
 
 #include "q3BroadPhase.h"
 #include <list>
+#include <unordered_map>
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
@@ -68,11 +69,21 @@ class q3ContactManager {
   std::list<q3ContactConstraint *> m_contactList;
   q3ContactListener *m_contactListener = nullptr;
 
+  std::unordered_map<class q3Body *, struct q3ContactEdge *> m_edgeMap;
+
 public:
   q3BroadPhase m_broadphase;
   q3ContactManager();
 
   size_t ContactCount() const { return m_contactList.size(); }
+
+  struct q3ContactEdge *ContactEdge(q3Body *body) {
+    auto found = m_edgeMap.find(body);
+    if (found == m_edgeMap.end()) {
+      return nullptr;
+    }
+    return found->second;
+  }
 
   // Add a new contact constraint for a pair of objects
   // unless the contact constraint already exists

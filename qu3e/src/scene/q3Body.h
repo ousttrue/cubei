@@ -130,7 +130,7 @@ public:
   std::function<void(q3Box *)> OnBoxAdd;
   std::function<void(const q3Box *)> OnBoxRemove;
   std::function<void()> OnTransformUpdated;
-  q3ContactEdge *m_contactList = nullptr;
+  // q3ContactEdge *m_contactList = nullptr;
   q3Body(const q3BodyDef &def);
   q3BodyState State() const { return m_state; }
   void SetIslandIndex(size_t index) { m_state.m_islandIndex = index; }

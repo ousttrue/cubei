@@ -102,7 +102,7 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
         continue;
 
       // Search all contacts connected to this body
-      for (q3ContactEdge *edge = body->m_contactList; edge; edge = edge->next) {
+      for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge; edge = edge->next) {
         q3ContactConstraint *contact = edge->constraint;
 
         // Skip contacts that have been added to an island already

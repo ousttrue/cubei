@@ -49,7 +49,7 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   // Search for existing matching contact
   // Return if found duplicate to avoid duplicate constraints
   // Mark pre-existing duplicates as active
-  for (q3ContactEdge *edge = A->body->m_contactList; edge; edge = edge->next) {
+  for (q3ContactEdge *edge = ContactEdge(A->body); edge; edge = edge->next) {
     if (edge->other == bodyB) {
       // @TODO: Verify this against Box2D; not sure if this is all we need here
       if ((A == edge->constraint->A) && (B == edge->constraint->B))
@@ -79,20 +79,22 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   contact->edgeA.other = bodyB;
 
   contact->edgeA.prev = NULL;
-  contact->edgeA.next = bodyA->m_contactList;
-  if (bodyA->m_contactList)
-    bodyA->m_contactList->prev = &contact->edgeA;
-  bodyA->m_contactList = &contact->edgeA;
+  auto edgeA = ContactEdge(bodyA);
+  contact->edgeA.next = edgeA;
+  if (edgeA)
+    edgeA->prev = &contact->edgeA;
+  m_edgeMap[bodyA] = &contact->edgeA;
 
   // Connect B
   contact->edgeB.constraint = contact;
   contact->edgeB.other = bodyA;
 
   contact->edgeB.prev = NULL;
-  contact->edgeB.next = bodyB->m_contactList;
-  if (bodyB->m_contactList)
-    bodyB->m_contactList->prev = &contact->edgeB;
-  bodyB->m_contactList = &contact->edgeB;
+  auto edgeB = ContactEdge(bodyB);
+  contact->edgeB.next = edgeB;
+  if (edgeB)
+    edgeB->prev = &contact->edgeB;
+  m_edgeMap[bodyB] = &contact->edgeB;
 
   bodyA->SetToAwake();
   bodyB->SetToAwake();
@@ -114,8 +116,9 @@ q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   if (contact->edgeA.next)
     contact->edgeA.next->prev = contact->edgeA.prev;
 
-  if (&contact->edgeA == A->m_contactList)
-    A->m_contactList = contact->edgeA.next;
+  if (&contact->edgeA == ContactEdge(A)) {
+    m_edgeMap[A] = contact->edgeA.next;
+  }
 
   // Remove from B
   if (contact->edgeB.prev)
@@ -124,8 +127,8 @@ q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   if (contact->edgeB.next)
     contact->edgeB.next->prev = contact->edgeB.prev;
 
-  if (&contact->edgeB == B->m_contactList)
-    B->m_contactList = contact->edgeB.next;
+  if (&contact->edgeB == ContactEdge(B))
+    m_edgeMap[B] = contact->edgeB.next;
 
   A->SetToAwake();
   B->SetToAwake();
@@ -140,7 +143,7 @@ q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
 
 //--------------------------------------------------------------------------------------------------
 void q3ContactManager::RemoveContactsFromBody(q3Body *body) {
-  q3ContactEdge *edge = body->m_contactList;
+  q3ContactEdge *edge = ContactEdge(body);
 
   while (edge) {
     q3ContactEdge *next = edge->next;
