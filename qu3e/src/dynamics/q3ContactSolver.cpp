@@ -29,7 +29,7 @@ distribution.
 #include "../common/q3Geometry.h"
 #include "../common/q3Memory.h"
 #include "../common/q3Settings.h"
-#include "q3Body.h"
+#include "../scene/q3Body.h"
 #include "q3Contact.h"
 #include "q3Island.h"
 

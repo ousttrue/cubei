@@ -27,10 +27,10 @@ distribution.
 
 #include "q3Body.h"
 #include "../broadphase/q3BroadPhase.h"
-#include "../collision/q3Box.h"
+#include "../dynamics/q3Contact.h"
 #include "../math/q3Math.h"
-#include "../scene/q3Scene.h"
-#include "q3Contact.h"
+#include "q3Box.h"
+#include "q3Scene.h"
 
 //--------------------------------------------------------------------------------------------------
 // q3Body

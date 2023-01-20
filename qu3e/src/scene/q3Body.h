@@ -30,7 +30,6 @@ distribution.
 
 #include "../math/q3Math.h"
 #include "../math/q3Transform.h"
-#include "q3BodyState.h"
 #include <list>
 #include <stdio.h>
 
@@ -98,6 +97,13 @@ struct q3BodyDef {
 struct q3VelocityState {
   q3Vec3 w;
   q3Vec3 v;
+};
+
+struct q3BodyState {
+  q3Vec3 m_worldCenter;
+  q3Mat3 m_invInertiaWorld;
+  float m_invMass;
+  int m_islandIndex;
 };
 
 class q3Body {

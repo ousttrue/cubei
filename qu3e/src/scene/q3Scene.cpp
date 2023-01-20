@@ -25,8 +25,8 @@ distribution.
 */
 
 #include "q3Scene.h"
-#include "../collision/q3Box.h"
-#include "../dynamics/q3Body.h"
+#include "q3Box.h"
+#include "q3Body.h"
 #include "../dynamics/q3Contact.h"
 #include "../dynamics/q3ContactSolver.h"
 #include "../dynamics/q3Island.h"

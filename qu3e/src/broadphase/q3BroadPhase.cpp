@@ -25,7 +25,7 @@
 //--------------------------------------------------------------------------------------------------
 
 #include "q3BroadPhase.h"
-#include "../collision/q3Box.h"
+#include "../scene/q3Box.h"
 #include "../common/q3Geometry.h"
 #include "../dynamics/q3ContactManager.h"
 

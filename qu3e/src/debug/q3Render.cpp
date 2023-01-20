@@ -1,6 +1,6 @@
 #include "q3Render.h"
 #include "../broadphase/q3BroadPhase.h"
-#include "../dynamics/q3Body.h"
+#include "../scene/q3Body.h"
 #include "../dynamics/q3ContactManager.h"
 #include "../scene/q3Scene.h"
 

@@ -27,7 +27,7 @@ distribution.
 
 #include "q3Contact.h"
 #include "../math/q3Mat3.h"
-#include "q3Body.h"
+#include "../scene/q3Body.h"
 
 //--------------------------------------------------------------------------------------------------
 // q3Contact
@@ -561,7 +561,7 @@ void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b) {
     rB = eB.y * absC[2][0] + eB.z * absC[1][0];
     s = q3Abs(t.z * C[0][1] - t.y * C[0][2]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 6, s, &eMax,
-                        q3Vec3(float(0.0), -C[0][2], C[0][1]), &nE))
+                        q3Vec3{float(0.0), -C[0][2], C[0][1]}, &nE))
       return;
 
     // Cross( a.x, b.y )
@@ -569,7 +569,7 @@ void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b) {
     rB = eB.x * absC[2][0] + eB.z * absC[0][0];
     s = q3Abs(t.z * C[1][1] - t.y * C[1][2]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 7, s, &eMax,
-                        q3Vec3(float(0.0), -C[1][2], C[1][1]), &nE))
+                        q3Vec3{float(0.0), -C[1][2], C[1][1]}, &nE))
       return;
 
     // Cross( a.x, b.z )
@@ -577,7 +577,7 @@ void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b) {
     rB = eB.x * absC[1][0] + eB.y * absC[0][0];
     s = q3Abs(t.z * C[2][1] - t.y * C[2][2]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 8, s, &eMax,
-                        q3Vec3(float(0.0), -C[2][2], C[2][1]), &nE))
+                        q3Vec3{float(0.0), -C[2][2], C[2][1]}, &nE))
       return;
 
     // Cross( a.y, b.x )
@@ -585,7 +585,7 @@ void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b) {
     rB = eB.y * absC[2][1] + eB.z * absC[1][1];
     s = q3Abs(t.x * C[0][2] - t.z * C[0][0]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 9, s, &eMax,
-                        q3Vec3(C[0][2], float(0.0), -C[0][0]), &nE))
+                        q3Vec3{C[0][2], float(0.0), -C[0][0]}, &nE))
       return;
 
     // Cross( a.y, b.y )
@@ -593,7 +593,7 @@ void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b) {
     rB = eB.x * absC[2][1] + eB.z * absC[0][1];
     s = q3Abs(t.x * C[1][2] - t.z * C[1][0]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 10, s, &eMax,
-                        q3Vec3(C[1][2], float(0.0), -C[1][0]), &nE))
+                        q3Vec3{C[1][2], float(0.0), -C[1][0]}, &nE))
       return;
 
     // Cross( a.y, b.z )

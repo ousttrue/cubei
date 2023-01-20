@@ -30,7 +30,7 @@ distribution.
 
 #include "../common/q3Settings.h"
 #include "../math/q3Math.h"
-#include "q3BodyState.h"
+#include "../scene/q3Body.h"
 #include <span>
 
 //--------------------------------------------------------------------------------------------------

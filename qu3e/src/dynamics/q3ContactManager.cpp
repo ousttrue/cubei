@@ -26,10 +26,10 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3ContactManager.h"
-#include "../collision/q3Box.h"
 #include "../debug/q3Render.h"
+#include "../scene/q3Body.h"
+#include "../scene/q3Box.h"
 #include "../scene/q3Scene.h"
-#include "q3Body.h"
 #include "q3Contact.h"
 
 #include <Remotery.h>
