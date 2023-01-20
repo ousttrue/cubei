@@ -36,23 +36,23 @@ distribution.
 
 q3Scene::~q3Scene() { RemoveAllBodies(); }
 
-void q3Scene::Step(const q3Env &env) {
+void q3Scene::Step(const q3Env &env, q3ContactManager *contactManager) {
   rmt_ScopedCPUSample(qSceneStep, 0);
 
-  m_contactManager.TestCollisions(m_newBox);
+  contactManager->TestCollisions(m_newBox);
   m_newBox = false;
 
-  m_island.Process(m_bodyList, m_contactManager.ContactCount(), env);
+  m_island.Process(m_bodyList, contactManager->ContactCount(), env);
 
   // Update the broadphase AABBs
   for (auto body : m_bodyList) {
     if (body->HasFlag(q3BodyFlags::eStatic))
       continue;
-    body->m_transformUpdated();
+    OnBodyTransformUpdated(body);
   }
 
   // Look for new contacts
-  m_contactManager.FindNewContacts();
+  contactManager->FindNewContacts();
 
   // Clear all forces
   for (auto body : m_bodyList) {
@@ -62,25 +62,19 @@ void q3Scene::Step(const q3Env &env) {
 
 q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
   auto body = new q3Body(def);
+
+  body->OnBoxAdd = [self = this, body](q3Box *box) {
+    self->OnBoxAdd(body, box);
+  };
+  body->OnBoxRemove = [self = this, body](const q3Box *box) {
+    self->OnBoxRemove(body, box);
+  };
+  body->OnTransformUpdated = [self = this, body]() {
+    self->OnBodyTransformUpdated(body);
+  };
+
   OnBodyAdd(body);
   m_bodyList.push_back(body);
-  return body;
-}
-
-q3Body *q3Scene::CreateBody(const q3BodyDef &def,
-                            class q3ContactManager *contactManager) {
-
-  auto body = CreateBody(def);
-  body->m_transformUpdated = [contactManager, self = body]() {
-    contactManager->m_broadphase.SynchronizeProxies(self);
-  };
-  body->m_onRemoveBox = [contactManager](const q3Box *box) {
-    contactManager->m_broadphase.RemoveBox(box);
-  };
-  body->m_onRemoveConstraint =
-      [contactManager](q3ContactConstraint *constraint) {
-        contactManager->RemoveContact(constraint);
-      };
   return body;
 }
 
@@ -88,30 +82,19 @@ const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
   auto box = new q3Box;
   box->local = def.m_tx;
   box->e = def.m_e;
-
-  q3AABB aabb;
-  box->ComputeAABB(body->Transform(), &aabb);
-
   box->body = body;
   box->friction = def.m_friction;
   box->restitution = def.m_restitution;
   box->density = def.m_density;
   box->sensor = def.m_sensor;
-
   body->AddBox(box);
   body->CalculateMassData();
-
-  m_contactManager.m_broadphase.InsertBox(box, aabb);
   m_newBox = true;
-
   return box;
 }
 
 void q3Scene::RemoveBody(q3Body *body) {
   body->RemoveAllBoxes();
-  m_contactManager.RemoveContactsFromBody(body);
-
-  // Remove body from scene bodyList
   m_bodyList.remove(body);
   OnBodyRemove(body);
   delete body;
@@ -119,7 +102,9 @@ void q3Scene::RemoveBody(q3Body *body) {
 
 void q3Scene::RemoveAllBodies() {
   for (auto body : m_bodyList) {
-    RemoveBody(body);
+    body->RemoveAllBoxes();
+    OnBodyRemove(body);
+    delete body;
   }
   m_bodyList.clear();
 }

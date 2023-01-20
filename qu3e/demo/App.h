@@ -10,10 +10,11 @@ class App {
   int currentDemo_ = 3;
   char sceneFileName_[256] = {0};
   int lastDemo_ = -1;
-  std::unique_ptr<class q3Render> renderer_;
-
   std::chrono::high_resolution_clock::time_point time_;
+
   std::unique_ptr<class q3Scene> scene_;
+  std::unique_ptr<class q3ContactManager> contactManager_;
+  std::unique_ptr<class q3Render> renderer_;
   // Is frame by frame stepping enabled?
   bool paused_ = false;
   // Can the simulation take a step, while paused is enabled?

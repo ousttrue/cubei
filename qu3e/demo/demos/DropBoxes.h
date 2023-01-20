@@ -31,6 +31,6 @@ distribution.
 struct DropBoxes : public Demo {
   std::chrono::nanoseconds acc;
   void Init(q3Scene *scene) override;
-  void Update(q3Scene *scene, std::chrono::nanoseconds dt) override;
+  void Update(q3Scene *scene, std::chrono::nanoseconds dt, class q3ContactManager *contactManager) override;
   void Shutdown(q3Scene *scene) override { scene->RemoveAllBodies(); }
 };

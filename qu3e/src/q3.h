@@ -32,10 +32,12 @@ distribution.
 #include "math/q3Quaternion.h"
 #include "math/q3Transform.h"
 #include "math/q3Vec3.h"
-#include "q3Render.h"
 #include "scene/q3Body.h"
 #include "scene/q3Box.h"
 #include "scene/q3Scene.h"
+#include "dynamics/q3ContactManager.h"
+#include "dynamics/q3Contact.h"
+#include "q3Render.h"
 
 inline void q3RenderScene(q3Render *renderer, const class q3Scene *scene) {
   for (auto body : *scene) {

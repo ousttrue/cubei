@@ -5,7 +5,7 @@ void RayPush::Init(q3Scene *scene) {
 
   // Create the floor
   {
-    auto body = scene->CreateBody({}, &scene->m_contactManager);
+    auto body = scene->CreateBody({});
     scene->AddBox(body, {
                             .m_tx = {},
                             .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
@@ -14,7 +14,8 @@ void RayPush::Init(q3Scene *scene) {
   }
 }
 
-void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
+void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt,
+                     q3ContactManager *contactManager) {
   acc += dt;
 
   if (acc > std::chrono::seconds(1)) {
@@ -39,7 +40,7 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
             q3Sign(q3RandomFloat(-1.0f, 1.0f)),
         .bodyType = eDynamicBody,
     };
-    auto body = scene->CreateBody(bodyDef, &scene->m_contactManager);
+    auto body = scene->CreateBody(bodyDef);
 
     scene->AddBox(body, {
                             .m_tx = {},
@@ -48,7 +49,7 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
   }
 
   rayCast.Init({3.0f, 5.0f, 3.0f}, {-1.0f, -1.0f, -1.0f});
-  scene->m_contactManager.RayCast(&rayCast, rayCast.data);
+  contactManager->RayCast(&rayCast, rayCast.data);
 
   if (rayCast.impactBody) {
     rayCast.impactBody->SetToAwake();

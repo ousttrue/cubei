@@ -19,7 +19,7 @@
 const std::chrono::nanoseconds DELTA =
     std::chrono::nanoseconds(1000000000 / 60);
 
-App::App(GLFWwindow *window) : scene_(new q3Scene) {
+App::App(GLFWwindow *window) {
 
   env_.m_dt = std::chrono::duration_cast<
                   std::chrono::duration<float, std::ratio<1, 1>>>(DELTA)
@@ -42,6 +42,40 @@ App::App(GLFWwindow *window) : scene_(new q3Scene) {
   demos_.push_back(std::make_shared<Test>());
 
   glewInit();
+
+  // q3
+  scene_.reset(new q3Scene);
+  contactManager_.reset(new q3ContactManager);
+  scene_->OnBodyAdd = [](q3Body *body) {
+
+  };
+  scene_->OnBodyRemove = [contactManager =
+                              contactManager_.get()](q3Body *body) {
+    contactManager->RemoveContactsFromBody(body);
+  };
+  scene_->OnBodyTransformUpdated = [contactManager =
+                                        contactManager_.get()](q3Body *body) {
+    contactManager->m_broadphase.SynchronizeProxies(body);
+  };
+  scene_->OnBoxAdd = [contactManager = contactManager_.get()](q3Body *body,
+                                                              q3Box *box) {
+    q3AABB aabb;
+    box->ComputeAABB(body->Transform(), &aabb);
+    contactManager->m_broadphase.InsertBox(box, aabb);
+  };
+  scene_->OnBoxRemove = [contactManager = contactManager_.get()](
+                            q3Body *body, const q3Box *box) {
+    // Remove all contacts associated with this shape
+    for (q3ContactEdge *edge = body->m_contactList; edge;) {
+      q3ContactConstraint *contact = edge->constraint;
+      edge = edge->next;
+      if (box == contact->A || box == contact->B) {
+        contactManager->RemoveContact(contact);
+      }
+    }
+    contactManager->m_broadphase.RemoveBox(box);
+  };
+
   renderer_.reset(new GL3Renderer);
   // renderer_.reset(new GL2Renderer);
 }
@@ -140,12 +174,12 @@ void App::Frame(int w, int h) {
   {
     rmt_ScopedCPUSample(Qu3eStep, 0);
     if (!paused_) {
-      scene_->Step(env_);
-      demos_[currentDemo_]->Update(scene_.get(), delta);
+      scene_->Step(env_, contactManager_.get());
+      demos_[currentDemo_]->Update(scene_.get(), delta, contactManager_.get());
     } else {
       if (singleStep_) {
-        scene_->Step(env_);
-        demos_[currentDemo_]->Update(scene_.get(), DELTA);
+        scene_->Step(env_, contactManager_.get());
+        demos_[currentDemo_]->Update(scene_.get(), DELTA, contactManager_.get());
         singleStep_ = false;
       }
     }
@@ -205,7 +239,7 @@ void App::Frame(int w, int h) {
     renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
     {
       q3RenderScene(renderer_.get(), scene_.get());
-      q3RenderContact(renderer_.get(), &scene_->m_contactManager);
+      q3RenderContact(renderer_.get(), contactManager_.get());
     }
     demos_[currentDemo_]->Render(renderer_.get());
     renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);

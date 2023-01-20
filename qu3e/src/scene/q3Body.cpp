@@ -30,8 +30,8 @@ distribution.
 #include "q3Box.h"
 #include "q3Scene.h"
 
-#define Q3_SLEEP_LINEAR float( 0.01 )
-#define Q3_SLEEP_ANGULAR float( (3.0 / 180.0) * q3PI )
+#define Q3_SLEEP_LINEAR float(0.01)
+#define Q3_SLEEP_ANGULAR float((3.0 / 180.0) * q3PI)
 
 q3Body::q3Body(const q3BodyDef &def) {
   m_linearVelocity = def.linearVelocity;
@@ -81,29 +81,19 @@ void q3Body::RemoveBox(const q3Box *box) {
   assert(box->body == this);
 
   auto node = std::find(m_boxes.begin(), m_boxes.end(), box);
-  bool found = node != m_boxes.end();
 
   // This shape was not connected to this body.
-  assert(found);
+  assert(node != m_boxes.end());
   m_boxes.erase(node);
-
-  // Remove all contacts associated with this shape
-  for (q3ContactEdge *edge = m_contactList; edge; edge = edge->next) {
-    q3ContactConstraint *contact = edge->constraint;
-    if (box == contact->A || box == contact->B) {
-      m_onRemoveConstraint(contact);
-    }
-  }
-
-  m_onRemoveBox(box);
-
+  OnBoxRemove(box);
   CalculateMassData();
   delete box;
 }
 
 void q3Body::RemoveAllBoxes() {
   for (auto box : m_boxes) {
-    m_onRemoveBox(box);
+    OnBoxRemove(box);
+    CalculateMassData();
     delete box;
   }
   m_boxes.clear();

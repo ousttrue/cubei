@@ -2,7 +2,7 @@
 
 void Test::Init(q3Scene *scene) {
   {
-    auto body = scene->CreateBody({}, &scene->m_contactManager);
+    auto body = scene->CreateBody({});
     scene->AddBox(body, {
                             .m_tx = {},
                             .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
@@ -15,8 +15,7 @@ void Test::Init(q3Scene *scene) {
         {
             .position = {0, 5.0f, 0},
             .bodyType = eDynamicBody,
-        },
-        &scene->m_contactManager);
+        });
     for (int i = 0; i < 20; ++i) {
       q3BoxDef boxDef{
           .m_tx =

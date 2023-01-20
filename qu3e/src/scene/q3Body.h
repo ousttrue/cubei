@@ -128,9 +128,9 @@ class q3Body {
   float m_angularDamping;
 
 public:
-  std::function<void(const q3Box *)> m_onRemoveBox;
-  std::function<void(struct q3ContactConstraint *)> m_onRemoveConstraint;
-  std::function<void()> m_transformUpdated;
+  std::function<void(q3Box *)> OnBoxAdd;
+  std::function<void(const q3Box *)> OnBoxRemove;
+  std::function<void()> OnTransformUpdated;
   q3ContactEdge *m_contactList = nullptr;
   q3Body(const q3BodyDef &def);
   q3BodyState State() const { return m_state; }
@@ -153,7 +153,10 @@ public:
     m_force = {};
     m_torque = {};
   }
-  void AddBox(q3Box *box) { m_boxes.push_back(box); }
+  void AddBox(q3Box *box) {
+    m_boxes.push_back(box);
+    OnBoxAdd(box);
+  }
   q3Transform Transform() const { return m_tx; }
   void CalculateMassData();
   q3BodyFlags GetFlags() const { return m_flags; }
@@ -280,13 +283,13 @@ public:
   // can be updated.
   void SetTransform(const q3Vec3 &position) {
     m_state.m_worldCenter = position;
-    m_transformUpdated();
+    OnTransformUpdated();
   }
   void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle) {
     m_state.m_worldCenter = position;
     m_q.Set(axis, angle);
     m_tx.rotation = m_q.ToMat3();
-    m_transformUpdated();
+    OnTransformUpdated();
   }
 
   void Solve(const struct q3Env &env);
