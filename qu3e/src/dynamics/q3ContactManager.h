@@ -62,7 +62,7 @@ class q3QueryCallback {
 public:
   virtual ~q3QueryCallback() {}
 
-  virtual bool ReportShape(q3Box *box) = 0;
+  virtual bool ReportShape(q3Body* body, q3Box *box) = 0;
 };
 
 class q3ContactManager {
@@ -87,7 +87,7 @@ public:
 
   // Add a new contact constraint for a pair of objects
   // unless the contact constraint already exists
-  void AddContact(q3Box *A, q3Box *B);
+  void AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB, q3Box *B);
 
   // Has broadphase find all contacts and call AddContact on the
   // ContactManager for each pair found

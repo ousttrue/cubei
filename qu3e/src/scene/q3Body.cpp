@@ -77,7 +77,6 @@ q3Body::q3Body(const q3BodyDef &def) {
 
 void q3Body::RemoveBox(const q3Box *box) {
   assert(box);
-  assert(box->body == this);
 
   auto node = std::find(m_boxes.begin(), m_boxes.end(), box);
 

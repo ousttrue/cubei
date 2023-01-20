@@ -58,7 +58,6 @@ struct q3Box {
   q3Transform local;
   q3Vec3 e; // extent, as in the extent of each OBB axis
 
-  class q3Body *body;
   float friction;
   float restitution;
   float density;

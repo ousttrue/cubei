@@ -32,18 +32,11 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3Contact
 //--------------------------------------------------------------------------------------------------
-void q3Manifold::SetPair(q3Box *a, q3Box *b) {
-  A = a;
-  B = b;
-
-  sensor = A->sensor || B->sensor;
-}
-
 // Generate contact information
 void q3ContactConstraint::SolveCollision(void) {
   manifold.contactCount = 0;
 
-  q3BoxtoBox(&manifold, A, B);
+  q3BoxtoBox(&manifold, bodyA, A, bodyB, B);
 
   if (manifold.contactCount > 0) {
     if (HasFlag(q3ContactConstraintFlags::eColliding)) {
@@ -478,9 +471,10 @@ void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
 // http://www.randygaul.net/2014/05/22/deriving-obb-to-obb-intersection-sat/
 // https://box2d.googlecode.com/files/GDC2007_ErinCatto.zip
 // https://box2d.googlecode.com/files/Box2D_Lite.zip
-void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b) {
-  q3Transform atx = a->body->GetTransform();
-  q3Transform btx = b->body->GetTransform();
+void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
+                q3Box *b) {
+  q3Transform atx = a_body->GetTransform();
+  q3Transform btx = b_body->GetTransform();
   q3Transform aL = a->local;
   q3Transform bL = b->local;
   atx = q3Mul(atx, aL);

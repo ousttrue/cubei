@@ -25,8 +25,8 @@ distribution.
 */
 
 #include "q3BroadPhase.h"
-#include "../math/q3Geometry.h"
 #include "../dynamics/q3ContactManager.h"
+#include "../math/q3Geometry.h"
 #include "../scene/q3Body.h"
 #include "../scene/q3Box.h"
 
@@ -36,8 +36,8 @@ q3BroadPhase::q3BroadPhase(q3ContactManager *manager) { m_manager = manager; }
 
 q3BroadPhase::~q3BroadPhase() {}
 
-void q3BroadPhase::InsertBox(q3Box *box, const q3AABB &aabb) {
-  int id = m_tree.Insert(aabb, box);
+void q3BroadPhase::InsertBox(q3Body *body, q3Box *box, const q3AABB &aabb) {
+  int id = m_tree.Insert(aabb, {body, box});
   box->broadPhaseIndex = id;
   BufferMove(id);
 }
@@ -86,9 +86,9 @@ void q3BroadPhase::UpdatePairs() {
     while (i < m_pairBuffer.size()) {
       // Add contact to manager
       q3ContactPair *pair = &m_pairBuffer[i];
-      q3Box *A = (q3Box *)m_tree.GetUserData(pair->A);
-      q3Box *B = (q3Box *)m_tree.GetUserData(pair->B);
-      m_manager->AddContact(A, B);
+      auto [bodyA, A] = m_tree.GetUserData(pair->A);
+      auto [bodyB, B] = m_tree.GetUserData(pair->B);
+      m_manager->AddContact(bodyA, A, bodyB, B);
 
       ++i;
 

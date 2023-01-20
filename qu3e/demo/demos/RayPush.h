@@ -34,11 +34,11 @@ public:
   q3Vec3 nfinal;
   q3Body *impactBody;
 
-  bool ReportShape(q3Box *shape) {
+  bool ReportShape(q3Body *body, q3Box *shape) {
     if (data.toi < tfinal) {
       tfinal = data.toi;
       nfinal = data.normal;
-      impactBody = shape->body;
+      impactBody = body;
     }
 
     data.toi = tfinal;

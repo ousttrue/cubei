@@ -45,7 +45,7 @@ inline void FattenAABB(q3AABB &aabb) {
   aabb.max += v;
 }
 
-class q3DynamicAABBTree {
+template <typename T> class q3DynamicAABBTree {
   struct Node {
     bool IsLeaf(void) const {
       // The right leaf does not use the same memory as the userdata,
@@ -70,7 +70,7 @@ class q3DynamicAABBTree {
     // Since only leaf nodes hold userdata, we can use the
     // same memory used for left/right indices to store
     // the userdata void pointer
-    void *userData;
+    T userData;
 
     // leaf = 0, free nodes = -1
     int height;
@@ -93,7 +93,7 @@ public:
   ~q3DynamicAABBTree() {}
 
   // Provide tight-AABB
-  int Insert(const q3AABB &aabb, void *userData) {
+  int Insert(const q3AABB &aabb, const T &userData) {
     int id = AllocateNode();
 
     // Fatten AABB and set height/userdata
@@ -131,7 +131,7 @@ public:
     return true;
   }
 
-  void *GetUserData(int id) const {
+  T GetUserData(int id) const {
     assert(id >= 0 && id < m_nodes.size());
     return m_nodes[id].userData;
   }
@@ -148,8 +148,97 @@ public:
     }
   }
 
-  template <typename T> void Query(T *cb, const q3AABB &aabb) const;
-  template <typename T> void Query(T *cb, q3RaycastData &rayCast) const;
+  template <typename U> void Query(U *cb, const q3AABB &aabb) const {
+    const int k_stackCapacity = 256;
+    int stack[k_stackCapacity];
+    int sp = 1;
+
+    *stack = m_root;
+
+    while (sp) {
+      // k_stackCapacity too small
+      assert(sp < k_stackCapacity);
+
+      int id = stack[--sp];
+
+      const Node *n = &m_nodes[id];
+      if (q3AABBtoAABB(aabb, n->aabb)) {
+        if (n->IsLeaf()) {
+          if (!cb->TreeCallBack(id))
+            return;
+        } else {
+          stack[sp++] = n->left;
+          stack[sp++] = n->right;
+        }
+      }
+    }
+  }
+
+  template <typename U> void Query(U *cb, q3RaycastData &rayCast) const {
+    const float k_epsilon = float(1.0e-6);
+    const int k_stackCapacity = 256;
+    int stack[k_stackCapacity];
+    int sp = 1;
+
+    *stack = m_root;
+
+    q3Vec3 p0 = rayCast.start;
+    q3Vec3 p1 = p0 + rayCast.dir * rayCast.t;
+
+    while (sp) {
+      // k_stackCapacity too small
+      assert(sp < k_stackCapacity);
+
+      int id = stack[--sp];
+
+      if (id == Node::Null)
+        continue;
+
+      const Node *n = &m_nodes[id];
+
+      q3Vec3 e = n->aabb.max - n->aabb.min;
+      q3Vec3 d = p1 - p0;
+      q3Vec3 m = p0 + p1 - n->aabb.min - n->aabb.max;
+
+      float adx = q3Abs(d.x);
+
+      if (q3Abs(m.x) > e.x + adx)
+        continue;
+
+      float ady = q3Abs(d.y);
+
+      if (q3Abs(m.y) > e.y + ady)
+        continue;
+
+      float adz = q3Abs(d.z);
+
+      if (q3Abs(m.z) > e.z + adz)
+        continue;
+
+      adx += k_epsilon;
+      ady += k_epsilon;
+      adz += k_epsilon;
+
+      if (q3Abs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady)
+        continue;
+
+      if (q3Abs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx)
+        continue;
+
+      if (q3Abs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx)
+        continue;
+
+      if (n->IsLeaf()) {
+        if (!cb->TreeCallBack(id))
+          return;
+      }
+
+      else {
+        stack[sp++] = n->left;
+        stack[sp++] = n->right;
+      }
+    }
+  }
 
   // For testing
   void Validate() const {
@@ -188,12 +277,20 @@ private:
     m_nodes[freeNode].left = Node::Null;
     m_nodes[freeNode].right = Node::Null;
     m_nodes[freeNode].parent = Node::Null;
-    m_nodes[freeNode].userData = NULL;
+    m_nodes[freeNode].userData = {};
     ++m_count;
     return freeNode;
   }
 
-  inline void DeallocateNode(int index);
+  inline void DeallocateNode(int index) {
+    assert(index >= 0 && index < m_nodes.size());
+
+    m_nodes[index].next = m_freeList;
+    m_nodes[index].height = Node::Null;
+    m_freeList = index;
+
+    --m_count;
+  }
 
   int Balance(int iA) {
     Node *A = &m_nodes[iA];
@@ -383,7 +480,7 @@ private:
     int oldParent = m_nodes[sibling].parent;
     int newParent = AllocateNode();
     m_nodes[newParent].parent = oldParent;
-    m_nodes[newParent].userData = NULL;
+    m_nodes[newParent].userData = {};
     m_nodes[newParent].aabb = q3Combine(leafAABB, m_nodes[sibling].aabb);
     m_nodes[newParent].height = m_nodes[sibling].height + 1;
 
@@ -536,110 +633,3 @@ private:
     m_freeList = index;
   }
 };
-
-//--------------------------------------------------------------------------------------------------
-inline void q3DynamicAABBTree::DeallocateNode(int index) {
-  assert(index >= 0 && index < m_nodes.size());
-
-  m_nodes[index].next = m_freeList;
-  m_nodes[index].height = Node::Null;
-  m_freeList = index;
-
-  --m_count;
-}
-
-//--------------------------------------------------------------------------------------------------
-template <typename T>
-inline void q3DynamicAABBTree::Query(T *cb, const q3AABB &aabb) const {
-  const int k_stackCapacity = 256;
-  int stack[k_stackCapacity];
-  int sp = 1;
-
-  *stack = m_root;
-
-  while (sp) {
-    // k_stackCapacity too small
-    assert(sp < k_stackCapacity);
-
-    int id = stack[--sp];
-
-    const Node *n = &m_nodes[id];
-    if (q3AABBtoAABB(aabb, n->aabb)) {
-      if (n->IsLeaf()) {
-        if (!cb->TreeCallBack(id))
-          return;
-      } else {
-        stack[sp++] = n->left;
-        stack[sp++] = n->right;
-      }
-    }
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-template <typename T>
-void q3DynamicAABBTree::Query(T *cb, q3RaycastData &rayCast) const {
-  const float k_epsilon = float(1.0e-6);
-  const int k_stackCapacity = 256;
-  int stack[k_stackCapacity];
-  int sp = 1;
-
-  *stack = m_root;
-
-  q3Vec3 p0 = rayCast.start;
-  q3Vec3 p1 = p0 + rayCast.dir * rayCast.t;
-
-  while (sp) {
-    // k_stackCapacity too small
-    assert(sp < k_stackCapacity);
-
-    int id = stack[--sp];
-
-    if (id == Node::Null)
-      continue;
-
-    const Node *n = &m_nodes[id];
-
-    q3Vec3 e = n->aabb.max - n->aabb.min;
-    q3Vec3 d = p1 - p0;
-    q3Vec3 m = p0 + p1 - n->aabb.min - n->aabb.max;
-
-    float adx = q3Abs(d.x);
-
-    if (q3Abs(m.x) > e.x + adx)
-      continue;
-
-    float ady = q3Abs(d.y);
-
-    if (q3Abs(m.y) > e.y + ady)
-      continue;
-
-    float adz = q3Abs(d.z);
-
-    if (q3Abs(m.z) > e.z + adz)
-      continue;
-
-    adx += k_epsilon;
-    ady += k_epsilon;
-    adz += k_epsilon;
-
-    if (q3Abs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady)
-      continue;
-
-    if (q3Abs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx)
-      continue;
-
-    if (q3Abs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx)
-      continue;
-
-    if (n->IsLeaf()) {
-      if (!cb->TreeCallBack(id))
-        return;
-    }
-
-    else {
-      stack[sp++] = n->left;
-      stack[sp++] = n->right;
-    }
-  }
-}

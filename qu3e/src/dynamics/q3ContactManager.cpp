@@ -40,16 +40,15 @@ distribution.
 q3ContactManager::q3ContactManager() : m_broadphase(this) {}
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
-  q3Body *bodyA = A->body;
-  q3Body *bodyB = B->body;
+void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
+                                  q3Box *B) {
   if (!bodyA->CanCollide(bodyB))
     return;
 
   // Search for existing matching contact
   // Return if found duplicate to avoid duplicate constraints
   // Mark pre-existing duplicates as active
-  for (q3ContactEdge *edge = ContactEdge(A->body); edge; edge = edge->next) {
+  for (q3ContactEdge *edge = ContactEdge(bodyA); edge; edge = edge->next) {
     if (edge->other == bodyB) {
       // @TODO: Verify this against Box2D; not sure if this is all we need here
       if ((A == edge->constraint->A) && (B == edge->constraint->B))
@@ -61,14 +60,14 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   auto contact = new q3ContactConstraint;
   contact->A = A;
   contact->B = B;
-  contact->bodyA = A->body;
-  contact->bodyB = B->body;
-  contact->manifold.SetPair(A, B);
+  contact->bodyA = bodyA;
+  contact->bodyB = bodyB;
   contact->m_flags = {};
   contact->friction = q3MixFriction(A, B);
   contact->restitution = q3MixRestitution(A, B);
-  contact->manifold.contactCount = 0;
 
+  contact->manifold.SetPair(bodyA, A, bodyB, B);
+  contact->manifold.contactCount = 0;
   for (int i = 0; i < 8; ++i)
     contact->manifold.contacts[i].warmStarted = 0;
 
@@ -171,9 +170,8 @@ void q3ContactManager::TestCollisions(bool newBox) {
     auto constraint = *it;
     q3Box *A = constraint->A;
     q3Box *B = constraint->B;
-    q3Body *bodyA = A->body;
-    q3Body *bodyB = B->body;
-
+    q3Body *bodyA = constraint->bodyA;
+    q3Body *bodyB = constraint->bodyB;
     constraint->RemoveFlag(q3ContactConstraintFlags::eIsland);
 
     if (!bodyA->IsAwake() && !bodyB->IsAwake()) {
@@ -256,7 +254,7 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
       render->SetPenPosition(c->position.x, c->position.y, c->position.z);
       render->Point();
 
-      if (m->A->body->IsAwake())
+      if (std::get<0>(m->A)->IsAwake())
         render->SetPenColor(1.0f, 1.0f, 1.0f);
       else
         render->SetPenColor(0.2f, 0.2f, 0.2f);
@@ -276,12 +274,12 @@ void q3ContactManager::QueryAABB(q3QueryCallback *cb,
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
       q3AABB aabb;
-      q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
+      auto [body, box] = broadPhase->m_tree.GetUserData(id);
 
-      box->ComputeAABB(box->body->GetTransform(), &aabb);
+      box->ComputeAABB(body->GetTransform(), &aabb);
 
       if (q3AABBtoAABB(m_aabb, aabb)) {
-        return cb->ReportShape(box);
+        return cb->ReportShape(body, box);
       }
 
       return true;
@@ -303,12 +301,10 @@ void q3ContactManager::QueryPoint(q3QueryCallback *cb,
                                   const q3Vec3 &point) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
-      q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
-
-      if (box->TestPoint(box->body->GetTransform(), m_point)) {
-        cb->ReportShape(box);
+      auto [body, box] = broadPhase->m_tree.GetUserData(id);
+      if (box->TestPoint(body->GetTransform(), m_point)) {
+        cb->ReportShape(body, box);
       }
-
       return true;
     }
 
@@ -333,15 +329,12 @@ void q3ContactManager::RayCast(q3QueryCallback *cb,
                                q3RaycastData &rayCast) const {
   struct SceneQueryWrapper {
     bool TreeCallBack(int id) {
-      q3Box *box = (q3Box *)broadPhase->m_tree.GetUserData(id);
-
-      if (box->Raycast(box->body->GetTransform(), m_rayCast)) {
-        return cb->ReportShape(box);
+      auto [body, box] = broadPhase->m_tree.GetUserData(id);
+      if (box->Raycast(body->GetTransform(), m_rayCast)) {
+        return cb->ReportShape(body, box);
       }
-
       return true;
     }
-
     q3QueryCallback *cb;
     const q3BroadPhase *broadPhase;
     q3RaycastData *m_rayCast;

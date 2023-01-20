@@ -87,15 +87,19 @@ struct q3Contact {
 };
 
 struct q3Manifold {
-  void SetPair(q3Box *a, q3Box *b);
+  void SetPair(q3Body *bodyA, q3Box *a, q3Body *bodyB, q3Box *b) {
+    A = {bodyA, a};
+    B = {bodyB, b};
+    sensor = a->sensor || b->sensor;
+  }
 
-  q3Box *A;
-  q3Box *B;
+  std::tuple<q3Body *, q3Box *> A;
+  std::tuple<q3Body *, q3Box *> B;
+  q3Contact contacts[8];
+  int contactCount;
 
   q3Vec3 normal;            // From A to B
   q3Vec3 tangentVectors[2]; // Tangent vectors
-  q3Contact contacts[8];
-  int contactCount;
 
   q3Manifold *next;
   q3Manifold *prev;
@@ -138,6 +142,7 @@ struct q3ContactConstraint {
   }
 };
 
-void q3BoxtoBox(q3Manifold *m, q3Box *a, q3Box *b);
+void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
+                q3Box *b);
 
 #endif // Q3CONTACT_H

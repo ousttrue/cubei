@@ -62,7 +62,7 @@ App::App(GLFWwindow *window) {
                                                               q3Box *box) {
     q3AABB aabb;
     box->ComputeAABB(body->Transform(), &aabb);
-    contactManager->m_broadphase.InsertBox(box, aabb);
+    contactManager->m_broadphase.InsertBox(body, box, aabb);
   };
   scene_->OnBoxRemove =
       [contactManager = contactManager_.get()](q3Body *body, const q3Box *box) {

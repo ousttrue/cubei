@@ -36,6 +36,7 @@ distribution.
 // q3BroadPhase
 //--------------------------------------------------------------------------------------------------
 class q3ContactManager;
+class q3Body;
 struct q3Box;
 struct q3Transform;
 struct q3AABB;
@@ -50,7 +51,7 @@ public:
   q3BroadPhase(q3ContactManager *manager);
   ~q3BroadPhase();
 
-  void InsertBox(q3Box *shape, const q3AABB &aabb);
+  void InsertBox(q3Body *body, q3Box *shape, const q3AABB &aabb);
   void RemoveBox(const q3Box *shape);
 
   // Generates the contact list. All previous contacts are returned to the
@@ -60,9 +61,10 @@ public:
   void Update(int id, const q3AABB &aabb);
 
   bool TestOverlap(int A, int B) const;
-  void SynchronizeProxies(class q3Body *body);
+  void SynchronizeProxies(q3Body *body);
 
-  q3DynamicAABBTree m_tree;
+  using Payload = std::tuple<q3Body*, q3Box*>;
+  q3DynamicAABBTree<Payload> m_tree;
 
 private:
   q3ContactManager *m_manager;
@@ -75,7 +77,7 @@ private:
   void BufferMove(int id);
   bool TreeCallBack(int index);
 
-  friend class q3DynamicAABBTree;
+  friend class q3DynamicAABBTree<Payload>;
 };
 
 inline bool q3BroadPhase::TreeCallBack(int index) {
