@@ -27,7 +27,6 @@ distribution.
 
 #include "q3ContactSolver.h"
 #include "../common/q3Geometry.h"
-#include "../common/q3Memory.h"
 #include "../common/q3Settings.h"
 #include "../scene/q3Body.h"
 #include "q3Contact.h"

@@ -27,7 +27,6 @@ distribution.
 
 #include "q3Island.h"
 #include "../broadphase/q3BroadPhase.h"
-#include "../common/q3Memory.h"
 #include "../common/q3Settings.h"
 #include "../scene/q3Body.h"
 #include "q3Contact.h"
