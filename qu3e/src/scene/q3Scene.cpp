@@ -61,7 +61,17 @@ void q3Scene::Step(const q3Env &env) {
 }
 
 q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
-  auto body = new q3Body(def, this);
+  auto body = new q3Body(def);
+  body->m_transformUpdated = [scene = this, self = body]() {
+    scene->m_contactManager.m_broadphase.SynchronizeProxies(self);
+  };
+  body->m_onRemoveBox = [scene = this](const q3Box *box) {
+    scene->m_contactManager.m_broadphase.RemoveBox(box);
+  };
+  body->m_onRemoveConstraint = [scene = this](q3ContactConstraint *constraint) {
+    scene->m_contactManager.RemoveContact(constraint);
+  };
+
   // Add body to scene bodyList
   m_bodyList.push_back(body);
   return body;

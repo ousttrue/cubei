@@ -33,17 +33,7 @@ distribution.
 #define Q3_SLEEP_LINEAR float( 0.01 )
 #define Q3_SLEEP_ANGULAR float( (3.0 / 180.0) * q3PI )
 
-q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
-  m_transformUpdated = [scene, self = this]() {
-    scene->m_contactManager.m_broadphase.SynchronizeProxies(self);
-  };
-  m_onRemoveBox = [scene](const q3Box *box) {
-    scene->m_contactManager.m_broadphase.RemoveBox(box);
-  };
-  m_onRemoveConstraint = [scene](q3ContactConstraint *constraint) {
-    scene->m_contactManager.RemoveContact(constraint);
-  };
-
+q3Body::q3Body(const q3BodyDef &def) {
   m_linearVelocity = def.linearVelocity;
   m_angularVelocity = def.angularVelocity;
   m_q.Set(q3Normalize(def.axis), def.angle);
@@ -54,7 +44,6 @@ q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
   m_userData = def.userData;
   m_linearDamping = def.linearDamping;
   m_angularDamping = def.angularDamping;
-  // m_scene = scene;
 
   if (def.bodyType == eDynamicBody)
     AddFlag(q3BodyFlags::eDynamic);

@@ -126,13 +126,13 @@ class q3Body {
   void *m_userData;
   float m_linearDamping;
   float m_angularDamping;
-  std::function<void(const q3Box *)> m_onRemoveBox;
-  std::function<void(struct q3ContactConstraint *)> m_onRemoveConstraint;
 
 public:
+  std::function<void(const q3Box *)> m_onRemoveBox;
+  std::function<void(struct q3ContactConstraint *)> m_onRemoveConstraint;
   std::function<void()> m_transformUpdated;
   q3ContactEdge *m_contactList = nullptr;
-  q3Body(const q3BodyDef &def, q3Scene *scene);
+  q3Body(const q3BodyDef &def);
   q3BodyState State() const { return m_state; }
   void SetIslandIndex(size_t index) { m_state.m_islandIndex = index; }
   q3VelocityState VelocityState() const {
