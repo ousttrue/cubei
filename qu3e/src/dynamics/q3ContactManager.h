@@ -28,8 +28,7 @@ distribution.
 #ifndef Q3CONTACTMANAGER_H
 #define Q3CONTACTMANAGER_H
 
-#include "../broadphase/q3BroadPhase.h"
-
+#include "q3BroadPhase.h"
 #include <list>
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager

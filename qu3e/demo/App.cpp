@@ -203,8 +203,10 @@ void App::Frame(int w, int h) {
 
     camera_.Update();
     renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
-    renderer_->RenderScene(scene_.get());
-    renderer_->RenderContact(&scene_->m_contactManager);
+    {
+      q3RenderScene(renderer_.get(), scene_.get());
+      q3RenderContact(renderer_.get(), &scene_->m_contactManager);
+    }
     demos_[currentDemo_]->Render(renderer_.get());
     renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);
   }

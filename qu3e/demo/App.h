@@ -1,6 +1,5 @@
 #pragma once
 #include "GLTypes.h"
-#include "debug/q3Render.h"
 #include <chrono>
 #include <memory>
 #include <q3.h>

@@ -28,8 +28,6 @@ distribution.
 #ifndef Q3RENDER_H
 #define Q3RENDER_H
 
-
-
 //--------------------------------------------------------------------------------------------------
 // q3Render
 //--------------------------------------------------------------------------------------------------
@@ -56,9 +54,6 @@ public:
 
   // Draw a point with the scale from SetScale
   virtual void Point() = 0;
-
-  void RenderScene(const class q3Scene *scene);
-  void RenderContact(const class q3ContactManager *contactManager);
 };
 
 #endif // Q3RENDER_H

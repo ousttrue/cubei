@@ -28,7 +28,7 @@ distribution.
 #ifndef Q3BOX_H
 #define Q3BOX_H
 
-#include "../debug/q3Render.h"
+#include <q3Render.h>
 #include "../math/q3Mat3.h"
 #include "../math/q3Transform.h"
 #include "../math/q3Vec3.h"

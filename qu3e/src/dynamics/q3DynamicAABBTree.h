@@ -27,8 +27,8 @@ distribution.
 
 #pragma once
 #include "../math/q3Geometry.h"
-#include "../debug/q3Render.h"
 #include "../math/q3Math.h"
+#include <q3Render.h>
 #include <vector>
 
 //--------------------------------------------------------------------------------------------------
@@ -178,7 +178,7 @@ public:
 private:
   int AllocateNode() {
     if (m_freeList == Node::Null) {
-      m_nodes.resize(m_nodes.size()*2);
+      m_nodes.resize(m_nodes.size() * 2);
       AddToFreeList(m_count);
     }
 
