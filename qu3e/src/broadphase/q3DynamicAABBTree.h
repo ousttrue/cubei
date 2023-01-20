@@ -27,9 +27,9 @@ distribution.
 
 #pragma once
 #include "../common/q3Geometry.h"
-#include "../common/q3Memory.h"
 #include "../debug/q3Render.h"
 #include "../math/q3Math.h"
+#include <vector>
 
 //--------------------------------------------------------------------------------------------------
 // q3DynamicAABBTree
@@ -79,23 +79,18 @@ class q3DynamicAABBTree {
   };
 
   int m_root;
-  Node *m_nodes;
-  int m_count;    // Number of active nodes
-  int m_capacity; // Max capacity of nodes
+  std::vector<Node> m_nodes;
+  int m_count; // Number of active nodes
   int m_freeList;
 
 public:
   q3DynamicAABBTree() {
     m_root = Node::Null;
-
-    m_capacity = 1024;
+    m_nodes.resize(1024);
     m_count = 0;
-    m_nodes = (Node *)q3Alloc(sizeof(Node) * m_capacity);
-
     AddToFreeList(0);
   }
-
-  ~q3DynamicAABBTree() { q3Free(m_nodes); }
+  ~q3DynamicAABBTree() {}
 
   // Provide tight-AABB
   int Insert(const q3AABB &aabb, void *userData) {
@@ -113,14 +108,14 @@ public:
   }
 
   void Remove(int id) {
-    assert(id >= 0 && id < m_capacity);
+    assert(id >= 0 && id < m_nodes.size());
     assert(m_nodes[id].IsLeaf());
     RemoveLeaf(id);
     DeallocateNode(id);
   }
 
   bool Update(int id, const q3AABB &aabb) {
-    assert(id >= 0 && id < m_capacity);
+    assert(id >= 0 && id < m_nodes.size());
     assert(m_nodes[id].IsLeaf());
 
     if (m_nodes[id].aabb.Contains(aabb))
@@ -137,12 +132,12 @@ public:
   }
 
   void *GetUserData(int id) const {
-    assert(id >= 0 && id < m_capacity);
+    assert(id >= 0 && id < m_nodes.size());
     return m_nodes[id].userData;
   }
 
   const q3AABB &GetFatAABB(int id) const {
-    assert(id >= 0 && id < m_capacity);
+    assert(id >= 0 && id < m_nodes.size());
     return m_nodes[id].aabb;
   }
 
@@ -163,12 +158,12 @@ public:
     int index = m_freeList;
 
     while (index != Node::Null) {
-      assert(index >= 0 && index < m_capacity);
+      assert(index >= 0 && index < m_nodes.size());
       index = m_nodes[index].next;
       ++freeNodes;
     }
 
-    assert(m_count + freeNodes == m_capacity);
+    assert(m_count + freeNodes == m_nodes.size());
 
     // Validate tree structure
     if (m_root != Node::Null) {
@@ -183,12 +178,7 @@ public:
 private:
   int AllocateNode() {
     if (m_freeList == Node::Null) {
-      m_capacity *= 2;
-      Node *newNodes = (Node *)q3Alloc(sizeof(Node) * m_capacity);
-      memcpy(newNodes, m_nodes, sizeof(Node) * m_count);
-      q3Free(m_nodes);
-      m_nodes = newNodes;
-
+      m_nodes.resize(m_nodes.size()*2);
       AddToFreeList(m_count);
     }
 
@@ -206,7 +196,7 @@ private:
   inline void DeallocateNode(int index);
 
   int Balance(int iA) {
-    Node *A = m_nodes + iA;
+    Node *A = &m_nodes[iA];
 
     if (A->IsLeaf() || A->height == 1)
       return iA;
@@ -220,8 +210,8 @@ private:
 
     int iB = A->left;
     int iC = A->right;
-    Node *B = m_nodes + iB;
-    Node *C = m_nodes + iC;
+    Node *B = &m_nodes[iB];
+    Node *C = &m_nodes[iC];
 
     int balance = C->height - B->height;
 
@@ -229,8 +219,8 @@ private:
     if (balance > 1) {
       int iF = C->left;
       int iG = C->right;
-      Node *F = m_nodes + iF;
-      Node *G = m_nodes + iG;
+      Node *F = &m_nodes[iF];
+      Node *G = &m_nodes[iG];
 
       // grandParent point to C
       if (A->parent != Node::Null) {
@@ -277,8 +267,8 @@ private:
     else if (balance < -1) {
       int iD = B->left;
       int iE = B->right;
-      Node *D = m_nodes + iD;
-      Node *E = m_nodes + iE;
+      Node *D = &m_nodes[iD];
+      Node *E = &m_nodes[iE];
 
       // grandParent point to B
       if (A->parent != Node::Null) {
@@ -463,7 +453,7 @@ private:
   }
 
   void ValidateStructure(int index) const {
-    Node *n = m_nodes + index;
+    auto n = &m_nodes[index];
 
     int il = n->left;
     int ir = n->right;
@@ -474,10 +464,10 @@ private:
       return;
     }
 
-    assert(il >= 0 && il < m_capacity);
-    assert(ir >= 0 && ir < m_capacity);
-    Node *l = m_nodes + il;
-    Node *r = m_nodes + ir;
+    assert(il >= 0 && il < m_nodes.size());
+    assert(ir >= 0 && ir < m_nodes.size());
+    auto l = &m_nodes[il];
+    auto r = &m_nodes[ir];
 
     assert(l->parent == index);
     assert(r->parent == index);
@@ -487,9 +477,9 @@ private:
   }
 
   void RenderNode(q3Render *render, int index) const {
-    assert(index >= 0 && index < m_capacity);
+    assert(index >= 0 && index < m_nodes.size());
 
-    Node *n = m_nodes + index;
+    auto n = &m_nodes[index];
     const q3AABB &b = n->aabb;
 
     render->SetPenPosition(b.min.x, b.max.y, b.min.z);
@@ -535,21 +525,21 @@ private:
     }
   }
 
-  // Insert nodes at a given index until m_capacity into the free list
+  // Insert nodes at a given index until m_nodes.size() into the free list
   void AddToFreeList(int index) {
-    for (int i = index; i < m_capacity - 1; ++i) {
+    for (int i = index; i < m_nodes.size() - 1; ++i) {
       m_nodes[i].next = i + 1;
       m_nodes[i].height = Node::Null;
     }
-    m_nodes[m_capacity - 1].next = Node::Null;
-    m_nodes[m_capacity - 1].height = Node::Null;
+    m_nodes[m_nodes.size() - 1].next = Node::Null;
+    m_nodes[m_nodes.size() - 1].height = Node::Null;
     m_freeList = index;
   }
 };
 
 //--------------------------------------------------------------------------------------------------
 inline void q3DynamicAABBTree::DeallocateNode(int index) {
-  assert(index >= 0 && index < m_capacity);
+  assert(index >= 0 && index < m_nodes.size());
 
   m_nodes[index].next = m_freeList;
   m_nodes[index].height = Node::Null;
@@ -573,7 +563,7 @@ inline void q3DynamicAABBTree::Query(T *cb, const q3AABB &aabb) const {
 
     int id = stack[--sp];
 
-    const Node *n = m_nodes + id;
+    const Node *n = &m_nodes[id];
     if (q3AABBtoAABB(aabb, n->aabb)) {
       if (n->IsLeaf()) {
         if (!cb->TreeCallBack(id))
@@ -608,7 +598,7 @@ void q3DynamicAABBTree::Query(T *cb, q3RaycastData &rayCast) const {
     if (id == Node::Null)
       continue;
 
-    const Node *n = m_nodes + id;
+    const Node *n = &m_nodes[id];
 
     q3Vec3 e = n->aabb.max - n->aabb.min;
     q3Vec3 d = p1 - p0;
