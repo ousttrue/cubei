@@ -32,7 +32,14 @@ distribution.
 #include <stdlib.h>
 #include <vector>
 
-q3Scene::~q3Scene() { RemoveAllBodies(); }
+q3Scene::~q3Scene() {
+  OnBodyAdd = {};
+  OnBodyRemove = {};
+  OnBodyTransformUpdated = {};
+  OnBoxRemove = {};
+  OnBoxAdd = {};
+  RemoveAllBodies();
+}
 
 void q3Scene::UpdateTransforms() {
   for (auto body : m_bodyList) {
@@ -46,13 +53,19 @@ q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
   auto body = new q3Body(def);
 
   body->OnBoxAdd = [self = this, body](q3Box *box) {
-    self->OnBoxAdd(body, box);
+    if (self->OnBodyAdd) {
+      self->OnBoxAdd(body, box);
+    }
   };
   body->OnBoxRemove = [self = this, body](const q3Box *box) {
-    self->OnBoxRemove(body, box);
+    if (self->OnBoxRemove) {
+      self->OnBoxRemove(body, box);
+    }
   };
   body->OnTransformUpdated = [self = this, body]() {
-    self->OnBodyTransformUpdated(body);
+    if (self->OnBodyTransformUpdated) {
+      self->OnBodyTransformUpdated(body);
+    }
   };
 
   OnBodyAdd(body);
@@ -77,14 +90,18 @@ const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
 void q3Scene::RemoveBody(q3Body *body) {
   body->RemoveAllBoxes();
   m_bodyList.remove(body);
-  OnBodyRemove(body);
+  if (OnBodyRemove) {
+    OnBodyRemove(body);
+  }
   delete body;
 }
 
 void q3Scene::RemoveAllBodies() {
   for (auto body : m_bodyList) {
     body->RemoveAllBoxes();
-    OnBodyRemove(body);
+    if (OnBodyRemove) {
+      OnBodyRemove(body);
+    }
     delete body;
   }
   m_bodyList.clear();
