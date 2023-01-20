@@ -28,9 +28,10 @@ distribution.
 #ifndef Q3CONTACT_H
 #define Q3CONTACT_H
 
-#include "../scene/q3Box.h"
 #include "../common/q3Settings.h"
 #include "../math/q3Math.h"
+#include "../scene/q3Box.h"
+#include "q3ContactEdge.h"
 
 //--------------------------------------------------------------------------------------------------
 // q3Contact
@@ -103,13 +104,6 @@ struct q3Manifold {
   bool sensor;
 };
 
-struct q3ContactEdge {
-  q3Body *other;
-  q3ContactConstraint *constraint;
-  q3ContactEdge *next;
-  q3ContactEdge *prev;
-};
-
 enum class q3ContactConstraintFlags {
   eNone = 0,
   eColliding = 0x00000001,    // Set when contact collides during a step
@@ -120,9 +114,10 @@ enum class q3ContactConstraintFlags {
 struct q3ContactConstraint {
   void SolveCollision(void);
 
-  q3Box *A, *B;
-  q3Body *bodyA, *bodyB;
-
+  q3Box *A;
+  q3Box *B;
+  q3Body *bodyA;
+  q3Body *bodyB;
   q3ContactEdge edgeA;
   q3ContactEdge edgeB;
 

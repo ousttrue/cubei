@@ -49,18 +49,12 @@ void q3ContactManager::AddContact(q3Box *A, q3Box *B) {
   // Search for existing matching contact
   // Return if found duplicate to avoid duplicate constraints
   // Mark pre-existing duplicates as active
-  q3ContactEdge *edge = A->body->m_contactList;
-  while (edge) {
+  for (q3ContactEdge *edge = A->body->m_contactList; edge; edge = edge->next) {
     if (edge->other == bodyB) {
-      q3Box *shapeA = edge->constraint->A;
-      q3Box *shapeB = edge->constraint->B;
-
       // @TODO: Verify this against Box2D; not sure if this is all we need here
-      if ((A == shapeA) && (B == shapeB))
+      if ((A == edge->constraint->A) && (B == edge->constraint->B))
         return;
     }
-
-    edge = edge->next;
   }
 
   // Create new contact

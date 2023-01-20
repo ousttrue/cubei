@@ -96,15 +96,9 @@ void q3Body::RemoveBox(const q3Box *box) {
   m_boxes.erase(node);
 
   // Remove all contacts associated with this shape
-  q3ContactEdge *edge = m_contactList;
-  while (edge) {
+  for (q3ContactEdge *edge = m_contactList; edge; edge = edge->next) {
     q3ContactConstraint *contact = edge->constraint;
-    edge = edge->next;
-
-    q3Box *A = contact->A;
-    q3Box *B = contact->B;
-
-    if (box == A || box == B) {
+    if (box == contact->A || box == contact->B) {
       m_onRemoveConstraint(contact);
     }
   }

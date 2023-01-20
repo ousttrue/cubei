@@ -92,8 +92,7 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
         continue;
 
       // Search all contacts connected to this body
-      q3ContactEdge *contacts = body->m_contactList;
-      for (q3ContactEdge *edge = contacts; edge; edge = edge->next) {
+      for (q3ContactEdge *edge = body->m_contactList; edge; edge = edge->next) {
         q3ContactConstraint *contact = edge->constraint;
 
         // Skip contacts that have been added to an island already
