@@ -25,10 +25,7 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3BOX_H
-#define Q3BOX_H
-
-#include <q3Render.h>
+#pragma once
 #include "../math/q3Mat3.h"
 #include "../math/q3Transform.h"
 #include "../math/q3Vec3.h"
@@ -75,8 +72,6 @@ struct q3Box {
   bool Raycast(const q3Transform &tx, q3RaycastData *raycast) const;
   void ComputeAABB(const q3Transform &tx, q3AABB *aabb) const;
   void ComputeMass(q3MassData *md) const;
-  void Render(const q3Transform &tx, bool awake, q3Render *render) const;
+  void Render(const q3Transform &tx, bool awake, class q3Render *render) const;
   void Dump(FILE *file, int index);
 };
-
-#endif // Q3BOX_H

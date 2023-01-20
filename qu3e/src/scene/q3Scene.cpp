@@ -25,38 +25,20 @@ distribution.
 */
 
 #include "q3Scene.h"
-#include "../dynamics/q3Contact.h"
-#include "../dynamics/q3ContactSolver.h"
-#include "../dynamics/q3Island.h"
 #include "q3Body.h"
 #include "q3Box.h"
+#include "q3Env.h"
 #include <Remotery.h>
 #include <stdlib.h>
 #include <vector>
 
 q3Scene::~q3Scene() { RemoveAllBodies(); }
 
-void q3Scene::Step(const q3Env &env, q3ContactManager *contactManager) {
-  rmt_ScopedCPUSample(qSceneStep, 0);
-
-  contactManager->TestCollisions(m_newBox);
-  m_newBox = false;
-
-  m_island.Process(m_bodyList, contactManager->ContactCount(), env);
-
-  // Update the broadphase AABBs
+void q3Scene::UpdateTransforms() {
   for (auto body : m_bodyList) {
     if (body->HasFlag(q3BodyFlags::eStatic))
       continue;
     OnBodyTransformUpdated(body);
-  }
-
-  // Look for new contacts
-  contactManager->FindNewContacts();
-
-  // Clear all forces
-  for (auto body : m_bodyList) {
-    body->ClearForce();
   }
 }
 

@@ -27,8 +27,10 @@ distribution.
 
 #include "q3Island.h"
 #include "../scene/q3Body.h"
+#include "../scene/q3Scene.h"
 #include "q3BroadPhase.h"
 #include "q3Contact.h"
+#include "q3ContactManager.h"
 #include "q3ContactSolver.h"
 
 #include <Remotery.h>
@@ -42,22 +44,26 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 // q3Island
 //--------------------------------------------------------------------------------------------------
-void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
-                       const q3Env &env) {
-  for (auto body : bodyList) {
+void q3Island::Step(const q3Env &env, q3Scene *scene,
+                    q3ContactManager *contactManager) {
+  rmt_ScopedCPUSample(qSceneStep, 0);
+
+  contactManager->TestCollisions(scene->NewBox());
+
+  for (auto body : *scene) {
     body->RemoveFlag(q3BodyFlags::eIsland);
   }
 
-  m_bodies.reserve(bodyList.size());
-  m_velocities.reserve(bodyList.size());
-  m_contacts.reserve(contactCount);
-  m_contactStates.reserve(contactCount);
+  m_bodies.reserve(scene->BodyCount());
+  m_velocities.reserve(scene->BodyCount());
+  m_contacts.reserve(contactManager->ContactCount());
+  m_contactStates.reserve(contactManager->ContactCount());
   m_env = env;
 
   // Build each active island and then solve each built island
-  int stackSize = bodyList.size();
+  int stackSize = scene->BodyCount();
   m_stack.resize(stackSize);
-  for (auto seed : bodyList) {
+  for (auto seed : *scene) {
     // Seed cannot be apart of an island already
     if (seed->HasFlag(q3BodyFlags::eIsland))
       continue;
@@ -140,6 +146,17 @@ void q3Island::Process(const std::list<q3Body *> &bodyList, size_t contactCount,
       if (body->HasFlag(q3BodyFlags::eStatic))
         body->RemoveFlag(q3BodyFlags::eIsland);
     }
+  }
+
+  // Update the broadphase AABBs
+  scene->UpdateTransforms();
+
+  // Look for new contacts
+  contactManager->FindNewContacts();
+
+  // Clear all forces
+  for (auto body : *scene) {
+    body->ClearForce();
   }
 }
 

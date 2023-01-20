@@ -46,6 +46,7 @@ App::App(GLFWwindow *window) {
   // q3
   scene_.reset(new q3Scene);
   contactManager_.reset(new q3ContactManager);
+  island_.reset(new q3Island);
   scene_->OnBodyAdd = [](q3Body *body) {
 
   };
@@ -63,18 +64,18 @@ App::App(GLFWwindow *window) {
     box->ComputeAABB(body->Transform(), &aabb);
     contactManager->m_broadphase.InsertBox(box, aabb);
   };
-  scene_->OnBoxRemove = [contactManager = contactManager_.get()](
-                            q3Body *body, const q3Box *box) {
-    // Remove all contacts associated with this shape
-    for (q3ContactEdge *edge = body->m_contactList; edge;) {
-      q3ContactConstraint *contact = edge->constraint;
-      edge = edge->next;
-      if (box == contact->A || box == contact->B) {
-        contactManager->RemoveContact(contact);
-      }
-    }
-    contactManager->m_broadphase.RemoveBox(box);
-  };
+  scene_->OnBoxRemove =
+      [contactManager = contactManager_.get()](q3Body *body, const q3Box *box) {
+        // Remove all contacts associated with this shape
+        for (q3ContactEdge *edge = body->m_contactList; edge;) {
+          q3ContactConstraint *contact = edge->constraint;
+          edge = edge->next;
+          if (box == contact->A || box == contact->B) {
+            contactManager->RemoveContact(contact);
+          }
+        }
+        contactManager->m_broadphase.RemoveBox(box);
+      };
 
   renderer_.reset(new GL3Renderer);
   // renderer_.reset(new GL2Renderer);
@@ -174,12 +175,13 @@ void App::Frame(int w, int h) {
   {
     rmt_ScopedCPUSample(Qu3eStep, 0);
     if (!paused_) {
-      scene_->Step(env_, contactManager_.get());
+      island_->Step(env_, scene_.get(), contactManager_.get());
       demos_[currentDemo_]->Update(scene_.get(), delta, contactManager_.get());
     } else {
       if (singleStep_) {
-        scene_->Step(env_, contactManager_.get());
-        demos_[currentDemo_]->Update(scene_.get(), DELTA, contactManager_.get());
+        island_->Step(env_, scene_.get(), contactManager_.get());
+        demos_[currentDemo_]->Update(scene_.get(), DELTA,
+                                     contactManager_.get());
         singleStep_ = false;
       }
     }

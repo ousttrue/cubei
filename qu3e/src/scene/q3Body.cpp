@@ -25,9 +25,9 @@ distribution.
 */
 
 #include "q3Body.h"
-#include "../dynamics/q3Contact.h"
 #include "../math/q3Math.h"
 #include "q3Box.h"
+#include "q3Env.h"
 #include "q3Scene.h"
 
 #define Q3_SLEEP_LINEAR float(0.01)

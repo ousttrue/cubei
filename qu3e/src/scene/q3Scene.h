@@ -26,17 +26,15 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../dynamics/q3ContactManager.h"
-#include "../dynamics/q3Island.h"
 #include <functional>
 #include <list>
 #include <stdio.h>
 
 class q3Body;
+struct q3Box;
 struct q3BodyDef;
 class q3Scene {
   bool m_newBox = false;
-  q3Island m_island;
   std::list<q3Body *> m_bodyList;
 
 public:
@@ -51,10 +49,15 @@ public:
     return m_bodyList.begin();
   }
   std::list<q3Body *>::const_iterator end() const { return m_bodyList.end(); }
+  size_t BodyCount() const { return m_bodyList.size(); }
 
-  // Run the simulation forward in time by dt (fixed timestep). Variable
-  // timestep is not supported.
-  void Step(const q3Env &env, q3ContactManager *contactManager);
+  bool NewBox() {
+    auto newBox = m_newBox;
+    m_newBox = false;
+    return newBox;
+  }
+
+  void UpdateTransforms();
 
   // Construct a new rigid body. The BodyDef can be reused at the user's
   // discretion, as no reference to the BodyDef is kept.
@@ -77,5 +80,5 @@ public:
   // not be saved to the log file. This means the log file will be most
   // accurate when dumped upon scene initialization, instead of mid-
   // simulation.
-  void Dump(FILE *file, const q3Env &env) const;
+  void Dump(FILE *file, const struct q3Env &env) const;
 };

@@ -14,6 +14,7 @@ class App {
 
   std::unique_ptr<class q3Scene> scene_;
   std::unique_ptr<class q3ContactManager> contactManager_;
+  std::unique_ptr<class q3Island> island_;
   std::unique_ptr<class q3Render> renderer_;
   // Is frame by frame stepping enabled?
   bool paused_ = false;
