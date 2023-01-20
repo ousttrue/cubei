@@ -123,165 +123,6 @@ void q3Body::RemoveAllBoxes() {
   m_boxes.clear();
 }
 
-void q3Body::ApplyLinearForce(const q3Vec3 &force) {
-  m_force += force * m_mass;
-
-  SetToAwake();
-}
-
-void q3Body::ApplyForceAtWorldPoint(const q3Vec3 &force, const q3Vec3 &point) {
-  m_force += force * m_mass;
-  m_torque += q3Cross(point - m_state.m_worldCenter, force);
-
-  SetToAwake();
-}
-
-void q3Body::ApplyLinearImpulse(const q3Vec3 &impulse) {
-  m_linearVelocity += impulse * m_state.m_invMass;
-
-  SetToAwake();
-}
-
-void q3Body::ApplyLinearImpulseAtWorldPoint(const q3Vec3 &impulse,
-                                            const q3Vec3 &point) {
-  m_linearVelocity += impulse * m_state.m_invMass;
-  m_angularVelocity += m_state.m_invInertiaWorld *
-                       q3Cross(point - m_state.m_worldCenter, impulse);
-
-  SetToAwake();
-}
-
-void q3Body::ApplyTorque(const q3Vec3 &torque) { m_torque += torque; }
-
-void q3Body::SetToAwake() {
-  if (!HasFlag(q3BodyFlags::eAwake)) {
-    AddFlag(q3BodyFlags::eAwake);
-    m_sleepTime = float(0.0);
-  }
-}
-
-void q3Body::SetToSleep() {
-  RemoveFlag(q3BodyFlags::eAwake);
-  m_sleepTime = float(0.0);
-  m_linearVelocity = {};
-  m_angularVelocity = {};
-  m_force = {};
-  m_torque = {};
-}
-
-bool q3Body::IsAwake() const {
-  return HasFlag(q3BodyFlags::eAwake) ? true : false;
-}
-
-float q3Body::GetMass() const { return m_mass; }
-
-float q3Body::GetInvMass() const { return m_state.m_invMass; }
-
-float q3Body::GetGravityScale() const { return m_gravityScale; }
-
-void q3Body::SetGravityScale(float scale) { m_gravityScale = scale; }
-
-const q3Vec3 q3Body::GetLocalPoint(const q3Vec3 &p) const {
-  return q3MulT(m_tx, p);
-}
-
-const q3Vec3 q3Body::GetLocalVector(const q3Vec3 &v) const {
-  return q3MulT(m_tx.rotation, v);
-}
-
-const q3Vec3 q3Body::GetWorldPoint(const q3Vec3 &p) const {
-  return q3Mul(m_tx, p);
-}
-
-const q3Vec3 q3Body::GetWorldVector(const q3Vec3 &v) const {
-  return q3Mul(m_tx.rotation, v);
-}
-
-const q3Vec3 q3Body::GetLinearVelocity() const { return m_linearVelocity; }
-
-const q3Vec3 q3Body::GetVelocityAtWorldPoint(const q3Vec3 &p) const {
-  q3Vec3 directionToPoint = p - m_state.m_worldCenter;
-  q3Vec3 relativeAngularVel = q3Cross(m_angularVelocity, directionToPoint);
-
-  return m_linearVelocity + relativeAngularVel;
-}
-
-void q3Body::SetLinearVelocity(const q3Vec3 &v) {
-  // Velocity of static bodies cannot be adjusted
-  if (HasFlag(q3BodyFlags::eStatic))
-    assert(false);
-
-  if (q3Dot(v, v) > float(0.0)) {
-    SetToAwake();
-  }
-
-  m_linearVelocity = v;
-}
-
-const q3Vec3 q3Body::GetAngularVelocity() const { return m_angularVelocity; }
-
-void q3Body::SetAngularVelocity(const q3Vec3 v) {
-  // Velocity of static bodies cannot be adjusted
-  if (HasFlag(q3BodyFlags::eStatic))
-    assert(false);
-
-  if (q3Dot(v, v) > float(0.0)) {
-    SetToAwake();
-  }
-
-  m_angularVelocity = v;
-}
-
-bool q3Body::CanCollide(const q3Body *other) const {
-  if (this == other)
-    return false;
-
-  // Every collision must have at least one dynamic body involved
-  if (!(HasFlag(q3BodyFlags::eDynamic)) &&
-      !(other->HasFlag(q3BodyFlags::eDynamic)))
-    return false;
-
-  if (!(m_layers & other->m_layers))
-    return false;
-
-  return true;
-}
-
-const q3Transform q3Body::GetTransform() const { return m_tx; }
-
-void q3Body::SetTransform(const q3Vec3 &position) {
-  m_state.m_worldCenter = position;
-
-  m_transformUpdated();
-}
-
-void q3Body::SetTransform(const q3Vec3 &position, const q3Vec3 &axis,
-                          float angle) {
-  m_state.m_worldCenter = position;
-  m_q.Set(axis, angle);
-  m_tx.rotation = m_q.ToMat3();
-
-  m_transformUpdated();
-}
-
-void q3Body::SetLayers(int layers) { m_layers = layers; }
-
-int q3Body::GetLayers() const { return m_layers; }
-
-const q3Quaternion q3Body::GetQuaternion() const { return m_q; }
-
-void *q3Body::GetUserData() const { return m_userData; }
-
-void q3Body::SetLinearDamping(float damping) { m_linearDamping = damping; }
-
-float q3Body::GetLinearDamping(float damping) const { return m_linearDamping; }
-
-void q3Body::SetAngularDamping(float damping) { m_angularDamping = damping; }
-
-float q3Body::GetAngularDamping(float damping) const {
-  return m_angularDamping;
-}
-
 void q3Body::Solve(const q3Env &env) {
   if (HasFlag(q3BodyFlags::eDynamic)) {
     ApplyLinearForce(env.m_gravity * m_gravityScale);
@@ -305,78 +146,6 @@ void q3Body::Solve(const q3Env &env) {
     m_angularVelocity *=
         float(1.0) / (float(1.0) + env.m_dt * m_angularDamping);
   }
-}
-
-void q3Body::Render(q3Render *render) const {
-  bool awake = IsAwake();
-  for (auto box : m_boxes) {
-    box->Render(m_tx, awake, render);
-  }
-}
-
-void q3Body::Dump(FILE *file, int index) const {
-  fprintf(file, "{\n");
-  fprintf(file, "\tq3BodyDef bd;\n");
-
-  switch ((q3BodyFlags)((int)m_flags & ((int)q3BodyFlags::eStatic |
-                                        (int)q3BodyFlags::eDynamic |
-                                        (int)q3BodyFlags::eKinematic))) {
-  case q3BodyFlags::eStatic:
-    fprintf(file, "\tbd.bodyType = q3BodyType( %d );\n", eStaticBody);
-    break;
-
-  case q3BodyFlags::eDynamic:
-    fprintf(file, "\tbd.bodyType = q3BodyType( %d );\n", eDynamicBody);
-    break;
-
-  case q3BodyFlags::eKinematic:
-    fprintf(file, "\tbd.bodyType = q3BodyType( %d );\n", eKinematicBody);
-    break;
-
-  default:
-    assert(false);
-    break;
-  }
-
-  fprintf(file,
-          "\tbd.position.Set( float( %.15lf ), float( %.15lf ), float( %.15lf "
-          ") );\n",
-          m_tx.position.x, m_tx.position.y, m_tx.position.z);
-  q3Vec3 axis;
-  float angle;
-  m_q.ToAxisAngle(&axis, &angle);
-  fprintf(
-      file,
-      "\tbd.axis.Set( float( %.15lf ), float( %.15lf ), float( %.15lf ) );\n",
-      axis.x, axis.y, axis.z);
-  fprintf(file, "\tbd.angle = float( %.15lf );\n", angle);
-  fprintf(file,
-          "\tbd.linearVelocity.Set( float( %.15lf ), float( %.15lf ), float( "
-          "%.15lf ) );\n",
-          m_linearVelocity.x, m_linearVelocity.y, m_linearVelocity.z);
-  fprintf(file,
-          "\tbd.angularVelocity.Set( float( %.15lf ), float( %.15lf ), float( "
-          "%.15lf ) );\n",
-          m_angularVelocity.x, m_angularVelocity.y, m_angularVelocity.z);
-  fprintf(file, "\tbd.gravityScale = float( %.15lf );\n", m_gravityScale);
-  fprintf(file, "\tbd.layers = %d;\n", m_layers);
-  fprintf(file, "\tbd.allowSleep = bool( %d );\n",
-          HasFlag(q3BodyFlags::eAllowSleep));
-  fprintf(file, "\tbd.awake = bool( %d );\n", HasFlag(q3BodyFlags::eAwake));
-  fprintf(file, "\tbd.awake = bool( %d );\n", HasFlag(q3BodyFlags::eAwake));
-  fprintf(file, "\tbd.lockAxisX = bool( %d );\n",
-          HasFlag(q3BodyFlags::eLockAxisX));
-  fprintf(file, "\tbd.lockAxisY = bool( %d );\n",
-          HasFlag(q3BodyFlags::eLockAxisY));
-  fprintf(file, "\tbd.lockAxisZ = bool( %d );\n",
-          HasFlag(q3BodyFlags::eLockAxisZ));
-  fprintf(file, "\tbodies[ %d ] = scene.CreateBody( bd );\n\n", index);
-
-  for (auto box : m_boxes) {
-    box->Dump(file, index);
-  }
-
-  fprintf(file, "}\n\n");
 }
 
 void q3Body::SetVelocityState(const q3Env &env, const q3VelocityState &v) {
@@ -462,4 +231,76 @@ void q3Body::CalculateMassData() {
 
   m_localCenter = lc;
   m_state.m_worldCenter = q3Mul(m_tx, lc);
+}
+
+void q3Body::Render(q3Render *render) const {
+  bool awake = IsAwake();
+  for (auto box : m_boxes) {
+    box->Render(m_tx, awake, render);
+  }
+}
+
+void q3Body::Dump(FILE *file, int index) const {
+  fprintf(file, "{\n");
+  fprintf(file, "\tq3BodyDef bd;\n");
+
+  switch ((q3BodyFlags)((int)m_flags & ((int)q3BodyFlags::eStatic |
+                                        (int)q3BodyFlags::eDynamic |
+                                        (int)q3BodyFlags::eKinematic))) {
+  case q3BodyFlags::eStatic:
+    fprintf(file, "\tbd.bodyType = q3BodyType( %d );\n", eStaticBody);
+    break;
+
+  case q3BodyFlags::eDynamic:
+    fprintf(file, "\tbd.bodyType = q3BodyType( %d );\n", eDynamicBody);
+    break;
+
+  case q3BodyFlags::eKinematic:
+    fprintf(file, "\tbd.bodyType = q3BodyType( %d );\n", eKinematicBody);
+    break;
+
+  default:
+    assert(false);
+    break;
+  }
+
+  fprintf(file,
+          "\tbd.position.Set( float( %.15lf ), float( %.15lf ), float( %.15lf "
+          ") );\n",
+          m_tx.position.x, m_tx.position.y, m_tx.position.z);
+  q3Vec3 axis;
+  float angle;
+  m_q.ToAxisAngle(&axis, &angle);
+  fprintf(
+      file,
+      "\tbd.axis.Set( float( %.15lf ), float( %.15lf ), float( %.15lf ) );\n",
+      axis.x, axis.y, axis.z);
+  fprintf(file, "\tbd.angle = float( %.15lf );\n", angle);
+  fprintf(file,
+          "\tbd.linearVelocity.Set( float( %.15lf ), float( %.15lf ), float( "
+          "%.15lf ) );\n",
+          m_linearVelocity.x, m_linearVelocity.y, m_linearVelocity.z);
+  fprintf(file,
+          "\tbd.angularVelocity.Set( float( %.15lf ), float( %.15lf ), float( "
+          "%.15lf ) );\n",
+          m_angularVelocity.x, m_angularVelocity.y, m_angularVelocity.z);
+  fprintf(file, "\tbd.gravityScale = float( %.15lf );\n", m_gravityScale);
+  fprintf(file, "\tbd.layers = %d;\n", m_layers);
+  fprintf(file, "\tbd.allowSleep = bool( %d );\n",
+          HasFlag(q3BodyFlags::eAllowSleep));
+  fprintf(file, "\tbd.awake = bool( %d );\n", HasFlag(q3BodyFlags::eAwake));
+  fprintf(file, "\tbd.awake = bool( %d );\n", HasFlag(q3BodyFlags::eAwake));
+  fprintf(file, "\tbd.lockAxisX = bool( %d );\n",
+          HasFlag(q3BodyFlags::eLockAxisX));
+  fprintf(file, "\tbd.lockAxisY = bool( %d );\n",
+          HasFlag(q3BodyFlags::eLockAxisY));
+  fprintf(file, "\tbd.lockAxisZ = bool( %d );\n",
+          HasFlag(q3BodyFlags::eLockAxisZ));
+  fprintf(file, "\tbodies[ %d ] = scene.CreateBody( bd );\n\n", index);
+
+  for (auto box : m_boxes) {
+    box->Dump(file, index);
+  }
+
+  fprintf(file, "}\n\n");
 }

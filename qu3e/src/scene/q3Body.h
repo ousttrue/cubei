@@ -25,26 +25,23 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3BODY_H
-#define Q3BODY_H
-
+#pragma once
 #include "../math/q3Math.h"
 #include "../math/q3Transform.h"
 #include <functional>
 #include <list>
 #include <stdio.h>
 
-//--------------------------------------------------------------------------------------------------
-// q3Body
-//--------------------------------------------------------------------------------------------------
 class q3Scene;
-struct q3BodyDef;
 struct q3BoxDef;
 struct q3ContactEdge;
-class q3Render;
 struct q3Box;
 
-enum q3BodyType { eStaticBody, eDynamicBody, eKinematicBody };
+enum q3BodyType {
+  eStaticBody,
+  eDynamicBody,
+  eKinematicBody,
+};
 
 enum class q3BodyFlags {
   eNone = 0,
@@ -107,11 +104,13 @@ struct q3BodyState {
   int m_islandIndex;
 };
 
+//--------------------------------------------------------------------------------------------------
+// q3Body
+//--------------------------------------------------------------------------------------------------
 class q3Body {
   q3BodyState m_state;
   q3Mat3 m_invInertiaModel;
   float m_mass;
-
   q3Vec3 m_linearVelocity;
   q3Vec3 m_angularVelocity;
   q3Vec3 m_force = {};
@@ -123,16 +122,13 @@ class q3Body {
   float m_gravityScale;
   int m_layers;
   q3BodyFlags m_flags = {};
-
   std::list<q3Box *> m_boxes;
   void *m_userData;
-  // q3Scene *m_scene;
-
   float m_linearDamping;
   float m_angularDamping;
-
   std::function<void(const q3Box *)> m_onRemoveBox;
   std::function<void(struct q3ContactConstraint *)> m_onRemoveConstraint;
+
 public:
   std::function<void()> m_transformUpdated;
   q3ContactEdge *m_contactList = nullptr;
@@ -178,56 +174,127 @@ public:
   // Removes all boxes from this body and the broadphase.
   void RemoveAllBoxes();
 
-  void ApplyLinearForce(const q3Vec3 &force);
-  void ApplyForceAtWorldPoint(const q3Vec3 &force, const q3Vec3 &point);
-  void ApplyLinearImpulse(const q3Vec3 &impulse);
+  void ApplyLinearForce(const q3Vec3 &force) {
+    m_force += force * m_mass;
+    SetToAwake();
+  }
+  void ApplyForceAtWorldPoint(const q3Vec3 &force, const q3Vec3 &point) {
+    m_force += force * m_mass;
+    m_torque += q3Cross(point - m_state.m_worldCenter, force);
+    SetToAwake();
+  }
+  void ApplyLinearImpulse(const q3Vec3 &impulse) {
+    m_linearVelocity += impulse * m_state.m_invMass;
+    SetToAwake();
+  }
   void ApplyLinearImpulseAtWorldPoint(const q3Vec3 &impulse,
-                                      const q3Vec3 &point);
-  void ApplyTorque(const q3Vec3 &torque);
-  void SetToAwake();
-  void SetToSleep();
-  bool IsAwake() const;
-  float GetGravityScale() const;
-  void SetGravityScale(float scale);
-  const q3Vec3 GetLocalPoint(const q3Vec3 &p) const;
-  const q3Vec3 GetLocalVector(const q3Vec3 &v) const;
-  const q3Vec3 GetWorldPoint(const q3Vec3 &p) const;
-  const q3Vec3 GetWorldVector(const q3Vec3 &v) const;
-  const q3Vec3 GetLinearVelocity() const;
-  const q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const;
-  void SetLinearVelocity(const q3Vec3 &v);
-  const q3Vec3 GetAngularVelocity() const;
-  void SetAngularVelocity(const q3Vec3 v);
-  bool CanCollide(const q3Body *other) const;
-  const q3Transform GetTransform() const;
-  void SetLayers(int layers);
-  int GetLayers() const;
-  const q3Quaternion GetQuaternion() const;
-  void *GetUserData() const;
+                                      const q3Vec3 &point) {
+    m_linearVelocity += impulse * m_state.m_invMass;
+    m_angularVelocity += m_state.m_invInertiaWorld *
+                         q3Cross(point - m_state.m_worldCenter, impulse);
+    SetToAwake();
+  }
+  void SetToAwake() {
+    if (!HasFlag(q3BodyFlags::eAwake)) {
+      AddFlag(q3BodyFlags::eAwake);
+      m_sleepTime = float(0.0);
+    }
+  }
+  void SetToSleep() {
+    RemoveFlag(q3BodyFlags::eAwake);
+    m_sleepTime = float(0.0);
+    m_linearVelocity = {};
+    m_angularVelocity = {};
+    m_force = {};
+    m_torque = {};
+  }
+  void ApplyTorque(const q3Vec3 &torque) { m_torque += torque; }
+  bool IsAwake() const { return HasFlag(q3BodyFlags::eAwake) ? true : false; }
+  float GetGravityScale() const { return m_gravityScale; }
+  void SetGravityScale(float scale) { m_gravityScale = scale; }
+  const q3Vec3 GetLocalPoint(const q3Vec3 &p) const { return q3MulT(m_tx, p); }
+  const q3Vec3 GetLocalVector(const q3Vec3 &v) const {
+    return q3MulT(m_tx.rotation, v);
+  }
+  const q3Vec3 GetWorldPoint(const q3Vec3 &p) const { return q3Mul(m_tx, p); }
+  float GetMass() const { return m_mass; }
+  float GetInvMass() const { return m_state.m_invMass; }
+  const q3Vec3 GetWorldVector(const q3Vec3 &v) const {
+    return q3Mul(m_tx.rotation, v);
+  }
+  const q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
+  const q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {
+    q3Vec3 directionToPoint = p - m_state.m_worldCenter;
+    q3Vec3 relativeAngularVel = q3Cross(m_angularVelocity, directionToPoint);
 
-  void SetLinearDamping(float damping);
-  float GetLinearDamping(float damping) const;
-  void SetAngularDamping(float damping);
-  float GetAngularDamping(float damping) const;
+    return m_linearVelocity + relativeAngularVel;
+  }
+  void SetLinearVelocity(const q3Vec3 &v) {
+    // Velocity of static bodies cannot be adjusted
+    if (HasFlag(q3BodyFlags::eStatic))
+      assert(false);
+
+    if (q3Dot(v, v) > float(0.0)) {
+      SetToAwake();
+    }
+
+    m_linearVelocity = v;
+  }
+  bool CanCollide(const q3Body *other) const {
+    if (this == other)
+      return false;
+
+    // Every collision must have at least one dynamic body involved
+    if (!(HasFlag(q3BodyFlags::eDynamic)) &&
+        !(other->HasFlag(q3BodyFlags::eDynamic)))
+      return false;
+
+    if (!(m_layers & other->m_layers))
+      return false;
+
+    return true;
+  }
+  const q3Vec3 GetAngularVelocity() const { return m_angularVelocity; }
+  void SetAngularVelocity(const q3Vec3 v) {
+    // Velocity of static bodies cannot be adjusted
+    if (HasFlag(q3BodyFlags::eStatic))
+      assert(false);
+    if (q3Dot(v, v) > float(0.0)) {
+      SetToAwake();
+    }
+    m_angularVelocity = v;
+  }
+  const q3Transform GetTransform() const { return m_tx; }
+  void SetLayers(int layers) { m_layers = layers; }
+  int GetLayers() const { return m_layers; }
+  const q3Quaternion GetQuaternion() const { return m_q; }
+  void *GetUserData() const { return m_userData; }
+  void SetLinearDamping(float damping) { m_linearDamping = damping; }
+  float GetLinearDamping(float damping) const { return m_linearDamping; }
+  void SetAngularDamping(float damping) { m_angularDamping = damping; }
+  float GetAngularDamping(float damping) const { return m_angularDamping; }
 
   // Manipulating the transformation of a body manually will result in
   // non-physical behavior. Contacts are updated upon the next call to
   // q3Scene::Step( ). Parameters are in world space. All body types
   // can be updated.
-  void SetTransform(const q3Vec3 &position);
-  void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle);
+  void SetTransform(const q3Vec3 &position) {
+    m_state.m_worldCenter = position;
+    m_transformUpdated();
+  }
+  void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle) {
+    m_state.m_worldCenter = position;
+    m_q.Set(axis, angle);
+    m_tx.rotation = m_q.ToMat3();
+    m_transformUpdated();
+  }
 
   void Solve(const struct q3Env &env);
 
   // Used for debug rendering lines, triangles and basic lighting
-  void Render(q3Render *render) const;
+  void Render(class q3Render *render) const;
 
   // Dump this rigid body and its shapes into a log file. The log can be
   // used as C++ code to re-create an initial scene setup.
   void Dump(FILE *file, int index) const;
-
-  float GetMass() const;
-  float GetInvMass() const;
 };
-
-#endif // Q3BODY_H
