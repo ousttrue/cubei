@@ -3,7 +3,6 @@ qu3e_lib = static_library('qu3e', [
     'scene/q3Body.cpp',
     'scene/q3Box.cpp',
     'broadphase/q3BroadPhase.cpp',
-    'broadphase/q3DynamicAABBTree.cpp',
     'common/q3Geometry.cpp',
     'common/q3Memory.cpp',
     'dynamics/q3Contact.cpp',
