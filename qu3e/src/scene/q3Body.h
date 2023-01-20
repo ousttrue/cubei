@@ -30,6 +30,7 @@ distribution.
 
 #include "../math/q3Math.h"
 #include "../math/q3Transform.h"
+#include <functional>
 #include <list>
 #include <stdio.h>
 
@@ -131,6 +132,7 @@ class q3Body {
   float m_angularDamping;
 
 public:
+  std::function<void()> m_transformUpdated;
   q3ContactEdge *m_contactList;
   q3Body(const q3BodyDef &def, q3Scene *scene);
   q3BodyState State() const { return m_state; }
@@ -140,6 +142,10 @@ public:
         .w = m_angularVelocity,
         .v = m_linearVelocity,
     };
+  }
+  q3Transform UpdatePosition() {
+    m_tx.position = m_state.m_worldCenter - q3Mul(m_tx.rotation, m_localCenter);
+    return m_tx;
   }
   std::list<q3Box *>::const_iterator begin() const { return m_boxes.begin(); }
   std::list<q3Box *>::const_iterator end() const { return m_boxes.end(); }
@@ -152,7 +158,6 @@ public:
   void AddBox(q3Box *box) { m_boxes.push_back(box); }
   q3Transform Transform() const { return m_tx; }
   void CalculateMassData();
-  void SynchronizeProxies();
   q3BodyFlags GetFlags() const { return m_flags; }
   bool HasFlag(q3BodyFlags flag) const {
     return ((int)m_flags & (int)flag) != 0;

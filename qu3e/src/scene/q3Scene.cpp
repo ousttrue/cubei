@@ -48,7 +48,7 @@ void q3Scene::Step(const q3Env &env) {
   for (auto body : m_bodyList) {
     if (body->HasFlag(q3BodyFlags::eStatic))
       continue;
-    body->SynchronizeProxies();
+    body->m_transformUpdated();
   }
 
   // Look for new contacts
