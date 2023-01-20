@@ -28,6 +28,7 @@ distribution.
 #pragma once
 #include "../dynamics/q3ContactManager.h"
 #include "../dynamics/q3Island.h"
+#include <functional>
 #include <list>
 #include <stdio.h>
 
@@ -40,6 +41,10 @@ class q3Scene {
 
 public:
   q3ContactManager m_contactManager;
+
+  std::function<void(q3Body *)> OnBodyAdd;
+  std::function<void(q3Body *)> OnBodyRemove;
+
   ~q3Scene();
   std::list<q3Body *>::const_iterator begin() const {
     return m_bodyList.begin();
@@ -50,9 +55,14 @@ public:
   // timestep is not supported.
   void Step(const q3Env &env);
 
+private:
   // Construct a new rigid body. The BodyDef can be reused at the user's
   // discretion, as no reference to the BodyDef is kept.
   q3Body *CreateBody(const q3BodyDef &def);
+
+public:
+  q3Body *CreateBody(const q3BodyDef &def,
+                     class q3ContactManager *contactManager);
 
   // Adds a box to this body. Boxes are all defined in local space
   // of their owning body. Boxes cannot be defined relative to one

@@ -5,7 +5,7 @@ void RayPush::Init(q3Scene *scene) {
 
   // Create the floor
   {
-    auto body = scene->CreateBody({});
+    auto body = scene->CreateBody({}, &scene->m_contactManager);
     scene->AddBox(body, {
                             .m_tx = {},
                             .m_e = q3Vec3{50.0f, 1.0f, 50.0f} * 0.5f,
@@ -39,7 +39,7 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt) {
             q3Sign(q3RandomFloat(-1.0f, 1.0f)),
         .bodyType = eDynamicBody,
     };
-    auto body = scene->CreateBody(bodyDef);
+    auto body = scene->CreateBody(bodyDef, &scene->m_contactManager);
 
     scene->AddBox(body, {
                             .m_tx = {},
