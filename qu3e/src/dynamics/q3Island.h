@@ -29,8 +29,7 @@ distribution.
 #define Q3ISLAND_H
 
 #include "q3ContactSolver.h"
-#include "../common/q3Geometry.h"
-#include "../common/q3Settings.h"
+#include "../math/q3Geometry.h"
 #include "../math/q3Math.h"
 #include <list>
 #include <vector>

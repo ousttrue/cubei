@@ -30,6 +30,9 @@ distribution.
 #include "q3Box.h"
 #include "q3Scene.h"
 
+#define Q3_SLEEP_LINEAR float( 0.01 )
+#define Q3_SLEEP_ANGULAR float( (3.0 / 180.0) * q3PI )
+
 q3Body::q3Body(const q3BodyDef &def, q3Scene *scene) {
   m_transformUpdated = [scene, self = this]() {
     scene->m_contactManager.m_broadphase.SynchronizeProxies(self);

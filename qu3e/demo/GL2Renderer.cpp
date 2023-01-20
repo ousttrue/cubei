@@ -36,8 +36,6 @@ GL2Renderer::GL2Renderer() {
 GL2Renderer::~GL2Renderer() {}
 
 void GL2Renderer::SetPenColor(float r, float g, float b, float a) {
-  Q3_UNUSED(a);
-
   glColor3f((float)r, (float)g, (float)b);
 }
 

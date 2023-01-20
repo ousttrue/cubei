@@ -26,7 +26,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../common/q3Geometry.h"
+#include "../math/q3Geometry.h"
 #include "../debug/q3Render.h"
 #include "../math/q3Math.h"
 #include <vector>

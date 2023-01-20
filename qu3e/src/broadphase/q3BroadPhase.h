@@ -28,9 +28,9 @@ distribution.
 #ifndef Q3BROADPHASE_H
 #define Q3BROADPHASE_H
 
-#include "../common/q3Memory.h"
-#include "../common/q3Types.h"
+
 #include "q3DynamicAABBTree.h"
+#include <vector>
 
 //--------------------------------------------------------------------------------------------------
 // q3BroadPhase
@@ -67,13 +67,8 @@ public:
 private:
   q3ContactManager *m_manager;
 
-  q3ContactPair *m_pairBuffer;
-  int m_pairCount;
-  int m_pairCapacity;
-
-  int *m_moveBuffer;
-  int m_moveCount;
-  int m_moveCapacity;
+  std::vector<q3ContactPair> m_pairBuffer;
+  std::vector<int> m_moveBuffer;
 
   int m_currentIndex;
 
@@ -88,21 +83,22 @@ inline bool q3BroadPhase::TreeCallBack(int index) {
   if (index == m_currentIndex)
     return true;
 
-  if (m_pairCount == m_pairCapacity) {
-    q3ContactPair *oldBuffer = m_pairBuffer;
-    m_pairCapacity *= 2;
-    m_pairBuffer =
-        (q3ContactPair *)q3Alloc(m_pairCapacity * sizeof(q3ContactPair));
-    memcpy(m_pairBuffer, oldBuffer, m_pairCount * sizeof(q3ContactPair));
-    q3Free(oldBuffer);
-  }
+  // if (m_pairCount == m_pairCapacity) {
+  //   q3ContactPair *oldBuffer = m_pairBuffer;
+  //   m_pairCapacity *= 2;
+  //   m_pairBuffer =
+  //       (q3ContactPair *)q3Alloc(m_pairCapacity * sizeof(q3ContactPair));
+  //   memcpy(m_pairBuffer, oldBuffer, m_pairCount * sizeof(q3ContactPair));
+  //   q3Free(oldBuffer);
+  // }
 
   int iA = q3Min(index, m_currentIndex);
   int iB = q3Max(index, m_currentIndex);
 
-  m_pairBuffer[m_pairCount].A = iA;
-  m_pairBuffer[m_pairCount].B = iB;
-  ++m_pairCount;
+  m_pairBuffer.push_back({
+      .A = iA,
+      .B = iB,
+  });
 
   return true;
 }

@@ -27,7 +27,7 @@
 #ifndef Q3QUATERNION_H
 #define Q3QUATERNION_H
 
-#include "../common/q3Types.h"
+
 #include "q3Vec3.h"
 
 //--------------------------------------------------------------------------------------------------

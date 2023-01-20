@@ -28,7 +28,6 @@ distribution.
 #ifndef Q3_H
 #define Q3_H
 
-#include "common/q3Types.h"
 #include "debug/q3Render.h"
 #include "math/q3Mat3.h"
 #include "math/q3Quaternion.h"

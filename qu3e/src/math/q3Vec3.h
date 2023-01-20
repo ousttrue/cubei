@@ -28,7 +28,6 @@ distribution.
 #ifndef Q3VEC3_H
 #define Q3VEC3_H
 
-#include "../common/q3Types.h"
 #include <cmath>
 #include <stdexcept>
 

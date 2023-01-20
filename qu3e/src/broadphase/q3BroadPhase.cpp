@@ -25,32 +25,16 @@ distribution.
 */
 
 #include "q3BroadPhase.h"
-#include "../common/q3Geometry.h"
+#include "../math/q3Geometry.h"
 #include "../dynamics/q3ContactManager.h"
 #include "../scene/q3Body.h"
 #include "../scene/q3Box.h"
 
 #include <Remotery.h>
 
-// q3BroadPhase
+q3BroadPhase::q3BroadPhase(q3ContactManager *manager) { m_manager = manager; }
 
-q3BroadPhase::q3BroadPhase(q3ContactManager *manager) {
-  m_manager = manager;
-
-  m_pairCount = 0;
-  m_pairCapacity = 64;
-  m_pairBuffer =
-      (q3ContactPair *)q3Alloc(m_pairCapacity * sizeof(q3ContactPair));
-
-  m_moveCount = 0;
-  m_moveCapacity = 64;
-  m_moveBuffer = (int *)q3Alloc(m_moveCapacity * sizeof(int));
-}
-
-q3BroadPhase::~q3BroadPhase() {
-  q3Free(m_moveBuffer);
-  q3Free(m_pairBuffer);
-}
+q3BroadPhase::~q3BroadPhase() {}
 
 void q3BroadPhase::InsertBox(q3Box *box, const q3AABB &aabb) {
   int id = m_tree.Insert(aabb, box);
@@ -76,10 +60,10 @@ inline bool ContactPairSort(const q3ContactPair &lhs,
 void q3BroadPhase::UpdatePairs() {
   rmt_ScopedCPUSample(q3BroadPhaseUpdatePairs, 0);
 
-  m_pairCount = 0;
+  m_pairBuffer.clear();
 
   // Query the tree with all moving boxs
-  for (int i = 0; i < m_moveCount; ++i) {
+  for (int i = 0; i < m_moveBuffer.size(); ++i) {
     m_currentIndex = m_moveBuffer[i];
     q3AABB aabb = m_tree.GetFatAABB(m_currentIndex);
 
@@ -91,17 +75,17 @@ void q3BroadPhase::UpdatePairs() {
   }
 
   // Reset the move buffer
-  m_moveCount = 0;
+  m_moveBuffer.clear();
 
   // Sort pairs to expose duplicates
-  std::sort(m_pairBuffer, m_pairBuffer + m_pairCount, ContactPairSort);
+  std::sort(m_pairBuffer.begin(), m_pairBuffer.end(), ContactPairSort);
 
   // Queue manifolds for solving
   {
     int i = 0;
-    while (i < m_pairCount) {
+    while (i < m_pairBuffer.size()) {
       // Add contact to manager
-      q3ContactPair *pair = m_pairBuffer + i;
+      q3ContactPair *pair = &m_pairBuffer[i];
       q3Box *A = (q3Box *)m_tree.GetUserData(pair->A);
       q3Box *B = (q3Box *)m_tree.GetUserData(pair->B);
       m_manager->AddContact(A, B);
@@ -109,8 +93,8 @@ void q3BroadPhase::UpdatePairs() {
       ++i;
 
       // Skip duplicate pairs by iterating i until we find a unique pair
-      while (i < m_pairCount) {
-        q3ContactPair *potentialDup = m_pairBuffer + i;
+      while (i < m_pairBuffer.size()) {
+        q3ContactPair *potentialDup = &m_pairBuffer[i];
 
         if (pair->A != potentialDup->A || pair->B != potentialDup->B)
           break;
@@ -142,14 +126,4 @@ void q3BroadPhase::SynchronizeProxies(q3Body *body) {
   }
 }
 
-void q3BroadPhase::BufferMove(int id) {
-  if (m_moveCount == m_moveCapacity) {
-    int *oldBuffer = m_moveBuffer;
-    m_moveCapacity *= 2;
-    m_moveBuffer = (int *)q3Alloc(m_moveCapacity * sizeof(int));
-    memcpy(m_moveBuffer, oldBuffer, m_moveCount * sizeof(int));
-    q3Free(oldBuffer);
-  }
-
-  m_moveBuffer[m_moveCount++] = id;
-}
+void q3BroadPhase::BufferMove(int id) { m_moveBuffer.push_back(id); }

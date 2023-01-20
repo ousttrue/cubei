@@ -28,7 +28,7 @@ distribution.
 #ifndef Q3MAT3_H
 #define Q3MAT3_H
 
-#include "../common/q3Types.h"
+
 #include "q3Vec3.h"
 #include <cstring> // memset
 

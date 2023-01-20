@@ -159,7 +159,8 @@ void App::Frame(int w, int h) {
     ImGui::NewFrame();
 
     auto &io = ImGui::GetIO();
-    camera_.Resize(io.DisplaySize.x, io.DisplaySize.y);
+    camera_.Resize(static_cast<int>(io.DisplaySize.x),
+                   static_cast<int>(io.DisplaySize.y));
     if (!io.WantCaptureMouse) {
       // update camera
       auto TO_RAD = static_cast<float>(std::numbers::pi / 180.0);

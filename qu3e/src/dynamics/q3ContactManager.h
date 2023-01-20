@@ -29,7 +29,7 @@ distribution.
 #define Q3CONTACTMANAGER_H
 
 #include "../broadphase/q3BroadPhase.h"
-#include "../common/q3Types.h"
+
 #include <list>
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager

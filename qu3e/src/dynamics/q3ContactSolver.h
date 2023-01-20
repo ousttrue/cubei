@@ -28,7 +28,6 @@ distribution.
 #ifndef Q3CONTACTSOLVER_H
 #define Q3CONTACTSOLVER_H
 
-#include "../common/q3Settings.h"
 #include "../math/q3Math.h"
 #include "../scene/q3Body.h"
 #include <span>

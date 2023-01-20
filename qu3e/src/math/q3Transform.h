@@ -28,7 +28,7 @@ distribution.
 #ifndef Q3TRANSFORM_H
 #define Q3TRANSFORM_H
 
-#include "../common/q3Geometry.h"
+#include "../math/q3Geometry.h"
 #include "q3Math.h"
 
 //--------------------------------------------------------------------------------------------------

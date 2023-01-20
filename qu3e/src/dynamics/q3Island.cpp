@@ -27,12 +27,16 @@ distribution.
 
 #include "q3Island.h"
 #include "../broadphase/q3BroadPhase.h"
-#include "../common/q3Settings.h"
 #include "../scene/q3Body.h"
 #include "q3Contact.h"
 #include "q3ContactSolver.h"
 
 #include <Remotery.h>
+
+//--------------------------------------------------------------------------------------------------
+// Internal Implementation Constants (do not change unless you know what you're doing)
+//--------------------------------------------------------------------------------------------------
+#define Q3_SLEEP_TIME float( 0.5 )
 
 //--------------------------------------------------------------------------------------------------
 // q3Island

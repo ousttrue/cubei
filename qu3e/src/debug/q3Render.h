@@ -28,7 +28,7 @@ distribution.
 #ifndef Q3RENDER_H
 #define Q3RENDER_H
 
-#include "../common/q3Types.h"
+
 
 //--------------------------------------------------------------------------------------------------
 // q3Render
