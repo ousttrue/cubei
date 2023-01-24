@@ -175,7 +175,7 @@ public:
     }
   }
 
-  template <typename U> void Query(U *cb, q3RaycastData &rayCast) const {
+  void QueryRay(const std::function<bool(int)> &cb, q3RaycastData &rayCast) const {
     const float k_epsilon = float(1.0e-6);
     const int k_stackCapacity = 256;
     int stack[k_stackCapacity];
@@ -230,7 +230,7 @@ public:
         continue;
 
       if (n->IsLeaf()) {
-        if (!cb->TreeCallBack(id))
+        if (!cb(id))
           return;
       }
 

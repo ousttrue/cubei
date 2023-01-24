@@ -307,22 +307,13 @@ void q3ContactManager::QueryPoint(q3QueryCallback *cb,
 
 void q3ContactManager::RayCast(q3QueryCallback *cb,
                                q3RaycastData &rayCast) const {
-  struct SceneQueryWrapper {
-    bool TreeCallBack(int id) {
-      auto [body, box] = broadPhase->m_tree.GetUserData(id);
-      if (box->Raycast(body->GetTransform(), m_rayCast)) {
-        return cb->ReportShape(body, box);
-      }
-      return true;
-    }
-    q3QueryCallback *cb;
-    const q3BroadPhase *broadPhase;
-    q3RaycastData *m_rayCast;
-  };
-
-  SceneQueryWrapper wrapper;
-  wrapper.m_rayCast = &rayCast;
-  wrapper.broadPhase = &m_broadphase;
-  wrapper.cb = cb;
-  m_broadphase.m_tree.Query(&wrapper, rayCast);
+  m_broadphase.m_tree.QueryRay(
+      [m_rayCast = &rayCast, broadPhase = &m_broadphase, cb](int id) {
+        auto [body, box] = broadPhase->m_tree.GetUserData(id);
+        if (box->Raycast(body->GetTransform(), m_rayCast)) {
+          return cb->ReportShape(body, box);
+        }
+        return true;
+      },
+      rayCast);
 }
