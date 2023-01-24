@@ -241,7 +241,7 @@ void App::Frame(int w, int h) {
     renderer_->BeginFrame(w, h, &camera_.projection._11, &camera_.view._11);
     {
       q3RenderScene(renderer_.get(), scene_.get());
-      q3RenderContact(renderer_.get(), contactManager_.get());
+      contactManager_->Render(renderer_.get());
     }
     demos_[currentDemo_]->Render(renderer_.get());
     renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);

@@ -46,6 +46,16 @@ struct q3ContactPair {
 };
 
 class q3BroadPhase {
+  q3ContactManager *m_manager;
+
+  std::vector<q3ContactPair> m_pairBuffer;
+  std::vector<int> m_moveBuffer;
+
+  int m_currentIndex = -1;
+
+  using Payload = std::tuple<q3Body *, q3Box *>;
+  q3DynamicAABBTree<Payload> m_tree;
+
 public:
   q3BroadPhase(q3ContactManager *manager);
   ~q3BroadPhase();
@@ -62,21 +72,15 @@ public:
   bool TestOverlap(int A, int B) const;
   void SynchronizeProxies(q3Body *body);
 
-  using Payload = std::tuple<q3Body *, q3Box *>;
-  q3DynamicAABBTree<Payload> m_tree;
+  void QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb, const q3AABB &aabb) const;
+  void QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb, const q3Vec3 &point) const;
+  void RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb, q3RaycastData &rayCast) const;
+
+  void Render(q3Render *renderer) const { m_tree.Render(renderer); }
 
 private:
-  q3ContactManager *m_manager;
-
-  std::vector<q3ContactPair> m_pairBuffer;
-  std::vector<int> m_moveBuffer;
-
-  int m_currentIndex;
-
   void BufferMove(int id);
   bool TreeCallBack(int index);
-
-  friend class q3DynamicAABBTree<Payload>;
 };
 
 #endif // Q3BROADPHASE_H

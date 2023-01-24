@@ -53,14 +53,6 @@ class q3Body;
 class q3Render;
 class q3Stack;
 
-// This class represents general queries for points, AABBs and Raycasting.
-// ReportShape is called the moment a valid shape is found. The return
-// value of ReportShape controls whether to continue or stop the query.
-// By returning only true, all shapes that fulfill the query will be re-
-// ported.
-
-using q3QueryCallback = std::function<bool(q3Body *body, q3Box *box)>;
-
 class q3ContactManager {
   std::list<q3ContactConstraint *> m_contactList;
   q3ContactListener *m_contactListener = nullptr;
@@ -102,7 +94,7 @@ public:
   void TestCollisions(bool newBox);
   static void SolveCollision(void *param);
 
-  void RenderContacts(q3Render *debugDrawer) const;
+  void Render(q3Render *debugDrawer) const;
 
   // Sets the listener to report collision start/end. Provides the user
   // with a pointer to an q3ContactConstraint. The q3ContactConstraint
@@ -119,13 +111,22 @@ public:
   // the provided AABB. This works by querying the broadphase with an
   // AAABB -- only *potential* intersections are reported. Perhaps the
   // user might use lmDistance as fine-grained collision detection.
-  void QueryAABB(const q3QueryCallback &cb, const q3AABB &aabb) const;
+  void QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                 const q3AABB &aabb) const {
+    m_broadphase.QueryAABB(cb, aabb);
+  }
 
   // Query the world to find any shapes intersecting a world space point.
-  void QueryPoint(const q3QueryCallback &cb, const q3Vec3 &point) const;
+  void QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                  const q3Vec3 &point) const {
+    m_broadphase.QueryPoint(cb, point);
+  }
 
   // Query the world to find any shapes intersecting a ray.
-  void RayCast(const q3QueryCallback &cb, q3RaycastData &rayCast) const;
+  void RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+               q3RaycastData &rayCast) const {
+    m_broadphase.RayCast(cb, rayCast);
+  }
 };
 
 #endif // Q3CONTACTMANAGER_H

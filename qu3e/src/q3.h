@@ -28,28 +28,23 @@ distribution.
 #ifndef Q3_H
 #define Q3_H
 
+#include "dynamics/q3Contact.h"
+#include "dynamics/q3ContactManager.h"
+#include "dynamics/q3Island.h"
 #include "math/q3Mat3.h"
 #include "math/q3Quaternion.h"
 #include "math/q3Transform.h"
 #include "math/q3Vec3.h"
-#include "scene/q3Env.h"
+#include "q3Render.h"
 #include "scene/q3Body.h"
 #include "scene/q3Box.h"
+#include "scene/q3Env.h"
 #include "scene/q3Scene.h"
-#include "dynamics/q3ContactManager.h"
-#include "dynamics/q3Contact.h"
-#include "dynamics/q3Island.h"
-#include "q3Render.h"
 
 inline void q3RenderScene(q3Render *renderer, const class q3Scene *scene) {
   for (auto body : *scene) {
     body->Render(renderer);
   }
-}
-inline void q3RenderContact(q3Render *renderer,
-                            const class q3ContactManager *contactManager) {
-  contactManager->RenderContacts(renderer);
-  contactManager->m_broadphase.m_tree.Render(renderer);
 }
 
 #endif // Q3_H

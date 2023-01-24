@@ -145,3 +145,52 @@ bool q3BroadPhase::TreeCallBack(int index) {
 
   return true;
 }
+
+void q3BroadPhase::QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                             const q3AABB &aabb) const {
+  m_tree.QueryAABB(
+      [broadPhase = this, cb, m_aabb = aabb](int id) {
+        q3AABB aabb;
+        auto [body, box] = broadPhase->m_tree.GetUserData(id);
+
+        box->ComputeAABB(body->GetTransform(), &aabb);
+
+        if (q3AABBtoAABB(m_aabb, aabb)) {
+          return cb(body, box);
+        }
+
+        return true;
+      },
+      aabb);
+}
+
+void q3BroadPhase::QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                              const q3Vec3 &point) const {
+  const float k_fattener = float(0.5);
+  q3Vec3 v{k_fattener, k_fattener, k_fattener};
+  q3AABB aabb;
+  aabb.min = point - v;
+  aabb.max = point + v;
+  m_tree.QueryAABB(
+      [broadPhase = this, m_point = point, cb](int id) {
+        auto [body, box] = broadPhase->m_tree.GetUserData(id);
+        if (box->TestPoint(body->GetTransform(), m_point)) {
+          cb(body, box);
+        }
+        return true;
+      },
+      aabb);
+}
+
+void q3BroadPhase::RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                           q3RaycastData &rayCast) const {
+  m_tree.QueryRay(
+      [m_rayCast = &rayCast, broadPhase = this, cb](int id) {
+        auto [body, box] = broadPhase->m_tree.GetUserData(id);
+        if (box->Raycast(body->GetTransform(), m_rayCast)) {
+          return cb(body, box);
+        }
+        return true;
+      },
+      rayCast);
+}

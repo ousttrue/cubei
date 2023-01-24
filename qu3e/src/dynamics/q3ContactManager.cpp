@@ -237,7 +237,7 @@ void q3ContactManager::TestCollisions(bool newBox) {
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactManager::RenderContacts(q3Render *render) const {
+void q3ContactManager::Render(q3Render *render) const {
   for (auto contact : m_contactList) {
     const q3Manifold *m = &contact->manifold;
 
@@ -267,53 +267,6 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
   }
 
   render->SetScale(1.0f, 1.0f, 1.0f);
-}
 
-void q3ContactManager::QueryAABB(const q3QueryCallback &cb,
-                                 const q3AABB &aabb) const {
-  m_broadphase.m_tree.QueryAABB(
-      [broadPhase = &m_broadphase, cb, m_aabb = aabb](int id) {
-        q3AABB aabb;
-        auto [body, box] = broadPhase->m_tree.GetUserData(id);
-
-        box->ComputeAABB(body->GetTransform(), &aabb);
-
-        if (q3AABBtoAABB(m_aabb, aabb)) {
-          return cb(body, box);
-        }
-
-        return true;
-      },
-      aabb);
-}
-
-void q3ContactManager::QueryPoint(const q3QueryCallback &cb,
-                                  const q3Vec3 &point) const {
-  const float k_fattener = float(0.5);
-  q3Vec3 v{k_fattener, k_fattener, k_fattener};
-  q3AABB aabb;
-  aabb.min = point - v;
-  aabb.max = point + v;
-  m_broadphase.m_tree.QueryAABB(
-      [broadPhase = &m_broadphase, m_point = point, cb](int id) {
-        auto [body, box] = broadPhase->m_tree.GetUserData(id);
-        if (box->TestPoint(body->GetTransform(), m_point)) {
-          cb(body, box);
-        }
-        return true;
-      },
-      aabb);
-}
-
-void q3ContactManager::RayCast(const q3QueryCallback &cb,
-                               q3RaycastData &rayCast) const {
-  m_broadphase.m_tree.QueryRay(
-      [m_rayCast = &rayCast, broadPhase = &m_broadphase, cb](int id) {
-        auto [body, box] = broadPhase->m_tree.GetUserData(id);
-        if (box->Raycast(body->GetTransform(), m_rayCast)) {
-          return cb(body, box);
-        }
-        return true;
-      },
-      rayCast);
+  m_broadphase.Render(render);
 }

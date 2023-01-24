@@ -27,7 +27,7 @@ distribution.
 #include "Demo.h"
 #include <chrono>
 #include <q3.h>
-class Raycast : public q3QueryCallback {
+class Raycast {
 public:
   q3RaycastData data;
   float tfinal;
