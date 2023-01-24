@@ -87,7 +87,6 @@ public:
 
   // Remove all contacts from a body
   void RemoveContactsFromBody(q3Body *body);
-  void RemoveFromBroadphase(q3Body *body);
 
   // Remove contacts without broadphase overlap
   // Solves contact manifolds

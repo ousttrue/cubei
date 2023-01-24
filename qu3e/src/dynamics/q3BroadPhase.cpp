@@ -43,6 +43,11 @@ void q3BroadPhase::InsertBox(q3Body *body, q3Box *box, const q3AABB &aabb) {
 void q3BroadPhase::RemoveBox(const q3Box *box) {
   m_tree.Remove(box->broadPhaseIndex);
 }
+void q3BroadPhase::RemoveBody(q3Body *body) {
+  for (auto box : *body) {
+    RemoveBox(box);
+  }
+}
 
 inline bool ContactPairSort(const q3ContactPair &lhs,
                             const q3ContactPair &rhs) {

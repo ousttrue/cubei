@@ -150,13 +150,6 @@ void q3ContactManager::RemoveContactsFromBody(q3Body *body) {
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactManager::RemoveFromBroadphase(q3Body *body) {
-  for (auto box : *body) {
-    m_broadphase.RemoveBox(box);
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
 void q3ContactManager::TestCollisions(bool newBox) {
   rmt_ScopedCPUSample(qTestCollisions, 0);
   if (newBox) {

@@ -60,6 +60,7 @@ public:
 
   void InsertBox(q3Body *body, q3Box *shape, const q3AABB &aabb);
   void RemoveBox(const q3Box *shape);
+  void RemoveBody(q3Body *body);
 
   // Generates the contact list. All previous contacts are returned to the
   // allocator before generation occurs.
