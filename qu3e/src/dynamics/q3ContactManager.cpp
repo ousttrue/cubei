@@ -269,7 +269,7 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
   render->SetScale(1.0f, 1.0f, 1.0f);
 }
 
-void q3ContactManager::QueryAABB(q3QueryCallback *cb,
+void q3ContactManager::QueryAABB(const q3QueryCallback &cb,
                                  const q3AABB &aabb) const {
   m_broadphase.m_tree.QueryAABB(
       [broadPhase = &m_broadphase, cb, m_aabb = aabb](int id) {
@@ -279,7 +279,7 @@ void q3ContactManager::QueryAABB(q3QueryCallback *cb,
         box->ComputeAABB(body->GetTransform(), &aabb);
 
         if (q3AABBtoAABB(m_aabb, aabb)) {
-          return cb->ReportShape(body, box);
+          return cb(body, box);
         }
 
         return true;
@@ -287,7 +287,7 @@ void q3ContactManager::QueryAABB(q3QueryCallback *cb,
       aabb);
 }
 
-void q3ContactManager::QueryPoint(q3QueryCallback *cb,
+void q3ContactManager::QueryPoint(const q3QueryCallback &cb,
                                   const q3Vec3 &point) const {
   const float k_fattener = float(0.5);
   q3Vec3 v{k_fattener, k_fattener, k_fattener};
@@ -298,20 +298,20 @@ void q3ContactManager::QueryPoint(q3QueryCallback *cb,
       [broadPhase = &m_broadphase, m_point = point, cb](int id) {
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
         if (box->TestPoint(body->GetTransform(), m_point)) {
-          cb->ReportShape(body, box);
+          cb(body, box);
         }
         return true;
       },
       aabb);
 }
 
-void q3ContactManager::RayCast(q3QueryCallback *cb,
+void q3ContactManager::RayCast(const q3QueryCallback &cb,
                                q3RaycastData &rayCast) const {
   m_broadphase.m_tree.QueryRay(
       [m_rayCast = &rayCast, broadPhase = &m_broadphase, cb](int id) {
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
         if (box->Raycast(body->GetTransform(), m_rayCast)) {
-          return cb->ReportShape(body, box);
+          return cb(body, box);
         }
         return true;
       },

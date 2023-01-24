@@ -58,12 +58,8 @@ class q3Stack;
 // value of ReportShape controls whether to continue or stop the query.
 // By returning only true, all shapes that fulfill the query will be re-
 // ported.
-class q3QueryCallback {
-public:
-  virtual ~q3QueryCallback() {}
 
-  virtual bool ReportShape(q3Body* body, q3Box *box) = 0;
-};
+using q3QueryCallback = std::function<bool(q3Body *body, q3Box *box)>;
 
 class q3ContactManager {
   std::list<q3ContactConstraint *> m_contactList;
@@ -123,13 +119,13 @@ public:
   // the provided AABB. This works by querying the broadphase with an
   // AAABB -- only *potential* intersections are reported. Perhaps the
   // user might use lmDistance as fine-grained collision detection.
-  void QueryAABB(q3QueryCallback *cb, const q3AABB &aabb) const;
+  void QueryAABB(const q3QueryCallback &cb, const q3AABB &aabb) const;
 
   // Query the world to find any shapes intersecting a world space point.
-  void QueryPoint(q3QueryCallback *cb, const q3Vec3 &point) const;
+  void QueryPoint(const q3QueryCallback &cb, const q3Vec3 &point) const;
 
   // Query the world to find any shapes intersecting a ray.
-  void RayCast(q3QueryCallback *cb, q3RaycastData &rayCast) const;
+  void RayCast(const q3QueryCallback &cb, q3RaycastData &rayCast) const;
 };
 
 #endif // Q3CONTACTMANAGER_H

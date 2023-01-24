@@ -49,7 +49,10 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt,
   }
 
   rayCast.Init({3.0f, 5.0f, 3.0f}, {-1.0f, -1.0f, -1.0f});
-  contactManager->RayCast(&rayCast, rayCast.data);
+  contactManager->RayCast(std::bind(&Raycast::ReportShape, &rayCast,
+                                    std::placeholders::_1,
+                                    std::placeholders::_2),
+                          rayCast.data);
 
   if (rayCast.impactBody) {
     rayCast.impactBody->SetToAwake();
