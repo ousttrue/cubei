@@ -28,7 +28,6 @@ distribution.
 #ifndef Q3BROADPHASE_H
 #define Q3BROADPHASE_H
 
-
 #include "q3DynamicAABBTree.h"
 #include <vector>
 
@@ -63,7 +62,7 @@ public:
   bool TestOverlap(int A, int B) const;
   void SynchronizeProxies(q3Body *body);
 
-  using Payload = std::tuple<q3Body*, q3Box*>;
+  using Payload = std::tuple<q3Body *, q3Box *>;
   q3DynamicAABBTree<Payload> m_tree;
 
 private:
@@ -79,30 +78,5 @@ private:
 
   friend class q3DynamicAABBTree<Payload>;
 };
-
-inline bool q3BroadPhase::TreeCallBack(int index) {
-  // Cannot collide with self
-  if (index == m_currentIndex)
-    return true;
-
-  // if (m_pairCount == m_pairCapacity) {
-  //   q3ContactPair *oldBuffer = m_pairBuffer;
-  //   m_pairCapacity *= 2;
-  //   m_pairBuffer =
-  //       (q3ContactPair *)q3Alloc(m_pairCapacity * sizeof(q3ContactPair));
-  //   memcpy(m_pairBuffer, oldBuffer, m_pairCount * sizeof(q3ContactPair));
-  //   q3Free(oldBuffer);
-  // }
-
-  int iA = q3Min(index, m_currentIndex);
-  int iB = q3Max(index, m_currentIndex);
-
-  m_pairBuffer.push_back({
-      .A = iA,
-      .B = iB,
-  });
-
-  return true;
-}
 
 #endif // Q3BROADPHASE_H

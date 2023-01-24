@@ -271,58 +271,38 @@ void q3ContactManager::RenderContacts(q3Render *render) const {
 
 void q3ContactManager::QueryAABB(q3QueryCallback *cb,
                                  const q3AABB &aabb) const {
-  struct SceneQueryWrapper {
-    bool TreeCallBack(int id) {
-      q3AABB aabb;
-      auto [body, box] = broadPhase->m_tree.GetUserData(id);
+  m_broadphase.m_tree.QueryAABB(
+      [broadPhase = &m_broadphase, cb, m_aabb = aabb](int id) {
+        q3AABB aabb;
+        auto [body, box] = broadPhase->m_tree.GetUserData(id);
 
-      box->ComputeAABB(body->GetTransform(), &aabb);
+        box->ComputeAABB(body->GetTransform(), &aabb);
 
-      if (q3AABBtoAABB(m_aabb, aabb)) {
-        return cb->ReportShape(body, box);
-      }
+        if (q3AABBtoAABB(m_aabb, aabb)) {
+          return cb->ReportShape(body, box);
+        }
 
-      return true;
-    }
-
-    q3QueryCallback *cb;
-    const q3BroadPhase *broadPhase;
-    q3AABB m_aabb;
-  };
-
-  SceneQueryWrapper wrapper;
-  wrapper.m_aabb = aabb;
-  wrapper.broadPhase = &m_broadphase;
-  wrapper.cb = cb;
-  m_broadphase.m_tree.Query(&wrapper, aabb);
+        return true;
+      },
+      aabb);
 }
 
 void q3ContactManager::QueryPoint(q3QueryCallback *cb,
                                   const q3Vec3 &point) const {
-  struct SceneQueryWrapper {
-    bool TreeCallBack(int id) {
-      auto [body, box] = broadPhase->m_tree.GetUserData(id);
-      if (box->TestPoint(body->GetTransform(), m_point)) {
-        cb->ReportShape(body, box);
-      }
-      return true;
-    }
-
-    q3QueryCallback *cb;
-    const q3BroadPhase *broadPhase;
-    q3Vec3 m_point;
-  };
-
-  SceneQueryWrapper wrapper;
-  wrapper.m_point = point;
-  wrapper.broadPhase = &m_broadphase;
-  wrapper.cb = cb;
   const float k_fattener = float(0.5);
   q3Vec3 v{k_fattener, k_fattener, k_fattener};
   q3AABB aabb;
   aabb.min = point - v;
   aabb.max = point + v;
-  m_broadphase.m_tree.Query(&wrapper, aabb);
+  m_broadphase.m_tree.QueryAABB(
+      [broadPhase = &m_broadphase, m_point = point, cb](int id) {
+        auto [body, box] = broadPhase->m_tree.GetUserData(id);
+        if (box->TestPoint(body->GetTransform(), m_point)) {
+          cb->ReportShape(body, box);
+        }
+        return true;
+      },
+      aabb);
 }
 
 void q3ContactManager::RayCast(q3QueryCallback *cb,

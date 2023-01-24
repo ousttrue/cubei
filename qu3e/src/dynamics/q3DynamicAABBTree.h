@@ -30,6 +30,7 @@ distribution.
 #include "../math/q3Math.h"
 #include <q3Render.h>
 #include <vector>
+#include <functional>
 
 //--------------------------------------------------------------------------------------------------
 // q3DynamicAABBTree
@@ -148,7 +149,7 @@ public:
     }
   }
 
-  template <typename U> void Query(U *cb, const q3AABB &aabb) const {
+  void QueryAABB(const std::function<bool(int)> &cb, const q3AABB &aabb) const {
     const int k_stackCapacity = 256;
     int stack[k_stackCapacity];
     int sp = 1;
@@ -164,7 +165,7 @@ public:
       const Node *n = &m_nodes[id];
       if (q3AABBtoAABB(aabb, n->aabb)) {
         if (n->IsLeaf()) {
-          if (!cb->TreeCallBack(id))
+          if (!cb(id))
             return;
         } else {
           stack[sp++] = n->left;

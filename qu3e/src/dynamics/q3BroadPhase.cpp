@@ -71,7 +71,9 @@ void q3BroadPhase::UpdatePairs() {
     //        This will potentially prevent (gotta think about this more) time
     //        wasted with queries of static bodies against static bodies, and
     //        kinematic to kinematic.
-    m_tree.Query(this, aabb);
+    m_tree.QueryAABB(
+        std::bind(&q3BroadPhase::TreeCallBack, this, std::placeholders::_1),
+        aabb);
   }
 
   // Reset the move buffer
@@ -127,3 +129,19 @@ void q3BroadPhase::SynchronizeProxies(q3Body *body) {
 }
 
 void q3BroadPhase::BufferMove(int id) { m_moveBuffer.push_back(id); }
+
+bool q3BroadPhase::TreeCallBack(int index) {
+  // Cannot collide with self
+  if (index == m_currentIndex)
+    return true;
+
+  int iA = q3Min(index, m_currentIndex);
+  int iB = q3Max(index, m_currentIndex);
+
+  m_pairBuffer.push_back({
+      .A = iA,
+      .B = iB,
+  });
+
+  return true;
+}
