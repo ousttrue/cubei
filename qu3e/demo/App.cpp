@@ -45,6 +45,7 @@ App::App(GLFWwindow *window) {
 
   // q3
   scene_.reset(new q3Scene);
+  broadPhase_.reset(new q3BroadPhase);
   contactManager_.reset(new q3ContactManager);
   island_.reset(new q3Island);
   scene_->OnBodyAdd = [](q3Body *body) {
@@ -54,18 +55,19 @@ App::App(GLFWwindow *window) {
                               contactManager_.get()](q3Body *body) {
     contactManager->RemoveContactsFromBody(body);
   };
-  scene_->OnBodyTransformUpdated = [contactManager =
-                                        contactManager_.get()](q3Body *body) {
-    contactManager->m_broadphase.SynchronizeProxies(body);
+  scene_->OnBodyTransformUpdated = [broadphase =
+                                        broadPhase_.get()](q3Body *body) {
+    broadphase->SynchronizeProxies(body);
   };
-  scene_->OnBoxAdd = [contactManager = contactManager_.get()](q3Body *body,
-                                                              q3Box *box) {
+  scene_->OnBoxAdd = [broadphase = broadPhase_.get()](q3Body *body,
+                                                      q3Box *box) {
     q3AABB aabb;
     box->ComputeAABB(body->Transform(), &aabb);
-    contactManager->m_broadphase.InsertBox(body, box, aabb);
+    broadphase->InsertBox(body, box, aabb);
   };
   scene_->OnBoxRemove =
-      [contactManager = contactManager_.get()](q3Body *body, const q3Box *box) {
+      [broadphase = broadPhase_.get(),
+       contactManager = contactManager_.get()](q3Body *body, const q3Box *box) {
         // Remove all contacts associated with this shape
         for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;) {
           q3ContactConstraint *contact = edge->constraint;
@@ -74,7 +76,7 @@ App::App(GLFWwindow *window) {
             contactManager->RemoveContact(contact);
           }
         }
-        contactManager->m_broadphase.RemoveBox(box);
+        broadphase->RemoveBox(box);
       };
 
   renderer_.reset(new GL3Renderer);
@@ -175,12 +177,15 @@ void App::Frame(int w, int h) {
   {
     rmt_ScopedCPUSample(Qu3eStep, 0);
     if (!paused_) {
-      island_->Step(env_, scene_.get(), contactManager_.get());
-      demos_[currentDemo_]->Update(scene_.get(), delta, contactManager_.get());
+      island_->Step(env_, scene_.get(), broadPhase_.get(),
+                    contactManager_.get());
+      demos_[currentDemo_]->Update(scene_.get(), delta, broadPhase_.get(),
+                                   contactManager_.get());
     } else {
       if (singleStep_) {
-        island_->Step(env_, scene_.get(), contactManager_.get());
-        demos_[currentDemo_]->Update(scene_.get(), DELTA,
+        island_->Step(env_, scene_.get(), broadPhase_.get(),
+                      contactManager_.get());
+        demos_[currentDemo_]->Update(scene_.get(), DELTA, broadPhase_.get(),
                                      contactManager_.get());
         singleStep_ = false;
       }
@@ -242,6 +247,7 @@ void App::Frame(int w, int h) {
     {
       q3RenderScene(renderer_.get(), scene_.get());
       contactManager_->Render(renderer_.get());
+      broadPhase_->Render(renderer_.get());
     }
     demos_[currentDemo_]->Render(renderer_.get());
     renderer_->EndFrame(&camera_.projection._11, &camera_.view._11);

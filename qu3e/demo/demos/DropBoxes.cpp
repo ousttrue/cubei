@@ -22,11 +22,10 @@ void DropBoxes::Init(q3Scene *scene) {
     // bodyDef.angle = q3PI * q3RandomFloat( -1.0f, 1.0f );
     // bodyDef.angularVelocity.Set( 3.0f, 3.0f, 3.0f );
     // bodyDef.linearVelocity.Set( 2.0f, 0.0f, 0.0f );
-    auto body = scene->CreateBody(
-        {
-            .position = {0.0f, 1.2f * (i + 1), -0.0f},
-            .bodyType = eDynamicBody,
-        });
+    auto body = scene->CreateBody({
+        .position = {0.0f, 1.2f * (i + 1), -0.0f},
+        .bodyType = eDynamicBody,
+    });
     scene->AddBox(body, {
                             .m_tx = {},
                             .m_e = q3Vec3{1.0f, 1.0f, 1.0f} * 0.5f,
@@ -35,7 +34,8 @@ void DropBoxes::Init(q3Scene *scene) {
   }
 }
 
-void DropBoxes::Update(q3Scene *scene, std::chrono::nanoseconds dt, q3ContactManager *) {
+void DropBoxes::Update(q3Scene *scene, std::chrono::nanoseconds dt,
+                       q3BroadPhase *, q3ContactManager *) {
   acc += dt;
 
   if (acc > std::chrono::seconds(1)) {

@@ -95,12 +95,6 @@ void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
   bodyB->SetToAwake();
 }
 
-void q3ContactManager::FindNewContacts() {
-  m_broadphase.UpdatePairs(std::bind(
-      &q3ContactManager::AddContact, this, std::placeholders::_1,
-      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-}
-
 std::list<q3ContactConstraint *>::iterator
 q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   q3Body *A = contact->bodyA;
@@ -150,13 +144,15 @@ void q3ContactManager::RemoveContactsFromBody(q3Body *body) {
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3ContactManager::TestCollisions(bool newBox) {
+void q3ContactManager::TestCollisions(
+    const std::function<bool(int a, int b)> &testOverlap) {
   rmt_ScopedCPUSample(qTestCollisions, 0);
-  if (newBox) {
-    m_broadphase.UpdatePairs(std::bind(
-        &q3ContactManager::AddContact, this, std::placeholders::_1,
-        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-  }
+  // if (newBox) {
+  //   m_broadphase.UpdatePairs(std::bind(
+  //       &q3ContactManager::AddContact, this, std::placeholders::_1,
+  //       std::placeholders::_2, std::placeholders::_3,
+  //       std::placeholders::_4));
+  // }
 
   auto it = m_contactList.begin();
   for (; it != m_contactList.end();) {
@@ -178,7 +174,7 @@ void q3ContactManager::TestCollisions(bool newBox) {
     }
 
     // Check if contact should persist
-    if (!m_broadphase.TestOverlap(A->broadPhaseIndex, B->broadPhaseIndex)) {
+    if (!testOverlap(A->broadPhaseIndex, B->broadPhaseIndex)) {
       it = RemoveContact(constraint);
       continue;
     }
@@ -260,6 +256,4 @@ void q3ContactManager::Render(q3Render *render) const {
   }
 
   render->SetScale(1.0f, 1.0f, 1.0f);
-
-  m_broadphase.Render(render);
 }

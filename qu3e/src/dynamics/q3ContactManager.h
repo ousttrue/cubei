@@ -28,9 +28,9 @@ distribution.
 #ifndef Q3CONTACTMANAGER_H
 #define Q3CONTACTMANAGER_H
 
-#include "q3BroadPhase.h"
 #include <list>
 #include <unordered_map>
+#include <functional>
 //--------------------------------------------------------------------------------------------------
 // q3ContactManager
 //--------------------------------------------------------------------------------------------------
@@ -60,7 +60,6 @@ class q3ContactManager {
   std::unordered_map<class q3Body *, struct q3ContactEdge *> m_edgeMap;
 
 public:
-  q3BroadPhase m_broadphase;
   q3ContactManager();
 
   size_t ContactCount() const { return m_contactList.size(); }
@@ -77,10 +76,6 @@ public:
   // unless the contact constraint already exists
   void AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB, q3Box *B);
 
-  // Has broadphase find all contacts and call AddContact on the
-  // ContactManager for each pair found
-  void FindNewContacts(void);
-
   // Remove a specific contact
   std::list<q3ContactConstraint *>::iterator
   RemoveContact(q3ContactConstraint *contact);
@@ -90,7 +85,7 @@ public:
 
   // Remove contacts without broadphase overlap
   // Solves contact manifolds
-  void TestCollisions(bool newBox);
+  void TestCollisions(const std::function<bool(int a, int b)> &testOverlap);
   static void SolveCollision(void *param);
 
   void Render(q3Render *debugDrawer) const;
@@ -104,27 +99,6 @@ public:
   // listener.
   void SetContactListener(q3ContactListener *listener) {
     m_contactListener = listener;
-  }
-
-  // Query the world to find any shapes that can potentially intersect
-  // the provided AABB. This works by querying the broadphase with an
-  // AAABB -- only *potential* intersections are reported. Perhaps the
-  // user might use lmDistance as fine-grained collision detection.
-  void QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb,
-                 const q3AABB &aabb) const {
-    m_broadphase.QueryAABB(cb, aabb);
-  }
-
-  // Query the world to find any shapes intersecting a world space point.
-  void QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb,
-                  const q3Vec3 &point) const {
-    m_broadphase.QueryPoint(cb, point);
-  }
-
-  // Query the world to find any shapes intersecting a ray.
-  void RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb,
-               q3RaycastData &rayCast) const {
-    m_broadphase.RayCast(cb, rayCast);
   }
 };
 

@@ -33,7 +33,9 @@ struct Demo {
   virtual ~Demo() {}
 
   virtual void Init(class q3Scene *scene){};
-  virtual void Update(class q3Scene *scene, std::chrono::nanoseconds dt, class q3ContactManager *contactManager){};
+  virtual void Update(class q3Scene *scene, std::chrono::nanoseconds dt,
+                      class q3BroadPhase *broadphase,
+                      class q3ContactManager *contactManager){};
   virtual void Shutdown(class q3Scene *scene){};
 
   virtual void Render(class q3Render *debugDrawer) { (void)debugDrawer; }

@@ -13,6 +13,7 @@ class App {
   std::chrono::high_resolution_clock::time_point time_;
 
   std::unique_ptr<class q3Scene> scene_;
+  std::unique_ptr<class q3BroadPhase> broadPhase_;
   std::unique_ptr<class q3ContactManager> contactManager_;
   std::unique_ptr<class q3Island> island_;
   std::unique_ptr<class q3Render> renderer_;

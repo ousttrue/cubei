@@ -50,6 +50,7 @@ public:
   // Run the simulation forward in time by dt (fixed timestep). Variable
   // timestep is not supported.
   void Step(const q3Env &env, class q3Scene *scene,
+            class q3BroadPhase *broadPhase,
             class q3ContactManager *contactManager);
 
 private:

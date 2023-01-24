@@ -59,7 +59,9 @@ struct RayPush : public Demo {
   Raycast rayCast;
   std::chrono::nanoseconds acc;
   void Init(q3Scene *scene) override;
-  void Update(q3Scene *scene, std::chrono::nanoseconds dt, class q3ContactManager *contactManager) override;
+  void Update(q3Scene *scene, std::chrono::nanoseconds dt,
+              class q3BroadPhase *broadphase,
+              class q3ContactManager *contactManager) override;
   void Shutdown(q3Scene *scene) override { scene->RemoveAllBodies(); }
   void Render(q3Render *render) override;
 };

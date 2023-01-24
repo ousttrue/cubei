@@ -45,10 +45,12 @@ distribution.
 // q3Island
 //--------------------------------------------------------------------------------------------------
 void q3Island::Step(const q3Env &env, q3Scene *scene,
+                    class q3BroadPhase *broadphase,
                     q3ContactManager *contactManager) {
   rmt_ScopedCPUSample(qSceneStep, 0);
 
-  contactManager->TestCollisions(scene->NewBox());
+  contactManager->TestCollisions(
+      [broadphase](int a, int b) { return broadphase->TestOverlap(a, b); });
 
   for (auto body : *scene) {
     body->RemoveFlag(q3BodyFlags::eIsland);
@@ -102,7 +104,8 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
         continue;
 
       // Search all contacts connected to this body
-      for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge; edge = edge->next) {
+      for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;
+           edge = edge->next) {
         q3ContactConstraint *contact = edge->constraint;
 
         // Skip contacts that have been added to an island already
@@ -152,7 +155,12 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
   scene->UpdateTransforms();
 
   // Look for new contacts
-  contactManager->FindNewContacts();
+  // ContactManager for each pair found
+  // Has broadphase find all contacts and call AddContact on the
+  broadphase->UpdatePairs(
+      [contactManager](q3Body *bodyA, q3Box *A, q3Body *bodyB, q3Box *B) {
+        contactManager->AddContact(bodyA, A, bodyB, B);
+      });
 
   // Clear all forces
   for (auto body : *scene) {

@@ -73,10 +73,16 @@ public:
   bool TestOverlap(int A, int B) const;
   void SynchronizeProxies(q3Body *body);
 
+  // Query the world to find any shapes that can potentially intersect
+  // the provided AABB. This works by querying the broadphase with an
+  // AAABB -- only *potential* intersections are reported. Perhaps the
+  // user might use lmDistance as fine-grained collision detection.
   void QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb,
                  const q3AABB &aabb) const;
+  // Query the world to find any shapes intersecting a world space point.
   void QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb,
                   const q3Vec3 &point) const;
+  // Query the world to find any shapes intersecting a ray.
   void RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb,
                q3RaycastData &rayCast) const;
 

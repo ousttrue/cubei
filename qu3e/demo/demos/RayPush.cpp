@@ -15,6 +15,7 @@ void RayPush::Init(q3Scene *scene) {
 }
 
 void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt,
+                     q3BroadPhase *broadphase,
                      q3ContactManager *contactManager) {
   acc += dt;
 
@@ -49,7 +50,7 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt,
   }
 
   rayCast.Init({3.0f, 5.0f, 3.0f}, {-1.0f, -1.0f, -1.0f});
-  contactManager->RayCast(std::bind(&Raycast::ReportShape, &rayCast,
+  broadphase->RayCast(std::bind(&Raycast::ReportShape, &rayCast,
                                     std::placeholders::_1,
                                     std::placeholders::_2),
                           rayCast.data);
