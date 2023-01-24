@@ -34,12 +34,8 @@ distribution.
 
 #include <Remotery.h>
 
-//--------------------------------------------------------------------------------------------------
-// q3ContactManager
-//--------------------------------------------------------------------------------------------------
-q3ContactManager::q3ContactManager() : m_broadphase(this) {}
+q3ContactManager::q3ContactManager() {}
 
-//--------------------------------------------------------------------------------------------------
 void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
                                   q3Box *B) {
   if (!bodyA->CanCollide(bodyB))
@@ -99,10 +95,12 @@ void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
   bodyB->SetToAwake();
 }
 
-//--------------------------------------------------------------------------------------------------
-void q3ContactManager::FindNewContacts() { m_broadphase.UpdatePairs(); }
+void q3ContactManager::FindNewContacts() {
+  m_broadphase.UpdatePairs(std::bind(
+      &q3ContactManager::AddContact, this, std::placeholders::_1,
+      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+}
 
-//--------------------------------------------------------------------------------------------------
 std::list<q3ContactConstraint *>::iterator
 q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   q3Body *A = contact->bodyA;
@@ -162,7 +160,9 @@ void q3ContactManager::RemoveFromBroadphase(q3Body *body) {
 void q3ContactManager::TestCollisions(bool newBox) {
   rmt_ScopedCPUSample(qTestCollisions, 0);
   if (newBox) {
-    m_broadphase.UpdatePairs();
+    m_broadphase.UpdatePairs(std::bind(
+        &q3ContactManager::AddContact, this, std::placeholders::_1,
+        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
   }
 
   auto it = m_contactList.begin();

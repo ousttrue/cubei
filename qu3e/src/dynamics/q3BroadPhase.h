@@ -46,8 +46,6 @@ struct q3ContactPair {
 };
 
 class q3BroadPhase {
-  q3ContactManager *m_manager;
-
   std::vector<q3ContactPair> m_pairBuffer;
   std::vector<int> m_moveBuffer;
 
@@ -57,7 +55,7 @@ class q3BroadPhase {
   q3DynamicAABBTree<Payload> m_tree;
 
 public:
-  q3BroadPhase(q3ContactManager *manager);
+  q3BroadPhase();
   ~q3BroadPhase();
 
   void InsertBox(q3Body *body, q3Box *shape, const q3AABB &aabb);
@@ -65,16 +63,21 @@ public:
 
   // Generates the contact list. All previous contacts are returned to the
   // allocator before generation occurs.
-  void UpdatePairs(void);
+  void
+  UpdatePairs(const std::function<void(q3Body *bodyA, q3Box *A, q3Body *bodyB,
+                                       q3Box *B)> &addContact);
 
   void Update(int id, const q3AABB &aabb);
 
   bool TestOverlap(int A, int B) const;
   void SynchronizeProxies(q3Body *body);
 
-  void QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb, const q3AABB &aabb) const;
-  void QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb, const q3Vec3 &point) const;
-  void RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb, q3RaycastData &rayCast) const;
+  void QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                 const q3AABB &aabb) const;
+  void QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+                  const q3Vec3 &point) const;
+  void RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb,
+               q3RaycastData &rayCast) const;
 
   void Render(q3Render *renderer) const { m_tree.Render(renderer); }
 

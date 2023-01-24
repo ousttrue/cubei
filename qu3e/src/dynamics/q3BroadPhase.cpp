@@ -25,14 +25,12 @@ distribution.
 */
 
 #include "q3BroadPhase.h"
-#include "../dynamics/q3ContactManager.h"
 #include "../math/q3Geometry.h"
 #include "../scene/q3Body.h"
 #include "../scene/q3Box.h"
-
 #include <Remotery.h>
 
-q3BroadPhase::q3BroadPhase(q3ContactManager *manager) { m_manager = manager; }
+q3BroadPhase::q3BroadPhase() {}
 
 q3BroadPhase::~q3BroadPhase() {}
 
@@ -57,7 +55,9 @@ inline bool ContactPairSort(const q3ContactPair &lhs,
   return false;
 }
 
-void q3BroadPhase::UpdatePairs() {
+void q3BroadPhase::UpdatePairs(
+    const std::function<void(q3Body *bodyA, q3Box *A, q3Body *bodyB, q3Box *B)>
+        &addContact) {
   rmt_ScopedCPUSample(q3BroadPhaseUpdatePairs, 0);
 
   m_pairBuffer.clear();
@@ -90,7 +90,7 @@ void q3BroadPhase::UpdatePairs() {
       q3ContactPair *pair = &m_pairBuffer[i];
       auto [bodyA, A] = m_tree.GetUserData(pair->A);
       auto [bodyB, B] = m_tree.GetUserData(pair->B);
-      m_manager->AddContact(bodyA, A, bodyB, B);
+      addContact(bodyA, A, bodyB, B);
 
       ++i;
 
@@ -146,8 +146,9 @@ bool q3BroadPhase::TreeCallBack(int index) {
   return true;
 }
 
-void q3BroadPhase::QueryAABB(const std::function<bool(q3Body *body, q3Box *box)> &cb,
-                             const q3AABB &aabb) const {
+void q3BroadPhase::QueryAABB(
+    const std::function<bool(q3Body *body, q3Box *box)> &cb,
+    const q3AABB &aabb) const {
   m_tree.QueryAABB(
       [broadPhase = this, cb, m_aabb = aabb](int id) {
         q3AABB aabb;
@@ -164,8 +165,9 @@ void q3BroadPhase::QueryAABB(const std::function<bool(q3Body *body, q3Box *box)>
       aabb);
 }
 
-void q3BroadPhase::QueryPoint(const std::function<bool(q3Body *body, q3Box *box)> &cb,
-                              const q3Vec3 &point) const {
+void q3BroadPhase::QueryPoint(
+    const std::function<bool(q3Body *body, q3Box *box)> &cb,
+    const q3Vec3 &point) const {
   const float k_fattener = float(0.5);
   q3Vec3 v{k_fattener, k_fattener, k_fattener};
   q3AABB aabb;
@@ -182,8 +184,9 @@ void q3BroadPhase::QueryPoint(const std::function<bool(q3Body *body, q3Box *box)
       aabb);
 }
 
-void q3BroadPhase::RayCast(const std::function<bool(q3Body *body, q3Box *box)> &cb,
-                           q3RaycastData &rayCast) const {
+void q3BroadPhase::RayCast(
+    const std::function<bool(q3Body *body, q3Box *box)> &cb,
+    q3RaycastData &rayCast) const {
   m_tree.QueryRay(
       [m_rayCast = &rayCast, broadPhase = this, cb](int id) {
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
