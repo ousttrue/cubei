@@ -36,7 +36,7 @@ distribution.
 q3Body::q3Body(const q3BodyDef &def) {
   m_linearVelocity = def.linearVelocity;
   m_angularVelocity = def.angularVelocity;
-  m_q.Set(q3Normalize(def.axis), def.angle);
+  m_q = q3Quaternion::FromAxisAngle(q3Normalize(def.axis), def.angle);
   m_tx.rotation = m_q.ToMat3();
   m_tx.position = def.position;
   m_gravityScale = def.gravityScale;
@@ -130,7 +130,7 @@ void q3Body::SetVelocityState(const q3Env &env, const q3VelocityState &v) {
   // Integrate position
   m_state.m_worldCenter += m_linearVelocity * env.m_dt;
   m_q.Integrate(m_angularVelocity, env.m_dt);
-  m_q = q3Normalize(m_q);
+  m_q = m_q.q3Normalized();
   m_tx.rotation = m_q.ToMat3();
 }
 
@@ -239,9 +239,7 @@ void q3Body::Dump(FILE *file, int index) const {
           "\tbd.position.Set( float( %.15lf ), float( %.15lf ), float( %.15lf "
           ") );\n",
           m_tx.position.x, m_tx.position.y, m_tx.position.z);
-  q3Vec3 axis;
-  float angle;
-  m_q.ToAxisAngle(&axis, &angle);
+  auto [axis, angle] = m_q.ToAxisAngle();
   fprintf(
       file,
       "\tbd.axis.Set( float( %.15lf ), float( %.15lf ), float( %.15lf ) );\n",

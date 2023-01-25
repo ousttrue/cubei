@@ -285,7 +285,7 @@ public:
   }
   void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle) {
     m_state.m_worldCenter = position;
-    m_q.Set(axis, angle);
+    m_q = q3Quaternion::FromAxisAngle(axis, angle);
     m_tx.rotation = m_q.ToMat3();
     OnTransformUpdated();
   }
