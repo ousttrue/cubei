@@ -201,32 +201,32 @@ public:
       q3Vec3 d = p1 - p0;
       q3Vec3 m = p0 + p1 - n->aabb.min - n->aabb.max;
 
-      float adx = q3Abs(d.x);
+      float adx = std::abs(d.x);
 
-      if (q3Abs(m.x) > e.x + adx)
+      if (std::abs(m.x) > e.x + adx)
         continue;
 
-      float ady = q3Abs(d.y);
+      float ady = std::abs(d.y);
 
-      if (q3Abs(m.y) > e.y + ady)
+      if (std::abs(m.y) > e.y + ady)
         continue;
 
-      float adz = q3Abs(d.z);
+      float adz = std::abs(d.z);
 
-      if (q3Abs(m.z) > e.z + adz)
+      if (std::abs(m.z) > e.z + adz)
         continue;
 
       adx += k_epsilon;
       ady += k_epsilon;
       adz += k_epsilon;
 
-      if (q3Abs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady)
+      if (std::abs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady)
         continue;
 
-      if (q3Abs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx)
+      if (std::abs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx)
         continue;
 
-      if (q3Abs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx)
+      if (std::abs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx)
         continue;
 
       if (n->IsLeaf()) {
@@ -343,8 +343,8 @@ private:
         A->aabb = q3Combine(B->aabb, G->aabb);
         C->aabb = q3Combine(A->aabb, F->aabb);
 
-        A->height = 1 + q3Max(B->height, G->height);
-        C->height = 1 + q3Max(A->height, F->height);
+        A->height = 1 + std::max(B->height, G->height);
+        C->height = 1 + std::max(A->height, F->height);
       }
 
       else {
@@ -354,8 +354,8 @@ private:
         A->aabb = q3Combine(B->aabb, F->aabb);
         C->aabb = q3Combine(A->aabb, G->aabb);
 
-        A->height = 1 + q3Max(B->height, F->height);
-        C->height = 1 + q3Max(A->height, G->height);
+        A->height = 1 + std::max(B->height, F->height);
+        C->height = 1 + std::max(A->height, G->height);
       }
 
       return iC;
@@ -392,8 +392,8 @@ private:
         A->aabb = q3Combine(C->aabb, E->aabb);
         B->aabb = q3Combine(A->aabb, D->aabb);
 
-        A->height = 1 + q3Max(C->height, E->height);
-        B->height = 1 + q3Max(A->height, D->height);
+        A->height = 1 + std::max(C->height, E->height);
+        B->height = 1 + std::max(A->height, D->height);
       }
 
       else {
@@ -403,8 +403,8 @@ private:
         A->aabb = q3Combine(C->aabb, D->aabb);
         B->aabb = q3Combine(A->aabb, E->aabb);
 
-        A->height = 1 + q3Max(C->height, D->height);
-        B->height = 1 + q3Max(A->height, E->height);
+        A->height = 1 + std::max(C->height, D->height);
+        B->height = 1 + std::max(A->height, E->height);
       }
 
       return iB;
@@ -617,7 +617,7 @@ private:
       int left = m_nodes[index].left;
       int right = m_nodes[index].right;
       m_nodes[index].height =
-          1 + q3Max(m_nodes[left].height, m_nodes[right].height);
+          1 + std::max(m_nodes[left].height, m_nodes[right].height);
       m_nodes[index].aabb = q3Combine(m_nodes[left].aabb, m_nodes[right].aabb);
       index = m_nodes[index].parent;
     }

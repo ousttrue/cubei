@@ -96,7 +96,7 @@ void q3ContactSolver::PreSolve(float dt) {
 
       // Precalculate bias factor
       c->bias = -Q3_BAUMGARTE * (float(1.0) / dt) *
-                q3Min(float(0.0), c->penetration + Q3_PENETRATION_SLOP);
+                std::min(float(0.0), c->penetration + Q3_PENETRATION_SLOP);
 
       // Warm start contact
       q3Vec3 P = cs->normal * c->normalImpulse;
@@ -178,7 +178,7 @@ void q3ContactSolver::Solve() {
 
         // Clamp impulse
         float tempPN = c->normalImpulse;
-        c->normalImpulse = q3Max(tempPN + lambda, float(0.0));
+        c->normalImpulse = std::max(tempPN + lambda, float(0.0));
         lambda = c->normalImpulse - tempPN;
 
         // Apply impulse

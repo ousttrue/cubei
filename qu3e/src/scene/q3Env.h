@@ -13,7 +13,7 @@ struct q3Env {
   // realistic (convergent). A good iteration number range is 5 to 20.
   // Only positive numbers are accepted. Non-positive and negative
   // inputs set the iteration count to 1.
-  void SetIterations(int iterations) { m_iterations = q3Max(1, iterations); }
+  void SetIterations(int iterations) { m_iterations = std::max(1, iterations); }
 
   // Enables or disables rigid body sleeping. Sleeping is an effective CPU
   // optimization where bodies are put to sleep if they don't move much.

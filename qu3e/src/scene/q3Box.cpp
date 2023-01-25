@@ -63,7 +63,7 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
 
   for (int i = 0; i < 3; ++i) {
     // Check for ray parallel to and outside of AABB
-    if (q3Abs(d[i]) < epsilon) {
+    if (std::abs(d[i]) < epsilon) {
       // Detect separating axes
       if (p[i] < -def_.m_e[i] || p[i] > def_.m_e[i]) {
         return false;
@@ -85,7 +85,7 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
         tmin = t0;
       }
 
-      tmax = q3Min(tmax, t1);
+      tmax = std::min(tmax, t1);
 
       if (tmin > tmax) {
         return false;

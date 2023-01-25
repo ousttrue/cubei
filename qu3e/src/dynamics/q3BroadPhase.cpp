@@ -141,8 +141,8 @@ bool q3BroadPhase::TreeCallBack(int index) {
   if (index == m_currentIndex)
     return true;
 
-  int iA = q3Min(index, m_currentIndex);
-  int iB = q3Max(index, m_currentIndex);
+  int iA = std::min(index, m_currentIndex);
+  int iB = std::max(index, m_currentIndex);
 
   m_pairBuffer.push_back({
       .A = iA,

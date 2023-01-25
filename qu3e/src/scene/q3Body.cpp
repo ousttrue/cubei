@@ -150,7 +150,7 @@ void q3Body::Sleep(const q3Env &env, float *minSleepTime) {
 
   else {
     m_sleepTime += env.m_dt;
-    *minSleepTime = q3Min(*minSleepTime, m_sleepTime);
+    *minSleepTime = std::min(*minSleepTime, m_sleepTime);
   }
 }
 

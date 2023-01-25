@@ -31,10 +31,6 @@ distribution.
 #include <cmath>
 #include <stdexcept>
 
-float q3Abs(float a);
-float q3Min(float a, float b);
-float q3Max(float a, float b);
-
 //--------------------------------------------------------------------------------------------------
 // q3Vec3
 //--------------------------------------------------------------------------------------------------
@@ -176,27 +172,27 @@ inline float q3DistanceSq(const q3Vec3 &a, const q3Vec3 &b) {
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Abs(const q3Vec3 &v) {
-  return {q3Abs(v.x), q3Abs(v.y), q3Abs(v.z)};
+  return {std::abs(v.x), std::abs(v.y), std::abs(v.z)};
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Min(const q3Vec3 &a, const q3Vec3 &b) {
-  return {q3Min(a.x, b.x), q3Min(a.y, b.y), q3Min(a.z, b.z)};
+  return {std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)};
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Max(const q3Vec3 &a, const q3Vec3 &b) {
-  return {q3Max(a.x, b.x), q3Max(a.y, b.y), q3Max(a.z, b.z)};
+  return {std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z)};
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const float q3MinPerElem(const q3Vec3 &a) {
-  return q3Min(a.x, q3Min(a.y, a.z));
+  return std::min(a.x, std::min(a.y, a.z));
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const float q3MaxPerElem(const q3Vec3 &a) {
-  return q3Max(a.x, q3Max(a.y, a.z));
+  return std::max(a.x, std::max(a.y, a.z));
 }
 
 inline const q3Vec3 operator*(float f, const q3Vec3 &rhs) {

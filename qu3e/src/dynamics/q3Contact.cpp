@@ -26,7 +26,6 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3Contact.h"
-#include "../math/q3Mat3.h"
 #include "../scene/q3Body.h"
 
 //--------------------------------------------------------------------------------------------------
@@ -490,7 +489,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
   const float kCosTol = float(1.0e-6);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 3; ++j) {
-      float val = q3Abs(C[i][j]);
+      float val = std::abs(C[i][j]);
       absC[i][j] = val;
 
       if (val + kCosTol >= float(1.0))
@@ -516,32 +515,32 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
   // Face axis checks
 
   // a's x axis
-  s = q3Abs(t.x) - (eA.x + q3Dot(absC.Column0(), eB));
+  s = std::abs(t.x) - (eA.x + q3Dot(absC.Column0(), eB));
   if (q3TrackFaceAxis(&aAxis, 0, s, &aMax, atx.rotation.ex, &nA))
     return;
 
   // a's y axis
-  s = q3Abs(t.y) - (eA.y + q3Dot(absC.Column1(), eB));
+  s = std::abs(t.y) - (eA.y + q3Dot(absC.Column1(), eB));
   if (q3TrackFaceAxis(&aAxis, 1, s, &aMax, atx.rotation.ey, &nA))
     return;
 
   // a's z axis
-  s = q3Abs(t.z) - (eA.z + q3Dot(absC.Column2(), eB));
+  s = std::abs(t.z) - (eA.z + q3Dot(absC.Column2(), eB));
   if (q3TrackFaceAxis(&aAxis, 2, s, &aMax, atx.rotation.ez, &nA))
     return;
 
   // b's x axis
-  s = q3Abs(q3Dot(t, C.ex)) - (eB.x + q3Dot(absC.ex, eA));
+  s = std::abs(q3Dot(t, C.ex)) - (eB.x + q3Dot(absC.ex, eA));
   if (q3TrackFaceAxis(&bAxis, 3, s, &bMax, btx.rotation.ex, &nB))
     return;
 
   // b's y axis
-  s = q3Abs(q3Dot(t, C.ey)) - (eB.y + q3Dot(absC.ey, eA));
+  s = std::abs(q3Dot(t, C.ey)) - (eB.y + q3Dot(absC.ey, eA));
   if (q3TrackFaceAxis(&bAxis, 4, s, &bMax, btx.rotation.ey, &nB))
     return;
 
   // b's z axis
-  s = q3Abs(q3Dot(t, C.ez)) - (eB.z + q3Dot(absC.ez, eA));
+  s = std::abs(q3Dot(t, C.ez)) - (eB.z + q3Dot(absC.ez, eA));
   if (q3TrackFaceAxis(&bAxis, 5, s, &bMax, btx.rotation.ez, &nB))
     return;
 
@@ -553,7 +552,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.x, b.x )
     rA = eA.y * absC[0][2] + eA.z * absC[0][1];
     rB = eB.y * absC[2][0] + eB.z * absC[1][0];
-    s = q3Abs(t.z * C[0][1] - t.y * C[0][2]) - (rA + rB);
+    s = std::abs(t.z * C[0][1] - t.y * C[0][2]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 6, s, &eMax,
                         q3Vec3{float(0.0), -C[0][2], C[0][1]}, &nE))
       return;
@@ -561,7 +560,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.x, b.y )
     rA = eA.y * absC[1][2] + eA.z * absC[1][1];
     rB = eB.x * absC[2][0] + eB.z * absC[0][0];
-    s = q3Abs(t.z * C[1][1] - t.y * C[1][2]) - (rA + rB);
+    s = std::abs(t.z * C[1][1] - t.y * C[1][2]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 7, s, &eMax,
                         q3Vec3{float(0.0), -C[1][2], C[1][1]}, &nE))
       return;
@@ -569,7 +568,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.x, b.z )
     rA = eA.y * absC[2][2] + eA.z * absC[2][1];
     rB = eB.x * absC[1][0] + eB.y * absC[0][0];
-    s = q3Abs(t.z * C[2][1] - t.y * C[2][2]) - (rA + rB);
+    s = std::abs(t.z * C[2][1] - t.y * C[2][2]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 8, s, &eMax,
                         q3Vec3{float(0.0), -C[2][2], C[2][1]}, &nE))
       return;
@@ -577,7 +576,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.y, b.x )
     rA = eA.x * absC[0][2] + eA.z * absC[0][0];
     rB = eB.y * absC[2][1] + eB.z * absC[1][1];
-    s = q3Abs(t.x * C[0][2] - t.z * C[0][0]) - (rA + rB);
+    s = std::abs(t.x * C[0][2] - t.z * C[0][0]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 9, s, &eMax,
                         q3Vec3{C[0][2], float(0.0), -C[0][0]}, &nE))
       return;
@@ -585,7 +584,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.y, b.y )
     rA = eA.x * absC[1][2] + eA.z * absC[1][0];
     rB = eB.x * absC[2][1] + eB.z * absC[0][1];
-    s = q3Abs(t.x * C[1][2] - t.z * C[1][0]) - (rA + rB);
+    s = std::abs(t.x * C[1][2] - t.z * C[1][0]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 10, s, &eMax,
                         q3Vec3{C[1][2], float(0.0), -C[1][0]}, &nE))
       return;
@@ -593,7 +592,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.y, b.z )
     rA = eA.x * absC[2][2] + eA.z * absC[2][0];
     rB = eB.x * absC[1][1] + eB.y * absC[0][1];
-    s = q3Abs(t.x * C[2][2] - t.z * C[2][0]) - (rA + rB);
+    s = std::abs(t.x * C[2][2] - t.z * C[2][0]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 11, s, &eMax,
                         q3Vec3{C[2][2], float(0.0), -C[2][0]}, &nE))
       return;
@@ -601,7 +600,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.z, b.x )
     rA = eA.x * absC[0][1] + eA.y * absC[0][0];
     rB = eB.y * absC[2][2] + eB.z * absC[1][2];
-    s = q3Abs(t.y * C[0][0] - t.x * C[0][1]) - (rA + rB);
+    s = std::abs(t.y * C[0][0] - t.x * C[0][1]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 12, s, &eMax,
                         q3Vec3{-C[0][1], C[0][0], float(0.0)}, &nE))
       return;
@@ -609,7 +608,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.z, b.y )
     rA = eA.x * absC[1][1] + eA.y * absC[1][0];
     rB = eB.x * absC[2][2] + eB.z * absC[0][2];
-    s = q3Abs(t.y * C[1][0] - t.x * C[1][1]) - (rA + rB);
+    s = std::abs(t.y * C[1][0] - t.x * C[1][1]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 13, s, &eMax,
                         q3Vec3{-C[1][1], C[1][0], float(0.0)}, &nE))
       return;
@@ -617,7 +616,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
     // Cross( a.z, b.z )
     rA = eA.x * absC[2][1] + eA.y * absC[2][0];
     rB = eB.x * absC[1][2] + eB.y * absC[0][2];
-    s = q3Abs(t.y * C[2][0] - t.x * C[2][1]) - (rA + rB);
+    s = std::abs(t.y * C[2][0] - t.x * C[2][1]) - (rA + rB);
     if (q3TrackEdgeAxis(&eAxis, 14, s, &eMax,
                         q3Vec3{-C[2][1], C[2][0], float(0.0)}, &nE))
       return;
@@ -629,7 +628,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
   int axis;
   float sMax;
   q3Vec3 n;
-  float faceMax = q3Max(aMax, bMax);
+  float faceMax = std::max(aMax, bMax);
   if (kRelTol * eMax > faceMax + kAbsTol) {
     axis = eAxis;
     sMax = eMax;

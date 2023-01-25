@@ -203,7 +203,7 @@ void q3ContactManager::TestCollisions(
               ot0 * oc->tangentImpulse[0] + ot1 * oc->tangentImpulse[1];
           c->tangentImpulse[0] = q3Dot(friction, manifold->tangentVectors[0]);
           c->tangentImpulse[1] = q3Dot(friction, manifold->tangentVectors[1]);
-          c->warmStarted = q3Max(oldWarmStart, uint8_t(oldWarmStart + 1));
+          c->warmStarted = std::max(oldWarmStart, uint8_t(oldWarmStart + 1));
           break;
         }
       }

@@ -28,7 +28,6 @@ distribution.
 #ifndef Q3CONTACT_H
 #define Q3CONTACT_H
 
-#include "../math/q3Math.h"
 #include "../scene/q3Box.h"
 #include "q3ContactEdge.h"
 
@@ -42,7 +41,7 @@ struct q3ContactConstraint;
 // Restitution mixing. The idea is to use the maximum bounciness, so bouncy
 // objects will never not bounce during collisions.
 inline float q3MixRestitution(const q3Box *A, const q3Box *B) {
-  return q3Max(A->Restitution(), B->Restitution());
+  return std::max(A->Restitution(), B->Restitution());
 }
 
 // Friction mixing. The idea is to allow a very low friction value to
