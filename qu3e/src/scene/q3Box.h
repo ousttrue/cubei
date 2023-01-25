@@ -29,19 +29,14 @@ distribution.
 #include "../math/q3Mat3.h"
 #include "../math/q3Transform.h"
 #include "../math/q3Vec3.h"
+#include <optional>
 
-//--------------------------------------------------------------------------------------------------
-// q3MassData
-//--------------------------------------------------------------------------------------------------
 struct q3MassData {
   q3Mat3 inertia;
   q3Vec3 center;
   float mass;
 };
 
-//--------------------------------------------------------------------------------------------------
-// q3BoxDef
-//--------------------------------------------------------------------------------------------------
 struct q3BoxDef {
   q3Transform m_tx = {};
   q3Vec3 m_e = {};
@@ -49,27 +44,28 @@ struct q3BoxDef {
   float m_restitution = 0.2f;
   float m_density = 1.0f;
   bool m_sensor = false;
+  void Dump(FILE *file) const;
 };
 
-//--------------------------------------------------------------------------------------------------
-// q3Box
-//--------------------------------------------------------------------------------------------------
-struct q3Box {
-  q3Transform local;
-  q3Vec3 e; // extent, as in the extent of each OBB axis
+class q3Box {
+  q3BoxDef def_;
+  int broadPhaseIndex_ = -1;
 
-  float friction;
-  float restitution;
-  float density;
-  int broadPhaseIndex;
-  mutable bool sensor;
+public:
+  q3Box(const q3BoxDef &def);
+  // def
+  const q3Transform &Local() const { return def_.m_tx; }
+  const q3Vec3 &Extent() const { return def_.m_e; }
+  float Friction() const { return def_.m_friction; }
+  float Restitution() const { return def_.m_restitution; }
+  bool Sensor() const { return def_.m_sensor; }
 
-  void SetSensor(bool isSensor);
-
+  void SetBroadPhaseIndex(int index) { broadPhaseIndex_ = index; }
+  int BroadPhaseIndex() const { return broadPhaseIndex_; }
   bool TestPoint(const q3Transform &tx, const q3Vec3 &p) const;
   bool Raycast(const q3Transform &tx, q3RaycastData *raycast) const;
   void ComputeAABB(const q3Transform &tx, q3AABB *aabb) const;
-  void ComputeMass(q3MassData *md) const;
+  std::optional<q3MassData> ComputeMass() const;
   void Render(const q3Transform &tx, bool awake, class q3Render *render) const;
-  void Dump(FILE *file, int index);
+  void Dump(FILE *file, int index) const;
 };

@@ -174,7 +174,7 @@ void q3ContactManager::TestCollisions(
     }
 
     // Check if contact should persist
-    if (!testOverlap(A->broadPhaseIndex, B->broadPhaseIndex)) {
+    if (!testOverlap(A->BroadPhaseIndex(), B->BroadPhaseIndex())) {
       it = RemoveContact(constraint);
       continue;
     }

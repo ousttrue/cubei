@@ -475,12 +475,12 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
                 q3Box *b) {
   q3Transform atx = a_body->GetTransform();
   q3Transform btx = b_body->GetTransform();
-  q3Transform aL = a->local;
-  q3Transform bL = b->local;
+  q3Transform aL = a->Local();
+  q3Transform bL = b->Local();
   atx = q3Mul(atx, aL);
   btx = q3Mul(btx, bL);
-  q3Vec3 eA = a->e;
-  q3Vec3 eB = b->e;
+  q3Vec3 eA = a->Extent();
+  q3Vec3 eB = b->Extent();
 
   // B's frame in A's space
   q3Mat3 C = q3Transpose(atx.rotation) * btx.rotation;

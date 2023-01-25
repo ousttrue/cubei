@@ -118,7 +118,7 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
           continue;
 
         // Skip sensors
-        if (contact->A->sensor || contact->B->sensor)
+        if (contact->A->Sensor() || contact->B->Sensor())
           continue;
 
         // Mark island flag and add to island

@@ -48,7 +48,7 @@ public:
   virtual void EndContact(const q3ContactConstraint *contact) = 0;
 };
 
-struct q3Box;
+class q3Box;
 class q3Body;
 class q3Render;
 class q3Stack;

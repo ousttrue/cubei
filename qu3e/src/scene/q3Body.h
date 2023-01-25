@@ -35,7 +35,7 @@ distribution.
 class q3Scene;
 struct q3BoxDef;
 struct q3ContactEdge;
-struct q3Box;
+class q3Box;
 
 enum q3BodyType {
   eStaticBody,

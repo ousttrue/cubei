@@ -36,7 +36,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 class q3ContactManager;
 class q3Body;
-struct q3Box;
+class q3Box;
 struct q3Transform;
 struct q3AABB;
 

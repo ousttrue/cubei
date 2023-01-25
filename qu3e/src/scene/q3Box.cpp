@@ -29,16 +29,15 @@ distribution.
 #include "../math/q3Vec3.h"
 #include <q3Render.h>
 
-//--------------------------------------------------------------------------------------------------
-// q3Box
-//--------------------------------------------------------------------------------------------------
+q3Box::q3Box(const q3BoxDef &def) : def_(def) {}
+
 bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
-  q3Transform world = q3Mul(tx, local);
+  q3Transform world = q3Mul(tx, def_.m_tx);
   q3Vec3 p0 = q3MulT(world, p);
 
   for (int i = 0; i < 3; ++i) {
     float d = p0[i];
-    float ei = e[i];
+    float ei = def_.m_e[i];
 
     if (d > ei || d < -ei) {
       return false;
@@ -50,7 +49,7 @@ bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
 
 //--------------------------------------------------------------------------------------------------
 bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
-  q3Transform world = q3Mul(tx, local);
+  q3Transform world = q3Mul(tx, def_.m_tx);
   q3Vec3 d = q3MulT(world.rotation, raycast->dir);
   q3Vec3 p = q3MulT(world, raycast->start);
   const float epsilon = float(1.0e-8);
@@ -66,7 +65,7 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
     // Check for ray parallel to and outside of AABB
     if (q3Abs(d[i]) < epsilon) {
       // Detect separating axes
-      if (p[i] < -e[i] || p[i] > e[i]) {
+      if (p[i] < -def_.m_e[i] || p[i] > def_.m_e[i]) {
         return false;
       }
     }
@@ -74,7 +73,7 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
     else {
       float d0 = float(1.0) / d[i];
       float s = q3Sign(d[i]);
-      float ei = e[i] * s;
+      float ei = def_.m_e[i] * s;
       q3Vec3 n = {};
       n[i] = -s;
 
@@ -102,12 +101,16 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
 
 //--------------------------------------------------------------------------------------------------
 void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
-  q3Transform world = q3Mul(tx, local);
+  q3Transform world = q3Mul(tx, def_.m_tx);
 
-  q3Vec3 v[8] = {q3Vec3{-e.x, -e.y, -e.z}, q3Vec3{-e.x, -e.y, e.z},
-                 q3Vec3{-e.x, e.y, -e.z},  q3Vec3{-e.x, e.y, e.z},
-                 q3Vec3{e.x, -e.y, -e.z},  q3Vec3{e.x, -e.y, e.z},
-                 q3Vec3{e.x, e.y, -e.z},   q3Vec3{e.x, e.y, e.z}};
+  q3Vec3 v[8] = {q3Vec3{-def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
+                 q3Vec3{-def_.m_e.x, -def_.m_e.y, def_.m_e.z},
+                 q3Vec3{-def_.m_e.x, def_.m_e.y, -def_.m_e.z},
+                 q3Vec3{-def_.m_e.x, def_.m_e.y, def_.m_e.z},
+                 q3Vec3{def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
+                 q3Vec3{def_.m_e.x, -def_.m_e.y, def_.m_e.z},
+                 q3Vec3{def_.m_e.x, def_.m_e.y, -def_.m_e.z},
+                 q3Vec3{def_.m_e.x, def_.m_e.y, def_.m_e.z}};
 
   for (int i = 0; i < 8; ++i)
     v[i] = q3Mul(world, v[i]);
@@ -124,28 +127,34 @@ void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
   aabb->max = max;
 }
 
-//--------------------------------------------------------------------------------------------------
-void q3Box::ComputeMass(q3MassData *md) const {
+std::optional<q3MassData> q3Box::ComputeMass() const {
+  if (def_.m_density == float(0.0)) {
+    return {};
+  }
+
   // Calculate inertia tensor
-  float ex2 = float(4.0) * e.x * e.x;
-  float ey2 = float(4.0) * e.y * e.y;
-  float ez2 = float(4.0) * e.z * e.z;
-  float mass = float(8.0) * e.x * e.y * e.z * density;
+  float ex2 = float(4.0) * def_.m_e.x * def_.m_e.x;
+  float ey2 = float(4.0) * def_.m_e.y * def_.m_e.y;
+  float ez2 = float(4.0) * def_.m_e.z * def_.m_e.z;
+  float mass =
+      float(8.0) * def_.m_e.x * def_.m_e.y * def_.m_e.z * def_.m_density;
   float x = float(1.0 / 12.0) * mass * (ey2 + ez2);
   float y = float(1.0 / 12.0) * mass * (ex2 + ez2);
   float z = float(1.0 / 12.0) * mass * (ex2 + ey2);
   q3Mat3 I = q3Diagonal(x, y, z);
 
   // Transform tensor to local space
-  I = local.rotation * I * q3Transpose(local.rotation);
+  I = def_.m_tx.rotation * I * q3Transpose(def_.m_tx.rotation);
   q3Mat3 identity = {};
-  I += (identity * q3Dot(local.position, local.position) -
-        q3OuterProduct(local.position, local.position)) *
+  I += (identity * q3Dot(def_.m_tx.position, def_.m_tx.position) -
+        q3OuterProduct(def_.m_tx.position, def_.m_tx.position)) *
        mass;
 
-  md->center = local.position;
-  md->inertia = I;
-  md->mass = mass;
+  return q3MassData{
+      .inertia = I,
+      .center = def_.m_tx.position,
+      .mass = mass,
+  };
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -157,12 +166,16 @@ const int kBoxIndices[36] = {
 
 //--------------------------------------------------------------------------------------------------
 void q3Box::Render(const q3Transform &tx, bool awake, q3Render *render) const {
-  q3Transform world = q3Mul(tx, local);
+  q3Transform world = q3Mul(tx, def_.m_tx);
 
-  q3Vec3 vertices[8] = {{-e.x, -e.y, -e.z}, {-e.x, -e.y, e.z},
-                        {-e.x, e.y, -e.z},  {-e.x, e.y, e.z},
-                        {e.x, -e.y, -e.z},  {e.x, -e.y, e.z},
-                        {e.x, e.y, -e.z},   {e.x, e.y, e.z}};
+  q3Vec3 vertices[8] = {{-def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
+                        {-def_.m_e.x, -def_.m_e.y, def_.m_e.z},
+                        {-def_.m_e.x, def_.m_e.y, -def_.m_e.z},
+                        {-def_.m_e.x, def_.m_e.y, def_.m_e.z},
+                        {def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
+                        {def_.m_e.x, -def_.m_e.y, def_.m_e.z},
+                        {def_.m_e.x, def_.m_e.y, -def_.m_e.z},
+                        {def_.m_e.x, def_.m_e.y, def_.m_e.z}};
 
   for (int i = 0; i < 36; i += 3) {
     q3Vec3 a = q3Mul(world, vertices[kBoxIndices[i]]);
@@ -182,17 +195,21 @@ void q3Box::Render(const q3Transform &tx, bool awake, q3Render *render) const {
   }
 }
 
-void q3Box::Dump(FILE *file, int index) {
+void q3Box::Dump(FILE *file, int index) const {
   fprintf(file, "\t{\n");
   fprintf(file, "\t\tq3BoxDef sd;\n");
-  fprintf(file, "\t\tsd.SetFriction( float( %.15lf ) );\n", this->friction);
-  fprintf(file, "\t\tsd.SetRestitution( float( %.15lf ) );\n",
-          this->restitution);
-  fprintf(file, "\t\tsd.SetDensity( float( %.15lf ) );\n", this->density);
-  int sensor = (int)this->sensor;
-  fprintf(file, "\t\tsd.SetSensor( bool( %d ) );\n", sensor);
+  def_.Dump(file);
+  fprintf(file, "\t\tbodies[ %d ]->AddBox( sd );\n", index);
+  fprintf(file, "\t}\n");
+}
+
+void q3BoxDef::Dump(FILE *file) const {
+  fprintf(file, "\t\tsd.SetFriction( float( %.15lf ) );\n", m_friction);
+  fprintf(file, "\t\tsd.SetRestitution( float( %.15lf ) );\n", m_restitution);
+  fprintf(file, "\t\tsd.SetDensity( float( %.15lf ) );\n", m_density);
+  fprintf(file, "\t\tsd.SetSensor( bool( %d ) );\n", m_sensor);
   fprintf(file, "\t\tq3Transform boxTx;\n");
-  q3Transform boxTx = this->local;
+  q3Transform boxTx = m_tx;
   q3Vec3 xAxis = boxTx.rotation.ex;
   q3Vec3 yAxis = boxTx.rotation.ey;
   q3Vec3 zAxis = boxTx.rotation.ez;
@@ -216,7 +233,5 @@ void q3Box::Dump(FILE *file, int index) {
   fprintf(file,
           "\t\tsd.Set( boxTx, q3Vec3( float( %.15lf ), float( %.15lf ), "
           "float( %.15lf ) ) );\n",
-          this->e.x * 2.0f, this->e.y * 2.0f, this->e.z * 2.0f);
-  fprintf(file, "\t\tbodies[ %d ]->AddBox( sd );\n", index);
-  fprintf(file, "\t}\n");
+          m_e.x * 2.0f, m_e.y * 2.0f, m_e.z * 2.0f);
 }

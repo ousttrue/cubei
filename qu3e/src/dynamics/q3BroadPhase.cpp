@@ -36,13 +36,14 @@ q3BroadPhase::~q3BroadPhase() {}
 
 void q3BroadPhase::InsertBox(q3Body *body, q3Box *box, const q3AABB &aabb) {
   int id = m_tree.Insert(aabb, {body, box});
-  box->broadPhaseIndex = id;
+  box->SetBroadPhaseIndex(id);
   BufferMove(id);
 }
 
 void q3BroadPhase::RemoveBox(const q3Box *box) {
-  m_tree.Remove(box->broadPhaseIndex);
+  m_tree.Remove(box->BroadPhaseIndex());
 }
+
 void q3BroadPhase::RemoveBody(q3Body *body) {
   for (auto box : *body) {
     RemoveBox(box);
@@ -129,7 +130,7 @@ void q3BroadPhase::SynchronizeProxies(q3Body *body) {
   for (auto box : *body) {
     q3AABB aabb;
     box->ComputeAABB(m_tx, &aabb);
-    Update(box->broadPhaseIndex, aabb);
+    Update(box->BroadPhaseIndex(), aabb);
   }
 }
 

@@ -170,14 +170,11 @@ void q3Body::CalculateMassData() {
 
   q3Vec3 lc = {};
   for (auto box : m_boxes) {
-    if (box->density == float(0.0))
-      continue;
-
-    q3MassData md;
-    box->ComputeMass(&md);
-    mass += md.mass;
-    inertia += md.inertia;
-    lc += md.center * md.mass;
+    if (auto md = box->ComputeMass()) {
+      mass += md->mass;
+      inertia += md->inertia;
+      lc += md->center * md->mass;
+    }
   }
 
   if (mass > float(0.0)) {

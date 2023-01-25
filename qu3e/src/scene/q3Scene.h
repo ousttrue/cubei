@@ -31,7 +31,7 @@ distribution.
 #include <stdio.h>
 
 class q3Body;
-struct q3Box;
+class q3Box;
 struct q3BodyDef;
 class q3Scene {
   bool m_newBox = false;

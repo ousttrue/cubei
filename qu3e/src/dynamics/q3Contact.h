@@ -36,19 +36,19 @@ distribution.
 // q3Contact
 //--------------------------------------------------------------------------------------------------
 class q3Body;
-struct q3Box;
+class q3Box;
 struct q3ContactConstraint;
 
 // Restitution mixing. The idea is to use the maximum bounciness, so bouncy
 // objects will never not bounce during collisions.
 inline float q3MixRestitution(const q3Box *A, const q3Box *B) {
-  return q3Max(A->restitution, B->restitution);
+  return q3Max(A->Restitution(), B->Restitution());
 }
 
 // Friction mixing. The idea is to allow a very low friction value to
 // drive down the mixing result. Example: anything slides on ice.
 inline float q3MixFriction(const q3Box *A, const q3Box *B) {
-  return std::sqrt(A->friction * B->friction);
+  return std::sqrt(A->Friction() * B->Friction());
 }
 
 // in stands for "incoming"
@@ -90,7 +90,7 @@ struct q3Manifold {
   void SetPair(q3Body *bodyA, q3Box *a, q3Body *bodyB, q3Box *b) {
     A = {bodyA, a};
     B = {bodyB, b};
-    sensor = a->sensor || b->sensor;
+    sensor = a->Sensor() || b->Sensor();
   }
 
   std::tuple<q3Body *, q3Box *> A;

@@ -74,13 +74,7 @@ q3Body *q3Scene::CreateBody(const q3BodyDef &def) {
 }
 
 const q3Box *q3Scene::AddBox(q3Body *body, const q3BoxDef &def) {
-  auto box = new q3Box;
-  box->local = def.m_tx;
-  box->e = def.m_e;
-  box->friction = def.m_friction;
-  box->restitution = def.m_restitution;
-  box->density = def.m_density;
-  box->sensor = def.m_sensor;
+  auto box = new q3Box(def);
   body->AddBox(box);
   body->CalculateMassData();
   m_newBox = true;
