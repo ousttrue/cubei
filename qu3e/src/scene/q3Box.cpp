@@ -33,7 +33,7 @@ q3Box::q3Box(const q3BoxDef &def) : def_(def) {}
 
 bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
   q3Transform world = q3Mul(tx, def_.m_tx);
-  q3Vec3 p0 = q3MulT(world, p);
+  q3Vec3 p0 = q3Mul(world.Inversed(), p);
 
   for (int i = 0; i < 3; ++i) {
     float d = p0[i];
@@ -51,7 +51,7 @@ bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
 bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
   q3Transform world = q3Mul(tx, def_.m_tx);
   q3Vec3 d = q3MulT(world.rotation, raycast->dir);
-  q3Vec3 p = q3MulT(world, raycast->start);
+  q3Vec3 p = q3Mul(world.Inversed(), raycast->start);
   const float epsilon = float(1.0e-8);
   float tmin = 0;
   float tmax = raycast->t;

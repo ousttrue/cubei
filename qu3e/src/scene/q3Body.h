@@ -214,7 +214,7 @@ public:
   bool IsAwake() const { return HasFlag(q3BodyFlags::eAwake) ? true : false; }
   float GetGravityScale() const { return m_gravityScale; }
   void SetGravityScale(float scale) { m_gravityScale = scale; }
-  const q3Vec3 GetLocalPoint(const q3Vec3 &p) const { return q3MulT(m_tx, p); }
+  const q3Vec3 GetLocalPoint(const q3Vec3 &p) const { return q3Mul(m_tx.Inversed(), p); }
   const q3Vec3 GetLocalVector(const q3Vec3 &v) const {
     return q3MulT(m_tx.rotation, v);
   }

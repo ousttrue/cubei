@@ -37,6 +37,14 @@ distribution.
 struct q3Transform {
   q3Vec3 position = {};
   q3Mat3 rotation = {};
+
+  q3Transform Inversed() const {
+    auto inv = q3Transpose(rotation);
+    return {
+        inv * -position,
+        inv,
+    };
+  }
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -91,11 +99,6 @@ inline const q3HalfSpace q3Mul(const q3Transform &tx, const q3Vec3 &scale,
 }
 
 //--------------------------------------------------------------------------------------------------
-inline const q3Vec3 q3MulT(const q3Transform &tx, const q3Vec3 &v) {
-  return q3Transpose(tx.rotation) * (v - tx.position);
-}
-
-//--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3MulT(const q3Mat3 &r, const q3Vec3 &v) {
   return q3Transpose(r) * v;
 }
@@ -116,7 +119,7 @@ inline const q3Transform q3MulT(const q3Transform &t, const q3Transform &u) {
 //--------------------------------------------------------------------------------------------------
 inline const q3HalfSpace q3MulT(const q3Transform &tx, const q3HalfSpace &p) {
   q3Vec3 origin = p.normal * p.distance;
-  origin = q3MulT(tx, origin);
+  origin = q3Mul(tx.Inversed(), origin);
   q3Vec3 n = q3MulT(tx.rotation, p.normal);
   return q3HalfSpace(n, q3Dot(origin, n));
 }
