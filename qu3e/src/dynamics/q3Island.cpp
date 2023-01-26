@@ -26,6 +26,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3Island.h"
+#include "../scene/q3Box.h"
 #include "../scene/q3Scene.h"
 #include "q3BroadPhase.h"
 #include "q3Contact.h"
@@ -55,8 +56,22 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
         std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
   }
 
-  contactManager->TestCollisions(
-      [broadphase](int a, int b) { return broadphase->TestOverlap(a, b); });
+  // Remove contacts without broadphase overlap
+  {
+    rmt_ScopedCPUSample(qTestCollisions, 0);
+    auto testOverlap = [broadphase](q3Box *a, q3Box *b) {
+      return broadphase->TestOverlap(a->BroadPhaseIndex(),
+                                     b->BroadPhaseIndex());
+    };
+    auto it = contactManager->begin();
+    for (; it != contactManager->end();) {
+      if ((*it)->Test(testOverlap)) {
+        ++it;
+      } else {
+        it = contactManager->RemoveContact(*it);
+      }
+    }
+  }
 
   for (auto body : *scene) {
     body->RemoveFlag(q3BodyFlags::eIsland);

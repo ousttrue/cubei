@@ -34,4 +34,5 @@ struct q3ContactConstraint {
   void RemoveFlag(q3ContactConstraintFlags flag) {
     m_flags = (q3ContactConstraintFlags)((int)m_flags & ~(int)flag);
   }
+  bool Test(const std::function<bool(q3Box *, q3Box *)> &testOverlap);
 };

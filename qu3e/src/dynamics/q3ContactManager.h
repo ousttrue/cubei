@@ -25,9 +25,7 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3CONTACTMANAGER_H
-#define Q3CONTACTMANAGER_H
-
+#pragma once
 #include <functional>
 #include <list>
 #include <unordered_map>
@@ -48,7 +46,12 @@ class q3ContactManager {
 
 public:
   q3ContactManager();
-
+  std::list<q3ContactConstraint *>::iterator begin() {
+    return m_contactList.begin();
+  }
+  std::list<q3ContactConstraint *>::iterator end() {
+    return m_contactList.end();
+  }
   size_t ContactCount() const { return m_contactList.size(); }
 
   struct q3ContactEdge *ContactEdge(q3Body *body) {
@@ -70,12 +73,5 @@ public:
   // Remove all contacts from a body
   void RemoveContactsFromBody(q3Body *body);
 
-  // Remove contacts without broadphase overlap
-  // Solves contact manifolds
-  void TestCollisions(const std::function<bool(int a, int b)> &testOverlap);
-  static void SolveCollision(void *param);
-
   void Render(q3Render *debugDrawer) const;
 };
-
-#endif // Q3CONTACTMANAGER_H
