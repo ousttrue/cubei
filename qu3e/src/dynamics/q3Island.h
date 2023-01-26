@@ -26,18 +26,18 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../math/q3Math.h"
 #include "../scene/q3Env.h"
 #include "q3ContactConstraintState.h"
 #include "q3ContactSolver.h"
 #include <list>
+#include <unordered_map>
 #include <vector>
 
 class q3Island {
   std::vector<class q3Body *> m_stack;
 
 public:
-  std::vector<std::tuple<class q3Body *, q3VelocityState>> m_bodies;
+  std::unordered_map<class q3Body *, q3VelocityState> m_bodies;
   std::vector<
       std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
       m_constraints;
@@ -52,14 +52,5 @@ private:
   void Process(const q3Env &env, q3Body *seed,
                class q3ContactManager *contactManager);
   void Solve(const q3Env &env);
-  void AddBody(class q3Body *body) {
-    body->SetIslandIndex(m_bodies.size());
-    m_bodies.push_back({body, {}});
-  }
-
-  void AddConstraint(struct q3ContactConstraint *constraint) {
-    m_constraints.push_back({constraint, {}});
-  }
-
   void Initialize();
 };

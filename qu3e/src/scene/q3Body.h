@@ -101,7 +101,6 @@ struct q3BodyState {
   q3Vec3 m_worldCenter;
   q3Mat3 m_invInertiaWorld;
   float m_invMass;
-  int m_islandIndex;
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -133,7 +132,6 @@ public:
   // q3ContactEdge *m_contactList = nullptr;
   q3Body(const q3BodyDef &def);
   q3BodyState State() const { return m_state; }
-  void SetIslandIndex(size_t index) { m_state.m_islandIndex = index; }
   // q3VelocityState VelocityState() const {
   //   return {
   //       .w = m_angularVelocity,

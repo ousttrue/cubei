@@ -8,8 +8,10 @@ struct q3ContactConstraintState {
   int contactCount;
   q3Vec3 tangentVectors[2]; // Tangent vectors
   q3Vec3 normal;            // From A to B
-  q3BodyState A;
-  q3BodyState B;
+  q3Body *A;
+  q3BodyState stateA;
+  q3Body *B;
+  q3BodyState stateB;
   float restitution;
   float friction;
 

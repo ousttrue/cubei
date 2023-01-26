@@ -130,7 +130,7 @@ void q3Island::Process(const q3Env &env, q3Body *seed,
   while (stackCount > 0) {
     // Decrement stack to implement iterative backtracking
     q3Body *body = m_stack[--stackCount];
-    AddBody(body);
+    m_bodies.insert({body, {}});
 
     // Awaken all bodies connected to the island
     body->SetToAwake();
@@ -162,7 +162,7 @@ void q3Island::Process(const q3Env &env, q3Body *seed,
 
       // Mark island flag and add to island
       contact->AddFlag(q3ContactConstraintFlags::eIsland);
-      AddConstraint(contact);
+      m_constraints.push_back({contact, {}});
 
       // Attempt to add the other body in the contact to the island
       // to simulate contact awakening propogation
@@ -237,8 +237,10 @@ void q3Island::Initialize() {
   rmt_ScopedCPUSample(q3IslandInitialize, 0);
 
   for (auto &[cc, c] : m_constraints) {
-    c.A = cc->bodyA->State();
-    c.B = cc->bodyB->State();
+    c.A = cc->bodyA;
+    c.stateA = cc->bodyA->State();
+    c.B = cc->bodyB;
+    c.stateB = cc->bodyB->State();
     c.restitution = cc->restitution;
     c.friction = cc->friction;
     c.normal = cc->manifold.normal;
@@ -249,8 +251,8 @@ void q3Island::Initialize() {
     int j = 0;
     for (auto &s : c.span()) {
       auto cp = &cc->manifold.contacts[j++];
-      s.ra = cp->position - c.A.m_worldCenter;
-      s.rb = cp->position - c.B.m_worldCenter;
+      s.ra = cp->position - c.stateA.m_worldCenter;
+      s.rb = cp->position - c.stateB.m_worldCenter;
       s.penetration = cp->penetration;
       s.normalImpulse = cp->normalImpulse;
       s.tangentImpulse[0] = cp->tangentImpulse[0];
