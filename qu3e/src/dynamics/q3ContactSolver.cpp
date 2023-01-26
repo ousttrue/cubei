@@ -32,35 +32,13 @@ distribution.
 #define Q3_BAUMGARTE float(0.2)
 #define Q3_PENETRATION_SLOP float(0.05)
 
-//--------------------------------------------------------------------------------------------------
-// q3ContactSolver
-//--------------------------------------------------------------------------------------------------
-void q3ContactSolver::Initialize(q3Island *island) {
+q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
   m_island = island;
   m_contactCount = island->m_contacts.size();
   m_contacts = island->m_contactStates.data();
   m_velocities = m_island->m_velocities.data();
-  m_enableFriction = island->m_env.m_enableFriction;
-}
+  m_enableFriction = env.m_enableFriction;
 
-//--------------------------------------------------------------------------------------------------
-void q3ContactSolver::ShutDown(void) {
-  for (int i = 0; i < m_contactCount; ++i) {
-    q3ContactConstraintState *c = m_contacts + i;
-    q3ContactConstraint *cc = m_island->m_contacts[i];
-
-    for (int j = 0; j < c->contactCount; ++j) {
-      q3Contact *oc = cc->manifold.contacts + j;
-      q3ContactState *cs = c->contacts + j;
-      oc->normalImpulse = cs->normalImpulse;
-      oc->tangentImpulse[0] = cs->tangentImpulse[0];
-      oc->tangentImpulse[1] = cs->tangentImpulse[1];
-    }
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-void q3ContactSolver::PreSolve(float dt) {
   for (int i = 0; i < m_contactCount; ++i) {
     q3ContactConstraintState *cs = m_contacts + i;
 
@@ -93,7 +71,7 @@ void q3ContactSolver::PreSolve(float dt) {
       }
 
       // Precalculate bias factor
-      c->bias = -Q3_BAUMGARTE * (float(1.0) / dt) *
+      c->bias = -Q3_BAUMGARTE * (float(1.0) / env.m_dt) *
                 std::min(float(0.0), c->penetration + Q3_PENETRATION_SLOP);
 
       // Warm start contact
@@ -125,7 +103,21 @@ void q3ContactSolver::PreSolve(float dt) {
   }
 }
 
-//--------------------------------------------------------------------------------------------------
+q3ContactSolver::~q3ContactSolver(void) {
+  for (int i = 0; i < m_contactCount; ++i) {
+    q3ContactConstraintState *c = m_contacts + i;
+    q3ContactConstraint *cc = m_island->m_contacts[i];
+
+    for (int j = 0; j < c->contactCount; ++j) {
+      q3Contact *oc = cc->manifold.contacts + j;
+      q3ContactState *cs = c->contacts + j;
+      oc->normalImpulse = cs->normalImpulse;
+      oc->tangentImpulse[0] = cs->tangentImpulse[0];
+      oc->tangentImpulse[1] = cs->tangentImpulse[1];
+    }
+  }
+}
+
 void q3ContactSolver::Solve() {
   for (int i = 0; i < m_contactCount; ++i) {
     q3ContactConstraintState *cs = m_contacts + i;

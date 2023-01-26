@@ -26,12 +26,12 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3Island.h"
+#include "../scene/q3Scene.h"
 #include "q3BroadPhase.h"
 #include "q3Contact.h"
 #include "q3ContactConstraint.h"
 #include "q3ContactManager.h"
 #include "q3ContactSolver.h"
-#include "../scene/q3Scene.h"
 
 #include <Remotery.h>
 
@@ -60,7 +60,6 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
   m_velocities.reserve(scene->BodyCount());
   m_contacts.reserve(contactManager->ContactCount());
   m_contactStates.reserve(contactManager->ContactCount());
-  m_env = env;
 
   // Build each active island and then solve each built island
   int stackSize = scene->BodyCount();
@@ -141,7 +140,7 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
     assert(m_bodies.size() != 0);
 
     Initialize();
-    Solve(m_env);
+    Solve(env);
 
     // Reset all static island flags
     // This allows static bodies to participate in other island formations
@@ -179,17 +178,13 @@ void q3Island::Solve(const q3Env &env) {
     m_velocities[i] = body->VelocityState();
   }
 
-  // Create contact solver, pass in state buffers, create buffers for contacts
-  // Initialize velocity constraint for normal + friction and warm start
-  q3ContactSolver contactSolver;
-  contactSolver.Initialize(this);
-  contactSolver.PreSolve(env.m_dt);
-
-  // Solve contacts
-  for (int i = 0; i < env.m_iterations; ++i)
-    contactSolver.Solve();
-
-  contactSolver.ShutDown();
+  {
+    // Create contact solver, pass in state buffers, create buffers for contacts
+    // Initialize velocity constraint for normal + friction and warm start
+    q3ContactSolver contactSolver(env, this);
+    for (int i = 0; i < env.m_iterations; ++i)
+      contactSolver.Solve();
+  }
 
   // Copy back state buffers
   // Integrate positions

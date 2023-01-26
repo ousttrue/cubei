@@ -28,15 +28,14 @@ distribution.
 #pragma once
 #include "q3ContactConstraintState.h"
 struct q3ContactSolver {
-  void Initialize(class q3Island *island);
-  void PreSolve(float dt);
-  void Solve(void);
-  void ShutDown(void);
-
   class q3Island *m_island;
   q3ContactConstraintState *m_contacts;
   int m_contactCount;
   q3VelocityState *m_velocities;
-
   bool m_enableFriction;
+
+public:
+  q3ContactSolver(const q3Env &env, class q3Island *island);
+  ~q3ContactSolver();
+  void Solve(void);
 };

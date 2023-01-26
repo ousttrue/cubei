@@ -37,7 +37,6 @@ class q3Island {
   std::vector<class q3Body *> m_stack;
 
 public:
-  q3Env m_env;
   std::vector<q3VelocityState> m_velocities;
   std::vector<struct q3ContactConstraint *> m_contacts;
   std::vector<struct q3ContactConstraintState> m_contactStates;
