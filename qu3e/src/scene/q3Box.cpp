@@ -32,7 +32,7 @@ distribution.
 q3Box::q3Box(const q3BoxDef &def) : def_(def) {}
 
 bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
-  q3Transform world = q3Mul(tx, def_.m_tx);
+  q3Transform world = tx * def_.m_tx;
   q3Vec3 p0 = world.Inversed() * p;
 
   for (int i = 0; i < 3; ++i) {
@@ -49,7 +49,7 @@ bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
 
 //--------------------------------------------------------------------------------------------------
 bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
-  q3Transform world = q3Mul(tx, def_.m_tx);
+  q3Transform world = tx * def_.m_tx;
   q3Vec3 d = q3MulT(world.rotation, raycast->dir);
   q3Vec3 p = world.Inversed() * raycast->start;
   const float epsilon = float(1.0e-8);
@@ -101,7 +101,7 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
 
 //--------------------------------------------------------------------------------------------------
 void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
-  q3Transform world = q3Mul(tx, def_.m_tx);
+  q3Transform world = tx * def_.m_tx;
 
   q3Vec3 v[8] = {q3Vec3{-def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
                  q3Vec3{-def_.m_e.x, -def_.m_e.y, def_.m_e.z},
@@ -166,7 +166,7 @@ const int kBoxIndices[36] = {
 
 //--------------------------------------------------------------------------------------------------
 void q3Box::Render(const q3Transform &tx, bool awake, q3Render *render) const {
-  q3Transform world = q3Mul(tx, def_.m_tx);
+  q3Transform world = tx * def_.m_tx;
 
   q3Vec3 vertices[8] = {{-def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
                         {-def_.m_e.x, -def_.m_e.y, def_.m_e.z},

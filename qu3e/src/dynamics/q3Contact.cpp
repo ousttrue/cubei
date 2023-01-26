@@ -476,8 +476,8 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
   q3Transform btx = b_body->GetTransform();
   q3Transform aL = a->Local();
   q3Transform bL = b->Local();
-  atx = q3Mul(atx, aL);
-  btx = q3Mul(btx, bL);
+  atx = atx * aL;
+  btx = btx * bL;
   q3Vec3 eA = a->Extent();
   q3Vec3 eB = b->Extent();
 
