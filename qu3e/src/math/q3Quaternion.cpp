@@ -54,17 +54,18 @@ std::tuple<q3Vec3, float> q3Quaternion::ToAxisAngle() const {
   return {axis, angle};
 }
 
-void q3Quaternion::Integrate(const q3Vec3 &dv, float dt) {
+q3Quaternion q3Quaternion::Integrated(const q3Vec3 &dv, float dt) const {
   q3Quaternion q{dv.x * dt, dv.y * dt, dv.z * dt, float(0.0)};
 
   q *= *this;
 
-  x += q.x * float(0.5);
-  y += q.y * float(0.5);
-  z += q.z * float(0.5);
-  w += q.w * float(0.5);
-
-  *this = q3Normalized();
+  return q3Quaternion{
+      x + q.x * float(0.5),
+      y + q.y * float(0.5),
+      z + q.z * float(0.5),
+      w + q.w * float(0.5),
+  }
+      .Normalized();
 }
 
 q3Quaternion q3Quaternion::operator*(const q3Quaternion &rhs) const {

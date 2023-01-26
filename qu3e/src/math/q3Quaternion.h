@@ -37,11 +37,12 @@ struct q3Quaternion {
 
   static q3Quaternion FromAxisAngle(const q3Vec3 &axis, float radians);
   std::tuple<q3Vec3, float> ToAxisAngle() const;
-  void Integrate(const q3Vec3 &dv, float dt);
+  q3Quaternion Integrated(const q3Vec3 &dv, float dt) const;
   q3Quaternion operator*(const q3Quaternion &rhs) const;
   q3Quaternion &operator*=(const q3Quaternion &rhs);
+  q3Quaternion Inversed() const { return {-x, -y, -z, w}; }
   q3Mat3 ToMat3() const;
-  q3Quaternion q3Normalized() const {
+  q3Quaternion Normalized() const {
     float x = this->x;
     float y = this->y;
     float z = this->z;

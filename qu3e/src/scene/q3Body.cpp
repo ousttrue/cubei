@@ -129,8 +129,7 @@ void q3Body::SetVelocityState(const q3Env &env, const q3VelocityState &v) {
   m_angularVelocity = v.w;
   // Integrate position
   m_state.m_worldCenter += m_linearVelocity * env.m_dt;
-  m_q.Integrate(m_angularVelocity, env.m_dt);
-  m_q = m_q.q3Normalized();
+  m_q = m_q.Integrated(m_angularVelocity, env.m_dt).Normalized();
   m_tx.rotation = m_q.ToMat3();
 }
 
