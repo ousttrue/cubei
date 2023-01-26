@@ -141,7 +141,7 @@ public:
     };
   }
   q3Transform UpdatePosition() {
-    m_tx.position = m_state.m_worldCenter - q3Mul(m_tx.rotation, m_localCenter);
+    m_tx.position = m_state.m_worldCenter - m_tx.rotation * m_localCenter;
     return m_tx;
   }
   std::list<q3Box *>::const_iterator begin() const { return m_boxes.begin(); }
@@ -222,7 +222,7 @@ public:
   float GetMass() const { return m_mass; }
   float GetInvMass() const { return m_state.m_invMass; }
   const q3Vec3 GetWorldVector(const q3Vec3 &v) const {
-    return q3Mul(m_tx.rotation, v);
+    return m_tx.rotation * v;
   }
   const q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
   const q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {

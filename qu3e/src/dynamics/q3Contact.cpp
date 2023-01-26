@@ -380,7 +380,7 @@ int q3Clip(const q3Vec3 &rPos, const q3Vec3 &e, uint8_t *clipEdges,
     float d = in[i].v.z - e.z;
 
     if (d <= float(0.0)) {
-      outVerts[outCount].v = q3Mul(basis, in[i].v) + rPos;
+      outVerts[outCount].v = basis * in[i].v + rPos;
       outVerts[outCount].f = in[i].f;
       outDepths[outCount++] = d;
     }
