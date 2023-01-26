@@ -158,13 +158,6 @@ void q3ContactManager::RemoveContactsFromBody(q3Body *body) {
 void q3ContactManager::TestCollisions(
     const std::function<bool(int a, int b)> &testOverlap) {
   rmt_ScopedCPUSample(qTestCollisions, 0);
-  // if (newBox) {
-  //   m_broadphase.UpdatePairs(std::bind(
-  //       &q3ContactManager::AddContact, this, std::placeholders::_1,
-  //       std::placeholders::_2, std::placeholders::_3,
-  //       std::placeholders::_4));
-  // }
-
   auto it = m_contactList.begin();
   for (; it != m_contactList.end();) {
     auto constraint = *it;
@@ -238,19 +231,6 @@ void q3ContactManager::TestCollisions(
           c->warmStarted = std::max(oldWarmStart, uint8_t(oldWarmStart + 1));
           break;
         }
-      }
-    }
-
-    if (m_contactListener) {
-      auto now_colliding =
-          (int)constraint->m_flags & (int)q3ContactConstraintFlags::eColliding;
-      auto was_colliding = (int)constraint->m_flags &
-                           (int)q3ContactConstraintFlags::eWasColliding;
-
-      if (now_colliding && !was_colliding) {
-        m_contactListener->BeginContact(constraint);
-      } else if (!now_colliding && was_colliding) {
-        m_contactListener->EndContact(constraint);
       }
     }
     ++it;

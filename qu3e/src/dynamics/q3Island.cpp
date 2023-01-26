@@ -49,6 +49,12 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
                     q3ContactManager *contactManager) {
   rmt_ScopedCPUSample(qSceneStep, 0);
 
+  if (scene->NewBox()) {
+    broadphase->UpdatePairs(std::bind(
+        &q3ContactManager::AddContact, contactManager, std::placeholders::_1,
+        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+  }
+
   contactManager->TestCollisions(
       [broadphase](int a, int b) { return broadphase->TestOverlap(a, b); });
 
