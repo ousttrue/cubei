@@ -38,8 +38,8 @@ class q3Island {
 
 public:
   std::vector<q3VelocityState> m_velocities;
-  std::vector<struct q3ContactConstraint *> m_contacts;
-  std::vector<struct q3ContactConstraintState> m_contactStates;
+  std::vector<struct q3ContactConstraint *> m_constraints;
+  std::vector<struct q3ContactConstraintState> m_constraintStates;
 
   // Run the simulation forward in time by dt (fixed timestep). Variable
   // timestep is not supported.
@@ -48,8 +48,19 @@ public:
             class q3ContactManager *contactManager);
 
 private:
+  void Process(const q3Env &env, q3Body *seed,
+               class q3ContactManager *contactManager);
   void Solve(const q3Env &env);
-  void Add(class q3Body *body);
-  void Add(struct q3ContactConstraint *contact);
+  void AddBody(class q3Body *body) {
+    body->SetIslandIndex(m_bodies.size());
+    m_bodies.push_back(body);
+    m_velocities.push_back({});
+  }
+
+  void AddConstraint(struct q3ContactConstraint *constraint) {
+    m_constraints.push_back(constraint);
+    m_constraintStates.push_back({});
+  }
+
   void Initialize();
 };

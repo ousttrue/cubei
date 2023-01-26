@@ -79,96 +79,13 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
 
   m_bodies.reserve(scene->BodyCount());
   m_velocities.reserve(scene->BodyCount());
-  m_contacts.reserve(contactManager->ContactCount());
-  m_contactStates.reserve(contactManager->ContactCount());
+  m_stack.resize(scene->BodyCount());
+  m_constraints.reserve(contactManager->ContactCount());
+  m_constraintStates.reserve(contactManager->ContactCount());
 
   // Build each active island and then solve each built island
-  int stackSize = scene->BodyCount();
-  m_stack.resize(stackSize);
   for (auto seed : *scene) {
-    // Seed cannot be apart of an island already
-    if (seed->HasFlag(q3BodyFlags::eIsland))
-      continue;
-
-    // Seed must be awake
-    if (!seed->HasFlag(q3BodyFlags::eAwake))
-      continue;
-
-    // Seed cannot be a static body in order to keep islands
-    // as small as possible
-    if (seed->HasFlag(q3BodyFlags::eStatic))
-      continue;
-
-    int stackCount = 0;
-    m_stack[stackCount++] = seed;
-    m_bodies.clear();
-    m_contacts.clear();
-
-    // Mark seed as apart of island
-    seed->AddFlag(q3BodyFlags::eIsland);
-
-    // Perform DFS on constraint graph
-    while (stackCount > 0) {
-      // Decrement stack to implement iterative backtracking
-      q3Body *body = m_stack[--stackCount];
-      Add(body);
-
-      // Awaken all bodies connected to the island
-      body->SetToAwake();
-
-      // Do not search across static bodies to keep island
-      // formations as small as possible, however the static
-      // body itself should be apart of the island in order
-      // to properly represent a full contact
-      if (body->HasFlag(q3BodyFlags::eStatic))
-        continue;
-
-      // Search all contacts connected to this body
-      for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;
-           edge = edge->next) {
-        q3ContactConstraint *contact = edge->constraint;
-
-        // Skip contacts that have been added to an island already
-        if (contact->HasFlag(q3ContactConstraintFlags::eIsland))
-          continue;
-
-        // Can safely skip this contact if it didn't actually collide with
-        // anything
-        if (!contact->HasFlag(q3ContactConstraintFlags::eColliding))
-          continue;
-
-        // Skip sensors
-        if (contact->A->Sensor() || contact->B->Sensor())
-          continue;
-
-        // Mark island flag and add to island
-        contact->AddFlag(q3ContactConstraintFlags::eIsland);
-        Add(contact);
-
-        // Attempt to add the other body in the contact to the island
-        // to simulate contact awakening propogation
-        q3Body *other = edge->other;
-        if (other->HasFlag(q3BodyFlags::eIsland))
-          continue;
-
-        assert(stackCount < stackSize);
-
-        m_stack[stackCount++] = other;
-        other->AddFlag(q3BodyFlags::eIsland);
-      }
-    }
-
-    assert(m_bodies.size() != 0);
-
-    Initialize();
-    Solve(env);
-
-    // Reset all static island flags
-    // This allows static bodies to participate in other island formations
-    for (auto body : m_bodies) {
-      if (body->HasFlag(q3BodyFlags::eStatic))
-        body->RemoveFlag(q3BodyFlags::eIsland);
-    }
+    Process(env, seed, contactManager);
   }
 
   // Update the broadphase AABBs
@@ -185,6 +102,93 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
   // Clear all forces
   for (auto body : *scene) {
     body->ClearForce();
+  }
+}
+
+void q3Island::Process(const q3Env &env, q3Body *seed,
+                       class q3ContactManager *contactManager) {
+  // Seed cannot be apart of an island already
+  if (seed->HasFlag(q3BodyFlags::eIsland))
+    return;
+
+  // Seed must be awake
+  if (!seed->HasFlag(q3BodyFlags::eAwake))
+    return;
+
+  // Seed cannot be a static body in order to keep islands
+  // as small as possible
+  if (seed->HasFlag(q3BodyFlags::eStatic))
+    return;
+
+  // Mark seed as apart of island
+  seed->AddFlag(q3BodyFlags::eIsland);
+
+  int stackCount = 0;
+  m_stack[stackCount++] = seed;
+  m_bodies.clear();
+  m_constraints.clear();
+
+  // Perform DFS on constraint graph
+  while (stackCount > 0) {
+    // Decrement stack to implement iterative backtracking
+    q3Body *body = m_stack[--stackCount];
+    AddBody(body);
+
+    // Awaken all bodies connected to the island
+    body->SetToAwake();
+
+    // Do not search across static bodies to keep island
+    // formations as small as possible, however the static
+    // body itself should be apart of the island in order
+    // to properly represent a full contact
+    if (body->HasFlag(q3BodyFlags::eStatic))
+      continue;
+
+    // Search all contacts connected to this body
+    for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;
+         edge = edge->next) {
+      q3ContactConstraint *contact = edge->constraint;
+
+      // Skip contacts that have been added to an island already
+      if (contact->HasFlag(q3ContactConstraintFlags::eIsland))
+        continue;
+
+      // Can safely skip this contact if it didn't actually collide with
+      // anything
+      if (!contact->HasFlag(q3ContactConstraintFlags::eColliding))
+        continue;
+
+      // Skip sensors
+      if (contact->A->Sensor() || contact->B->Sensor())
+        continue;
+
+      // Mark island flag and add to island
+      contact->AddFlag(q3ContactConstraintFlags::eIsland);
+      AddConstraint(contact);
+
+      // Attempt to add the other body in the contact to the island
+      // to simulate contact awakening propogation
+      q3Body *other = edge->other;
+      if (other->HasFlag(q3BodyFlags::eIsland))
+        continue;
+
+      assert(stackCount < m_stack.size());
+
+      m_stack[stackCount++] = other;
+      other->AddFlag(q3BodyFlags::eIsland);
+    }
+  }
+
+  assert(m_bodies.size() != 0);
+
+  Initialize();
+  Solve(env);
+
+  // Reset all static island flags
+  // This allows static bodies to participate in other island formations
+  for (auto body : m_bodies) {
+    if (body->HasFlag(q3BodyFlags::eStatic))
+      body->RemoveFlag(q3BodyFlags::eIsland);
   }
 }
 
@@ -232,26 +236,12 @@ void q3Island::Solve(const q3Env &env) {
   }
 }
 
-//--------------------------------------------------------------------------------------------------
-void q3Island::Add(q3Body *body) {
-  body->SetIslandIndex(m_bodies.size());
-  m_bodies.push_back(body);
-  m_velocities.push_back({});
-}
-
-//--------------------------------------------------------------------------------------------------
-void q3Island::Add(q3ContactConstraint *contact) {
-  m_contacts.push_back(contact);
-  m_contactStates.push_back({});
-}
-
-//--------------------------------------------------------------------------------------------------
 void q3Island::Initialize() {
   rmt_ScopedCPUSample(q3IslandInitialize, 0);
 
-  for (int i = 0; i < m_contacts.size(); ++i) {
-    q3ContactConstraint *cc = m_contacts[i];
-    q3ContactConstraintState *c = &m_contactStates[i];
+  for (int i = 0; i < m_constraints.size(); ++i) {
+    q3ContactConstraint *cc = m_constraints[i];
+    q3ContactConstraintState *c = &m_constraintStates[i];
 
     c->A = cc->bodyA->State();
     c->B = cc->bodyB->State();

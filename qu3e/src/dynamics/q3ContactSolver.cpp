@@ -34,8 +34,8 @@ distribution.
 
 q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
   m_island = island;
-  m_contactCount = island->m_contacts.size();
-  m_contacts = island->m_contactStates.data();
+  m_contactCount = island->m_constraints.size();
+  m_contacts = island->m_constraintStates.data();
   m_velocities = m_island->m_velocities.data();
   m_enableFriction = env.m_enableFriction;
 
@@ -106,7 +106,7 @@ q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
 q3ContactSolver::~q3ContactSolver(void) {
   for (int i = 0; i < m_contactCount; ++i) {
     q3ContactConstraintState *c = m_contacts + i;
-    q3ContactConstraint *cc = m_island->m_contacts[i];
+    q3ContactConstraint *cc = m_island->m_constraints[i];
 
     for (int j = 0; j < c->contactCount; ++j) {
       q3Contact *oc = cc->manifold.contacts + j;
