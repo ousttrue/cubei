@@ -47,7 +47,6 @@ App::App(GLFWwindow *window) {
   scene_.reset(new q3Scene);
   broadPhase_.reset(new q3BroadPhase);
   contactManager_.reset(new q3ContactManager);
-  island_.reset(new q3Island);
   scene_->OnBodyAdd = [](q3Body *body) {
 
   };
@@ -175,13 +174,13 @@ void App::Frame(int w, int h) {
   {
     rmt_ScopedCPUSample(Qu3eStep, 0);
     if (!paused_) {
-      island_->Step(env_, scene_.get(), broadPhase_.get(),
+      q3TimeStep(env_, scene_.get(), broadPhase_.get(),
                     contactManager_.get());
       demos_[currentDemo_]->Update(scene_.get(), delta, broadPhase_.get(),
                                    contactManager_.get());
     } else {
       if (singleStep_) {
-        island_->Step(env_, scene_.get(), broadPhase_.get(),
+        q3TimeStep(env_, scene_.get(), broadPhase_.get(),
                       contactManager_.get());
         demos_[currentDemo_]->Update(scene_.get(), DELTA, broadPhase_.get(),
                                      contactManager_.get());

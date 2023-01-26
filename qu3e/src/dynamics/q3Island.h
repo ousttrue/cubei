@@ -33,24 +33,13 @@ distribution.
 #include <unordered_map>
 #include <vector>
 
-class q3Island {
-  std::vector<class q3Body *> m_stack;
-
-public:
+struct q3Island {
   std::unordered_map<class q3Body *, q3VelocityState> m_bodies;
   std::vector<
       std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
       m_constraints;
 
-  // Run the simulation forward in time by dt (fixed timestep). Variable
-  // timestep is not supported.
-  void Step(const q3Env &env, class q3Scene *scene,
-            class q3BroadPhase *broadPhase,
-            class q3ContactManager *contactManager);
-
-private:
-  void Process(const q3Env &env, q3Body *seed,
-               class q3ContactManager *contactManager);
+  q3Island(q3Body *seed, class q3ContactManager *contactManager);
+  ~q3Island();
   void Solve(const q3Env &env);
-  void Initialize();
 };

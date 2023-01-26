@@ -32,7 +32,7 @@ distribution.
 #include "dynamics/q3Contact.h"
 #include "dynamics/q3ContactConstraint.h"
 #include "dynamics/q3ContactManager.h"
-#include "dynamics/q3Island.h"
+#include "dynamics/q3TimeStep.h"
 #include "math/q3Mat3.h"
 #include "math/q3Math.h"
 #include "math/q3Quaternion.h"
