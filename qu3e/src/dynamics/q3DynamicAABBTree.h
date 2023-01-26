@@ -28,9 +28,9 @@ distribution.
 #pragma once
 #include "../math/q3Geometry.h"
 #include "../math/q3Math.h"
+#include <functional>
 #include <q3Render.h>
 #include <vector>
-#include <functional>
 
 //--------------------------------------------------------------------------------------------------
 // q3DynamicAABBTree
@@ -175,7 +175,8 @@ public:
     }
   }
 
-  void QueryRay(const std::function<bool(int)> &cb, q3RaycastData &rayCast) const {
+  void QueryRay(const std::function<bool(int)> &cb,
+                q3RaycastData &rayCast) const {
     const float k_epsilon = float(1.0e-6);
     const int k_stackCapacity = 256;
     int stack[k_stackCapacity];
@@ -340,8 +341,8 @@ private:
         C->right = iF;
         A->right = iG;
         G->parent = iA;
-        A->aabb = q3Combine(B->aabb, G->aabb);
-        C->aabb = q3Combine(A->aabb, F->aabb);
+        A->aabb = B->aabb.Combine(G->aabb);
+        C->aabb = A->aabb.Combine(F->aabb);
 
         A->height = 1 + std::max(B->height, G->height);
         C->height = 1 + std::max(A->height, F->height);
@@ -351,8 +352,8 @@ private:
         C->right = iG;
         A->right = iF;
         F->parent = iA;
-        A->aabb = q3Combine(B->aabb, F->aabb);
-        C->aabb = q3Combine(A->aabb, G->aabb);
+        A->aabb = B->aabb.Combine(F->aabb);
+        C->aabb = A->aabb.Combine(G->aabb);
 
         A->height = 1 + std::max(B->height, F->height);
         C->height = 1 + std::max(A->height, G->height);
@@ -389,8 +390,8 @@ private:
         B->left = iD;
         A->left = iE;
         E->parent = iA;
-        A->aabb = q3Combine(C->aabb, E->aabb);
-        B->aabb = q3Combine(A->aabb, D->aabb);
+        A->aabb = C->aabb.Combine(E->aabb);
+        B->aabb = A->aabb.Combine(D->aabb);
 
         A->height = 1 + std::max(C->height, E->height);
         B->height = 1 + std::max(A->height, D->height);
@@ -400,8 +401,8 @@ private:
         B->left = iE;
         A->left = iD;
         D->parent = iA;
-        A->aabb = q3Combine(C->aabb, D->aabb);
-        B->aabb = q3Combine(A->aabb, E->aabb);
+        A->aabb = C->aabb.Combine(D->aabb);
+        B->aabb = A->aabb.Combine(E->aabb);
 
         A->height = 1 + std::max(C->height, D->height);
         B->height = 1 + std::max(A->height, E->height);
@@ -426,7 +427,7 @@ private:
     while (!m_nodes[searchIndex].IsLeaf()) {
       // Cost for insertion at index (branch node), involves creation
       // of new branch to contain this index and the new leaf
-      q3AABB combined = q3Combine(leafAABB, m_nodes[searchIndex].aabb);
+      q3AABB combined = leafAABB.Combine(m_nodes[searchIndex].aabb);
       float combinedArea = combined.SurfaceArea();
       float branchCost = float(2.0) * combinedArea;
 
@@ -444,10 +445,9 @@ private:
       float leftDescentCost;
       if (m_nodes[left].IsLeaf())
         leftDescentCost =
-            q3Combine(leafAABB, m_nodes[left].aabb).SurfaceArea() +
-            inheritedCost;
+            leafAABB.Combine(m_nodes[left].aabb).SurfaceArea() + inheritedCost;
       else {
-        float inflated = q3Combine(leafAABB, m_nodes[left].aabb).SurfaceArea();
+        float inflated = leafAABB.Combine(m_nodes[left].aabb).SurfaceArea();
         float branchArea = m_nodes[left].aabb.SurfaceArea();
         leftDescentCost = inflated - branchArea + inheritedCost;
       }
@@ -456,10 +456,9 @@ private:
       float rightDescentCost;
       if (m_nodes[right].IsLeaf())
         rightDescentCost =
-            q3Combine(leafAABB, m_nodes[right].aabb).SurfaceArea() +
-            inheritedCost;
+            leafAABB.Combine(m_nodes[right].aabb).SurfaceArea() + inheritedCost;
       else {
-        float inflated = q3Combine(leafAABB, m_nodes[right].aabb).SurfaceArea();
+        float inflated = leafAABB.Combine(m_nodes[right].aabb).SurfaceArea();
         float branchArea = m_nodes[right].aabb.SurfaceArea();
         rightDescentCost = inflated - branchArea + inheritedCost;
       }
@@ -482,7 +481,7 @@ private:
     int newParent = AllocateNode();
     m_nodes[newParent].parent = oldParent;
     m_nodes[newParent].userData = {};
-    m_nodes[newParent].aabb = q3Combine(leafAABB, m_nodes[sibling].aabb);
+    m_nodes[newParent].aabb = leafAABB.Combine(m_nodes[sibling].aabb);
     m_nodes[newParent].height = m_nodes[sibling].height + 1;
 
     // Sibling was root
@@ -618,7 +617,7 @@ private:
       int right = m_nodes[index].right;
       m_nodes[index].height =
           1 + std::max(m_nodes[left].height, m_nodes[right].height);
-      m_nodes[index].aabb = q3Combine(m_nodes[left].aabb, m_nodes[right].aabb);
+      m_nodes[index].aabb = m_nodes[left].aabb.Combine(m_nodes[right].aabb);
       index = m_nodes[index].parent;
     }
   }

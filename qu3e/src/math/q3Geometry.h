@@ -25,9 +25,7 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3GEOMETRY_H
-#define Q3GEOMETRY_H
-
+#pragma once
 #include "../math/q3Math.h"
 
 //--------------------------------------------------------------------------------------------------
@@ -37,9 +35,21 @@ struct q3AABB {
   q3Vec3 min;
   q3Vec3 max;
 
-  bool Contains(const q3AABB &other) const;
-  bool Contains(const q3Vec3 &point) const;
-  float SurfaceArea() const;
+  bool Contains(const q3AABB &other) const {
+    return min.x <= other.min.x && min.y <= other.min.y &&
+           min.z <= other.min.z && max.x >= other.max.x &&
+           max.y >= other.max.y && max.z >= other.max.z;
+  }
+  bool Contains(const q3Vec3 &point) const {
+    return min.x <= point.x && min.y <= point.y && min.z <= point.z &&
+           max.x >= point.x && max.y >= point.y && max.z >= point.z;
+  }
+  float SurfaceArea() const {
+    float x = max.x - min.x;
+    float y = max.y - min.y;
+    float z = max.z - min.z;
+    return float(2.0) * (x * y + x * z + y * z);
+  }
 
   bool IsOverlapped(const q3AABB &b) const {
     if (max.x < b.min.x || min.x > b.max.x)
@@ -52,6 +62,22 @@ struct q3AABB {
       return false;
 
     return true;
+  }
+  q3AABB Combine(const q3AABB &b) const {
+    return {
+        .min =
+            {
+                std::min(min.x, b.min.x),
+                std::min(min.y, b.min.y),
+                std::min(min.z, b.min.z),
+            },
+        .max =
+            {
+                std::max(max.x, b.max.x),
+                std::max(max.y, b.max.y),
+                std::max(max.z, b.max.z),
+            },
+    };
   }
 };
 
@@ -84,12 +110,16 @@ struct q3RaycastData {
   q3Vec3 normal; // Surface normal at impact
 
   void Set(const q3Vec3 &startPoint, const q3Vec3 &direction,
-           float endPointTime);
+           float endPointTime) {
+    start = startPoint;
+    dir = direction;
+    t = endPointTime;
+  }
 
   // Uses toi, start and dir to compute the point at toi. Should
   // only be called after a raycast has been conducted with a
   // return value of true.
-  const q3Vec3 GetImpactPoint() const;
+  q3Vec3 GetImpactPoint() const { return q3Vec3(start + dir * toi); }
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -111,63 +141,3 @@ inline void q3ComputeBasis(const q3Vec3 &a, q3Vec3 *__restrict b,
   *b = b->Normalized();
   *c = q3Cross(a, *b);
 }
-
-//--------------------------------------------------------------------------------------------------
-// q3AABB
-//--------------------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------------------
-inline bool q3AABB::Contains(const q3AABB &other) const {
-  return min.x <= other.min.x && min.y <= other.min.y && min.z <= other.min.z &&
-         max.x >= other.max.x && max.y >= other.max.y && max.z >= other.max.z;
-}
-
-//--------------------------------------------------------------------------------------------------
-inline bool q3AABB::Contains(const q3Vec3 &point) const {
-  return min.x <= point.x && min.y <= point.y && min.z <= point.z &&
-         max.x >= point.x && max.y >= point.y && max.z >= point.z;
-}
-
-//--------------------------------------------------------------------------------------------------
-inline float q3AABB::SurfaceArea() const {
-  float x = max.x - min.x;
-  float y = max.y - min.y;
-  float z = max.z - min.z;
-
-  return float(2.0) * (x * y + x * z + y * z);
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3AABB q3Combine(const q3AABB &a, const q3AABB &b) {
-  return {
-      .min =
-          {
-              std::min(a.min.x, b.min.x),
-              std::min(a.min.y, b.min.y),
-              std::min(a.min.z, b.min.z),
-          },
-      .max =
-          {
-              std::max(a.max.x, b.max.x),
-              std::max(a.max.y, b.max.y),
-              std::max(a.max.z, b.max.z),
-          },
-  };
-}
-
-//--------------------------------------------------------------------------------------------------
-// q3RaycastData
-//--------------------------------------------------------------------------------------------------
-inline void q3RaycastData::Set(const q3Vec3 &startPoint,
-                               const q3Vec3 &direction, float endPointTime) {
-  start = startPoint;
-  dir = direction;
-  t = endPointTime;
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Vec3 q3RaycastData::GetImpactPoint() const {
-  return q3Vec3(start + dir * toi);
-}
-
-#endif // Q3GEOMETRY_H
