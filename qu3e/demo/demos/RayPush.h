@@ -47,7 +47,7 @@ public:
 
   void Init(const q3Vec3 &spot, const q3Vec3 &dir) {
     data.start = spot;
-    data.dir = q3Normalize(dir);
+    data.dir = dir.Normalized();
     data.t = float(10000.0);
     tfinal = FLT_MAX;
     data.toi = data.t;

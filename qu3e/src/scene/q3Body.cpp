@@ -36,7 +36,7 @@ distribution.
 q3Body::q3Body(const q3BodyDef &def) {
   m_linearVelocity = def.linearVelocity;
   m_angularVelocity = def.angularVelocity;
-  m_q = q3Quaternion::FromAxisAngle(q3Normalize(def.axis), def.angle);
+  m_q = q3Quaternion::FromAxisAngle(def.axis.Normalized(), def.angle);
   m_tx.rotation = m_q.ToMat3();
   m_tx.position = def.position;
   m_gravityScale = def.gravityScale;

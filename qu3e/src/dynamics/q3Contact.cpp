@@ -76,7 +76,7 @@ inline bool q3TrackEdgeAxis(int *axis, int n, float s, float *sMax,
   if (s > float(0.0))
     return true;
 
-  float l = float(1.0) / q3Length(normal);
+  float l = float(1.0) / normal.Length();
   s *= l;
 
   if (s > *sMax) {

@@ -107,6 +107,18 @@ struct q3Vec3 {
   }
   const q3Vec3 operator*(float f) const { return {x * f, y * f, z * f}; }
   const q3Vec3 operator/(float f) const { return {x / f, y / f, z / f}; }
+
+  float Length() const { return std::sqrt(x * x + y * y + z * z); }
+  float LengthSq() const { return x * x + y * y + z * z; }
+  q3Vec3 Normalized() const {
+    float l = Length();
+    if (l == 0) {
+      return *this;
+    }
+
+    float inv = float(1.0) / l;
+    return *this * inv;
+  }
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -116,12 +128,10 @@ inline const q3Vec3 q3Mul(const q3Vec3 &a, const q3Vec3 &b) {
   return {a.x * b.x, a.y * b.y, a.z * b.z};
 }
 
-//--------------------------------------------------------------------------------------------------
 inline float q3Dot(const q3Vec3 &a, const q3Vec3 &b) {
   return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-//--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Cross(const q3Vec3 &a, const q3Vec3 &b) {
   return {
       (a.y * b.z) - (b.y * a.z),
@@ -131,26 +141,6 @@ inline const q3Vec3 q3Cross(const q3Vec3 &a, const q3Vec3 &b) {
 }
 
 //--------------------------------------------------------------------------------------------------
-inline float q3Length(const q3Vec3 &v) {
-  return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-}
-
-//--------------------------------------------------------------------------------------------------
-inline float q3LengthSq(const q3Vec3 &v) {
-  return v.x * v.x + v.y * v.y + v.z * v.z;
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Vec3 q3Normalize(const q3Vec3 &v) {
-  float l = q3Length(v);
-
-  if (l != float(0.0)) {
-    float inv = float(1.0) / l;
-    return v * inv;
-  }
-
-  return v;
-}
 
 //--------------------------------------------------------------------------------------------------
 inline float q3Distance(const q3Vec3 &a, const q3Vec3 &b) {

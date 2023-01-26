@@ -182,7 +182,7 @@ void q3Box::Render(const q3Transform &tx, bool awake, q3Render *render) const {
     q3Vec3 b = world * vertices[kBoxIndices[i + 1]];
     q3Vec3 c = world * vertices[kBoxIndices[i + 2]];
 
-    q3Vec3 n = q3Normalize(q3Cross(b - a, c - a));
+    q3Vec3 n = q3Cross(b - a, c - a).Normalized();
 
     // render->SetPenColor( 0.2f, 0.4f, 0.7f, 0.5f );
     // render->SetPenPosition( a.x, a.y, a.z );

@@ -97,7 +97,7 @@ inline void q3ComputeBasis(const q3Vec3 &a, q3Vec3 *__restrict b,
   else
     b->Set(float(0.0), a.z, -a.y);
 
-  *b = q3Normalize(*b);
+  *b = b->Normalized();
   *c = q3Cross(a, *b);
 }
 
