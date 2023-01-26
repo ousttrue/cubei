@@ -33,7 +33,7 @@ q3Box::q3Box(const q3BoxDef &def) : def_(def) {}
 
 bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
   q3Transform world = q3Mul(tx, def_.m_tx);
-  q3Vec3 p0 = q3Mul(world.Inversed(), p);
+  q3Vec3 p0 = world.Inversed() * p;
 
   for (int i = 0; i < 3; ++i) {
     float d = p0[i];
@@ -51,7 +51,7 @@ bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
 bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
   q3Transform world = q3Mul(tx, def_.m_tx);
   q3Vec3 d = q3MulT(world.rotation, raycast->dir);
-  q3Vec3 p = q3Mul(world.Inversed(), raycast->start);
+  q3Vec3 p = world.Inversed() * raycast->start;
   const float epsilon = float(1.0e-8);
   float tmin = 0;
   float tmax = raycast->t;
@@ -113,7 +113,7 @@ void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
                  q3Vec3{def_.m_e.x, def_.m_e.y, def_.m_e.z}};
 
   for (int i = 0; i < 8; ++i)
-    v[i] = q3Mul(world, v[i]);
+    v[i] = world * v[i];
 
   q3Vec3 min{Q3_R32_MAX, Q3_R32_MAX, Q3_R32_MAX};
   q3Vec3 max{-Q3_R32_MAX, -Q3_R32_MAX, -Q3_R32_MAX};
@@ -178,9 +178,9 @@ void q3Box::Render(const q3Transform &tx, bool awake, q3Render *render) const {
                         {def_.m_e.x, def_.m_e.y, def_.m_e.z}};
 
   for (int i = 0; i < 36; i += 3) {
-    q3Vec3 a = q3Mul(world, vertices[kBoxIndices[i]]);
-    q3Vec3 b = q3Mul(world, vertices[kBoxIndices[i + 1]]);
-    q3Vec3 c = q3Mul(world, vertices[kBoxIndices[i + 2]]);
+    q3Vec3 a = world * vertices[kBoxIndices[i]];
+    q3Vec3 b = world * vertices[kBoxIndices[i + 1]];
+    q3Vec3 c = world * vertices[kBoxIndices[i + 2]];
 
     q3Vec3 n = q3Normalize(q3Cross(b - a, c - a));
 

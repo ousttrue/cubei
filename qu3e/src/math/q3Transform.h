@@ -45,14 +45,15 @@ struct q3Transform {
         inv,
     };
   }
+
+  q3Vec3 operator*(const q3Vec3 &v) const {
+    return q3Vec3(rotation * v + position);
+  }
 };
 
 //--------------------------------------------------------------------------------------------------
 // q3Transform
 //--------------------------------------------------------------------------------------------------
-inline const q3Vec3 q3Mul(const q3Transform &tx, const q3Vec3 &v) {
-  return q3Vec3(tx.rotation * v + tx.position);
-}
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3Mul(const q3Transform &tx, const q3Vec3 &scale,
@@ -82,7 +83,7 @@ inline const q3Transform q3Mul(const q3Transform &t, const q3Transform &u) {
 //--------------------------------------------------------------------------------------------------
 inline const q3HalfSpace q3Mul(const q3Transform &tx, const q3HalfSpace &p) {
   q3Vec3 origin = p.Origin();
-  origin = q3Mul(tx, origin);
+  origin = tx * origin;
   q3Vec3 normal = q3Mul(tx.rotation, p.normal);
 
   return q3HalfSpace(normal, q3Dot(origin, normal));
@@ -119,7 +120,7 @@ inline const q3Transform q3MulT(const q3Transform &t, const q3Transform &u) {
 //--------------------------------------------------------------------------------------------------
 inline const q3HalfSpace q3MulT(const q3Transform &tx, const q3HalfSpace &p) {
   q3Vec3 origin = p.normal * p.distance;
-  origin = q3Mul(tx.Inversed(), origin);
+  origin = tx.Inversed() * origin;
   q3Vec3 n = q3MulT(tx.rotation, p.normal);
   return q3HalfSpace(n, q3Dot(origin, n));
 }

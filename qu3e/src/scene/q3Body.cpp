@@ -201,7 +201,7 @@ void q3Body::CalculateMassData() {
   }
 
   m_localCenter = lc;
-  m_state.m_worldCenter = q3Mul(m_tx, lc);
+  m_state.m_worldCenter = m_tx * lc;
 }
 
 void q3Body::Render(q3Render *render) const {

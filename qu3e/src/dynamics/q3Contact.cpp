@@ -283,7 +283,7 @@ void q3ComputeIncidentFace(const q3Transform &itx, const q3Vec3 &e, q3Vec3 n,
   }
 
   for (int i = 0; i < 4; ++i)
-    out[i].v = q3Mul(itx, out[i].v);
+    out[i].v = itx * out[i].v;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -461,8 +461,8 @@ void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
   b.y *= signy;
   b.z *= signz;
 
-  *aOut = q3Mul(tx, a);
-  *bOut = q3Mul(tx, b);
+  *aOut = tx * a;
+  *bOut = tx * b;
 }
 
 //--------------------------------------------------------------------------------------------------
