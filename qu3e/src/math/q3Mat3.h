@@ -27,6 +27,7 @@ distribution.
 
 #pragma once
 #include "q3Vec3.h"
+
 struct q3Mat3 {
   q3Vec3 ex = {1, 0, 0};
   q3Vec3 ey = {0, 1, 0};

@@ -200,7 +200,7 @@ void q3Island::Solve(const q3Env &env) {
 
   if (env.m_allowSleep) {
     // Find minimum sleep time of the entire island
-    float minSleepTime = Q3_R32_MAX;
+    float minSleepTime = std::numeric_limits<float>::max();
     for (auto body : m_bodies) {
       body->Sleep(env, &minSleepTime);
     }

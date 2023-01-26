@@ -26,11 +26,11 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../math/q3Math.h"
 #include "../math/q3Transform.h"
 #include <functional>
 #include <list>
 #include <stdio.h>
+#include <assert.h>
 
 class q3Scene;
 struct q3BoxDef;

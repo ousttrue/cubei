@@ -27,6 +27,7 @@ distribution.
 
 #include "q3Contact.h"
 #include "../scene/q3Body.h"
+#include "../math/q3Math.h"
 
 //--------------------------------------------------------------------------------------------------
 // q3Contact
@@ -510,9 +511,9 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
 
   // Query states
   float s;
-  float aMax = -Q3_R32_MAX;
-  float bMax = -Q3_R32_MAX;
-  float eMax = -Q3_R32_MAX;
+  float aMax = -std::numeric_limits<float>::max();
+  float bMax = -std::numeric_limits<float>::max();
+  float eMax = -std::numeric_limits<float>::max();
   int aAxis = ~0;
   int bAxis = ~0;
   int eAxis = ~0;

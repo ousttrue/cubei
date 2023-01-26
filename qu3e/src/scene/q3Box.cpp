@@ -26,7 +26,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3Box.h"
-#include "../math/q3Vec3.h"
+#include "../math/q3Math.h"
 #include <q3Render.h>
 
 q3Box::q3Box(const q3BoxDef &def) : def_(def) {}
@@ -100,7 +100,7 @@ bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
 }
 
 //--------------------------------------------------------------------------------------------------
-void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
+q3AABB q3Box::ComputeAABB(const q3Transform &tx) const {
   q3Transform world = tx * def_.m_tx;
 
   q3Vec3 v[8] = {q3Vec3{-def_.m_e.x, -def_.m_e.y, -def_.m_e.z},
@@ -115,8 +115,12 @@ void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
   for (int i = 0; i < 8; ++i)
     v[i] = world * v[i];
 
-  q3Vec3 min{Q3_R32_MAX, Q3_R32_MAX, Q3_R32_MAX};
-  q3Vec3 max{-Q3_R32_MAX, -Q3_R32_MAX, -Q3_R32_MAX};
+  q3Vec3 min{std::numeric_limits<float>::max(),
+             std::numeric_limits<float>::max(),
+             std::numeric_limits<float>::max()};
+  q3Vec3 max{-std::numeric_limits<float>::max(),
+             -std::numeric_limits<float>::max(),
+             -std::numeric_limits<float>::max()};
 
   for (int i = 0; i < 8; ++i) {
     min = {
@@ -131,8 +135,10 @@ void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
     };
   }
 
-  aabb->min = min;
-  aabb->max = max;
+  return {
+      min,
+      max,
+  };
 }
 
 std::optional<q3MassData> q3Box::ComputeMass() const {

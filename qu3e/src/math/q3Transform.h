@@ -26,7 +26,8 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../math/q3Geometry.h"
+#include "q3Mat3.h"
+#include "q3Quaternion.h"
 
 struct q3Transform {
   q3Vec3 position = {};

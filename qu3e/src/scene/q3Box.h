@@ -27,8 +27,9 @@ distribution.
 
 #pragma once
 #include "../math/q3Mat3.h"
+#include "../math/q3Raycast.h"
 #include "../math/q3Transform.h"
-#include "../math/q3Vec3.h"
+#include "../math/q3AABB.h"
 #include <optional>
 
 struct q3MassData {
@@ -64,7 +65,7 @@ public:
   int BroadPhaseIndex() const { return broadPhaseIndex_; }
   bool TestPoint(const q3Transform &tx, const q3Vec3 &p) const;
   bool Raycast(const q3Transform &tx, q3RaycastData *raycast) const;
-  void ComputeAABB(const q3Transform &tx, q3AABB *aabb) const;
+  q3AABB ComputeAABB(const q3Transform &tx) const;
   std::optional<q3MassData> ComputeMass() const;
   void Render(const q3Transform &tx, bool awake, class q3Render *render) const;
   void Dump(FILE *file, int index) const;

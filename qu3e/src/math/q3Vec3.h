@@ -154,3 +154,24 @@ inline float q3DistanceSq(const q3Vec3 &a, const q3Vec3 &b) {
 inline const q3Vec3 operator*(float f, const q3Vec3 &rhs) {
   return {rhs.x * f, rhs.y * f, rhs.z * f};
 }
+
+inline const q3Vec3 q3Lerp(const q3Vec3 &a, const q3Vec3 &b, float t) {
+  return a * (float(1.0) - t) + b * t;
+}
+
+// http://box2d.org/2014/02/computing-a-basis/
+inline void q3ComputeBasis(const q3Vec3 &a, q3Vec3 *__restrict b,
+                           q3Vec3 *__restrict c) {
+  // Suppose vector a has all equal components and is a unit vector: a = (s, s,
+  // s) Then 3*s*s = 1, s = sqrt(1/3) = 0.57735027. This means that at least one
+  // component of a unit vector must be greater or equal to 0.57735027. Can use
+  // SIMD select operation.
+
+  if (std::abs(a.x) >= float(0.57735027))
+    b->Set(a.y, -a.x, float(0.0));
+  else
+    b->Set(float(0.0), a.z, -a.y);
+
+  *b = b->Normalized();
+  *c = q3Cross(a, *b);
+}

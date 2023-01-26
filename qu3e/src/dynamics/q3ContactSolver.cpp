@@ -26,13 +26,12 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3ContactSolver.h"
-#include "../math/q3Geometry.h"
 #include "../scene/q3Body.h"
 #include "q3Contact.h"
 #include "q3Island.h"
 
-#define Q3_BAUMGARTE float( 0.2 )
-#define Q3_PENETRATION_SLOP float( 0.05 )
+#define Q3_BAUMGARTE float(0.2)
+#define Q3_PENETRATION_SLOP float(0.05)
 
 //--------------------------------------------------------------------------------------------------
 // q3ContactSolver

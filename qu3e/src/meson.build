@@ -1,7 +1,6 @@
 qu3e_lib = static_library('qu3e', [
     'math/q3Mat3.cpp',
     'math/q3Quaternion.cpp',
-    'math/q3Geometry.cpp',
     'scene/q3Scene.cpp',
     'scene/q3Body.cpp',
     'scene/q3Box.cpp',

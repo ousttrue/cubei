@@ -25,10 +25,10 @@ distribution.
 */
 
 #include "q3BroadPhase.h"
-#include "../math/q3Geometry.h"
 #include "../scene/q3Body.h"
 #include "../scene/q3Box.h"
 #include <Remotery.h>
+#include <algorithm>
 
 q3BroadPhase::q3BroadPhase() {}
 
@@ -128,9 +128,7 @@ void q3BroadPhase::SynchronizeProxies(q3Body *body) {
   auto m_tx = body->UpdatePosition();
 
   for (auto box : *body) {
-    q3AABB aabb;
-    box->ComputeAABB(m_tx, &aabb);
-    Update(box->BroadPhaseIndex(), aabb);
+    Update(box->BroadPhaseIndex(), box->ComputeAABB(m_tx));
   }
 }
 
@@ -157,15 +155,10 @@ void q3BroadPhase::QueryAABB(
     const q3AABB &aabb) const {
   m_tree.QueryAABB(
       [broadPhase = this, cb, m_aabb = aabb](int id) {
-        q3AABB aabb;
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
-
-        box->ComputeAABB(body->GetTransform(), &aabb);
-
-        if (m_aabb.IsOverlapped(aabb)) {
+        if (m_aabb.IsOverlapped(box->ComputeAABB(body->GetTransform()))) {
           return cb(body, box);
         }
-
         return true;
       },
       aabb);

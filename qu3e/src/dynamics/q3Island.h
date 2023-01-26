@@ -25,18 +25,13 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3ISLAND_H
-#define Q3ISLAND_H
-
-#include "../math/q3Geometry.h"
+#pragma once
 #include "../math/q3Math.h"
 #include "../scene/q3Env.h"
 #include "q3ContactSolver.h"
 #include <list>
 #include <vector>
-//--------------------------------------------------------------------------------------------------
-// q3Island
-//--------------------------------------------------------------------------------------------------
+
 class q3Island {
   std::vector<class q3Body *> m_bodies;
   std::vector<class q3Body *> m_stack;
@@ -59,5 +54,3 @@ private:
   void Add(struct q3ContactConstraint *contact);
   void Initialize();
 };
-
-#endif // Q3ISLAND_H

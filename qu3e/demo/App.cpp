@@ -61,9 +61,7 @@ App::App(GLFWwindow *window) {
   };
   scene_->OnBoxAdd = [broadphase = broadPhase_.get()](q3Body *body,
                                                       q3Box *box) {
-    q3AABB aabb;
-    box->ComputeAABB(body->Transform(), &aabb);
-    broadphase->InsertBox(body, box, aabb);
+    broadphase->InsertBox(body, box, box->ComputeAABB(body->Transform()));
   };
   scene_->OnBoxRemove =
       [broadphase = broadPhase_.get(),
