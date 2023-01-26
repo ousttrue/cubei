@@ -78,10 +78,8 @@ void q3Island::Step(const q3Env &env, q3Scene *scene,
   }
 
   m_bodies.reserve(scene->BodyCount());
-  m_velocities.reserve(scene->BodyCount());
   m_stack.resize(scene->BodyCount());
   m_constraints.reserve(contactManager->ContactCount());
-  m_constraintStates.reserve(contactManager->ContactCount());
 
   // Build each active island and then solve each built island
   for (auto seed : *scene) {
@@ -186,7 +184,7 @@ void q3Island::Process(const q3Env &env, q3Body *seed,
 
   // Reset all static island flags
   // This allows static bodies to participate in other island formations
-  for (auto body : m_bodies) {
+  for (auto [body, _] : m_bodies) {
     if (body->HasFlag(q3BodyFlags::eStatic))
       body->RemoveFlag(q3BodyFlags::eIsland);
   }
@@ -197,31 +195,29 @@ void q3Island::Solve(const q3Env &env) {
 
   // Apply gravity
   // Integrate velocities and create state buffers, calculate world inertia
-  for (int i = 0; i < m_bodies.size(); ++i) {
-    q3Body *body = m_bodies[i];
-    body->Solve(env);
-    m_velocities[i] = body->VelocityState();
+  for (auto &[body, velocity] : m_bodies) {
+    velocity = body->Solve(env);
   }
 
   {
     // Create contact solver, pass in state buffers, create buffers for contacts
     // Initialize velocity constraint for normal + friction and warm start
     q3ContactSolver contactSolver(env, this);
-    for (int i = 0; i < env.m_iterations; ++i)
+    for (int i = 0; i < env.m_iterations; ++i) {
       contactSolver.Solve();
+    }
   }
 
   // Copy back state buffers
   // Integrate positions
-  for (int i = 0; i < m_bodies.size(); ++i) {
-    q3Body *body = m_bodies[i];
-    body->SetVelocityState(env, m_velocities[i]);
+  for (auto &[body, velocity] : m_bodies) {
+    body->SetVelocityState(env, velocity);
   }
 
   if (env.m_allowSleep) {
     // Find minimum sleep time of the entire island
     float minSleepTime = std::numeric_limits<float>::max();
-    for (auto body : m_bodies) {
+    for (auto &[body, velocity] : m_bodies) {
       body->Sleep(env, &minSleepTime);
     }
 
@@ -230,8 +226,9 @@ void q3Island::Solve(const q3Env &env) {
     // sleeping threshold, the entire island will be reformed next step
     // and sleep test will be tried again.
     if (minSleepTime > Q3_SLEEP_TIME) {
-      for (auto body : m_bodies)
+      for (auto &[body, velocity] : m_bodies) {
         body->SetToSleep();
+      }
     }
   }
 }
@@ -239,24 +236,21 @@ void q3Island::Solve(const q3Env &env) {
 void q3Island::Initialize() {
   rmt_ScopedCPUSample(q3IslandInitialize, 0);
 
-  for (int i = 0; i < m_constraints.size(); ++i) {
-    q3ContactConstraint *cc = m_constraints[i];
-    q3ContactConstraintState *c = &m_constraintStates[i];
-
-    c->A = cc->bodyA->State();
-    c->B = cc->bodyB->State();
-    c->restitution = cc->restitution;
-    c->friction = cc->friction;
-    c->normal = cc->manifold.normal;
-    c->tangentVectors[0] = cc->manifold.tangentVectors[0];
-    c->tangentVectors[1] = cc->manifold.tangentVectors[1];
-    c->contactCount = cc->manifold.contactCount;
+  for (auto &[cc, c] : m_constraints) {
+    c.A = cc->bodyA->State();
+    c.B = cc->bodyB->State();
+    c.restitution = cc->restitution;
+    c.friction = cc->friction;
+    c.normal = cc->manifold.normal;
+    c.tangentVectors[0] = cc->manifold.tangentVectors[0];
+    c.tangentVectors[1] = cc->manifold.tangentVectors[1];
+    c.contactCount = cc->manifold.contactCount;
 
     int j = 0;
-    for (auto &s : c->span()) {
+    for (auto &s : c.span()) {
       auto cp = &cc->manifold.contacts[j++];
-      s.ra = cp->position - c->A.m_worldCenter;
-      s.rb = cp->position - c->B.m_worldCenter;
+      s.ra = cp->position - c.A.m_worldCenter;
+      s.rb = cp->position - c.B.m_worldCenter;
       s.penetration = cp->penetration;
       s.normalImpulse = cp->normalImpulse;
       s.tangentImpulse[0] = cp->tangentImpulse[0];

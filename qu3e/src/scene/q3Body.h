@@ -27,10 +27,10 @@ distribution.
 
 #pragma once
 #include "../math/q3Transform.h"
+#include <assert.h>
 #include <functional>
 #include <list>
 #include <stdio.h>
-#include <assert.h>
 
 class q3Scene;
 struct q3BoxDef;
@@ -134,12 +134,12 @@ public:
   q3Body(const q3BodyDef &def);
   q3BodyState State() const { return m_state; }
   void SetIslandIndex(size_t index) { m_state.m_islandIndex = index; }
-  q3VelocityState VelocityState() const {
-    return {
-        .w = m_angularVelocity,
-        .v = m_linearVelocity,
-    };
-  }
+  // q3VelocityState VelocityState() const {
+  //   return {
+  //       .w = m_angularVelocity,
+  //       .v = m_linearVelocity,
+  //   };
+  // }
   q3Transform UpdatePosition() {
     m_tx.position = m_state.m_worldCenter - m_tx.rotation * m_localCenter;
     return m_tx;
@@ -214,20 +214,16 @@ public:
   bool IsAwake() const { return HasFlag(q3BodyFlags::eAwake) ? true : false; }
   float GetGravityScale() const { return m_gravityScale; }
   void SetGravityScale(float scale) { m_gravityScale = scale; }
-  const q3Vec3 GetLocalPoint(const q3Vec3 &p) const {
-    return m_tx.Inversed() * p;
-  }
-  const q3Vec3 GetLocalVector(const q3Vec3 &v) const {
+  q3Vec3 GetLocalPoint(const q3Vec3 &p) const { return m_tx.Inversed() * p; }
+  q3Vec3 GetLocalVector(const q3Vec3 &v) const {
     return m_tx.rotation.Transposed() * v;
   }
-  const q3Vec3 GetWorldPoint(const q3Vec3 &p) const { return m_tx * p; }
+  q3Vec3 GetWorldPoint(const q3Vec3 &p) const { return m_tx * p; }
   float GetMass() const { return m_mass; }
   float GetInvMass() const { return m_state.m_invMass; }
-  const q3Vec3 GetWorldVector(const q3Vec3 &v) const {
-    return m_tx.rotation * v;
-  }
-  const q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
-  const q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {
+  q3Vec3 GetWorldVector(const q3Vec3 &v) const { return m_tx.rotation * v; }
+  q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
+  q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {
     q3Vec3 directionToPoint = p - m_state.m_worldCenter;
     q3Vec3 relativeAngularVel = q3Cross(m_angularVelocity, directionToPoint);
 
@@ -292,7 +288,7 @@ public:
     OnTransformUpdated();
   }
 
-  void Solve(const struct q3Env &env);
+  q3VelocityState Solve(const struct q3Env &env);
 
   // Used for debug rendering lines, triangles and basic lighting
   void Render(class q3Render *render) const;

@@ -97,7 +97,7 @@ void q3Body::RemoveAllBoxes() {
   m_boxes.clear();
 }
 
-void q3Body::Solve(const q3Env &env) {
+q3VelocityState q3Body::Solve(const q3Env &env) {
   if (HasFlag(q3BodyFlags::eDynamic)) {
     ApplyLinearForce(env.m_gravity * m_gravityScale);
 
@@ -120,6 +120,11 @@ void q3Body::Solve(const q3Env &env) {
     m_angularVelocity *=
         float(1.0) / (float(1.0) + env.m_dt * m_angularDamping);
   }
+
+  return {
+      .w = m_angularVelocity,
+      .v = m_linearVelocity,
+  };
 }
 
 void q3Body::SetVelocityState(const q3Env &env, const q3VelocityState &v) {

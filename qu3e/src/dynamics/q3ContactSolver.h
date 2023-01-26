@@ -26,12 +26,9 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "q3ContactConstraintState.h"
+#include "../scene/q3Env.h"
 struct q3ContactSolver {
   class q3Island *m_island;
-  q3ContactConstraintState *m_contacts;
-  int m_contactCount;
-  q3VelocityState *m_velocities;
   bool m_enableFriction;
 
 public:
