@@ -482,7 +482,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
   q3Vec3 eB = b->Extent();
 
   // B's frame in A's space
-  q3Mat3 C = q3Transpose(atx.rotation) * btx.rotation;
+  q3Mat3 C = atx.rotation.Transposed() * btx.rotation;
 
   q3Mat3 absC;
   bool parallel = false;

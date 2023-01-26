@@ -35,7 +35,7 @@ struct q3Transform {
   q3Mat3 rotation = {};
 
   q3Transform Inversed() const {
-    auto inv = q3Transpose(rotation);
+    auto inv = rotation.Transposed();
     return {
         inv * -position,
         inv,
@@ -56,22 +56,13 @@ struct q3Transform {
 //--------------------------------------------------------------------------------------------------
 // q3Transform
 //--------------------------------------------------------------------------------------------------
-inline const q3HalfSpace q3Mul(const q3Transform &tx, const q3HalfSpace &p) {
-  q3Vec3 origin = p.Origin();
-  origin = tx * origin;
-  q3Vec3 normal = tx.rotation * p.normal;
-
-  return q3HalfSpace(normal, q3Dot(origin, normal));
-}
-
-//--------------------------------------------------------------------------------------------------
 inline const q3Vec3 q3MulT(const q3Mat3 &r, const q3Vec3 &v) {
-  return q3Transpose(r) * v;
+  return r.Transposed() * v;
 }
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Mat3 q3MulT(const q3Mat3 &r, const q3Mat3 &q) {
-  return q3Transpose(r) * q;
+  return r.Transposed() * q;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -93,7 +84,7 @@ inline const q3HalfSpace q3MulT(const q3Transform &tx, const q3HalfSpace &p) {
 //--------------------------------------------------------------------------------------------------
 inline const q3Transform q3Inverse(const q3Transform &tx) {
   q3Transform inverted;
-  inverted.rotation = q3Transpose(tx.rotation);
+  inverted.rotation = tx.rotation.Transposed();
   inverted.position = inverted.rotation * -tx.position;
   return inverted;
 }

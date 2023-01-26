@@ -28,7 +28,6 @@ distribution.
 #ifndef Q3MAT3_H
 #define Q3MAT3_H
 
-
 #include "q3Vec3.h"
 #include <cstring> // memset
 
@@ -62,21 +61,20 @@ struct q3Mat3 {
   const q3Mat3 operator*(float f) const;
   const q3Mat3 operator+(const q3Mat3 &rhs) const;
   const q3Mat3 operator-(const q3Mat3 &rhs) const;
+
+  q3Mat3 Transposed() const {
+    return {
+        {ex.x, ey.x, ez.x},
+        {ex.y, ey.y, ez.y},
+        {ex.z, ey.z, ez.z},
+    };
+  }
 };
 
 //--------------------------------------------------------------------------------------------------
 inline const q3Mat3 q3Rotate(const q3Vec3 &x, const q3Vec3 &y,
                              const q3Vec3 &z) {
   return {x, y, z};
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Transpose(const q3Mat3 &m) {
-  return {
-      {m.ex.x, m.ey.x, m.ez.x},
-      {m.ex.y, m.ey.y, m.ez.y},
-      {m.ex.z, m.ey.z, m.ez.z},
-  };
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -103,7 +103,7 @@ void q3Body::Solve(const q3Env &env) {
 
     // Calculate world space intertia tensor
     q3Mat3 r = m_tx.rotation;
-    m_state.m_invInertiaWorld = r * m_invInertiaModel * q3Transpose(r);
+    m_state.m_invInertiaWorld = r * m_invInertiaModel * r.Transposed();
 
     // Integrate velocity
     m_linearVelocity += (m_force * m_state.m_invMass) * env.m_dt;

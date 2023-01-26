@@ -144,7 +144,7 @@ std::optional<q3MassData> q3Box::ComputeMass() const {
   q3Mat3 I = q3Diagonal(x, y, z);
 
   // Transform tensor to local space
-  I = def_.m_tx.rotation * I * q3Transpose(def_.m_tx.rotation);
+  I = def_.m_tx.rotation * I * def_.m_tx.rotation.Transposed();
   q3Mat3 identity = {};
   I += (identity * q3Dot(def_.m_tx.position, def_.m_tx.position) -
         q3OuterProduct(def_.m_tx.position, def_.m_tx.position)) *
