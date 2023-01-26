@@ -25,66 +25,18 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3CONTACTSOLVER_H
-#define Q3CONTACTSOLVER_H
-
-#include "../math/q3Math.h"
-#include "../scene/q3Body.h"
-#include <span>
-
-//--------------------------------------------------------------------------------------------------
-// q3ContactSolver
-//--------------------------------------------------------------------------------------------------
-class q3Island;
-struct q3VelocityState;
-
-struct q3ContactState {
-  q3Vec3 ra;               // Vector from C.O.M to contact position
-  q3Vec3 rb;               // Vector from C.O.M to contact position
-  float penetration;       // Depth of penetration from collision
-  float normalImpulse;     // Accumulated normal impulse
-  float tangentImpulse[2]; // Accumulated friction impulse
-  float bias;              // Restitution + baumgarte
-  float normalMass;        // Normal constraint mass
-  float tangentMass[2];    // Tangent constraint mass
-};
-
-struct q3ContactConstraintState {
-  q3ContactState contacts[8];
-  int contactCount;
-  q3Vec3 tangentVectors[2]; // Tangent vectors
-  q3Vec3 normal;            // From A to B
-  q3BodyState A;
-  q3BodyState B;
-  // q3Vec3 centerA;
-  // q3Vec3 centerB;
-  // q3Mat3 iA;
-  // q3Mat3 iB;
-  // float mA;
-  // float mB;
-  // int indexA;
-  // int indexB;
-  float restitution;
-  float friction;
-
-  std::span<q3ContactState> span() {
-    return std::span(contacts, contactCount);
-  }
-};
-
+#pragma once
+#include "q3ContactConstraintState.h"
 struct q3ContactSolver {
-  void Initialize(q3Island *island);
-  void ShutDown(void);
-
+  void Initialize(class q3Island *island);
   void PreSolve(float dt);
   void Solve(void);
+  void ShutDown(void);
 
-  q3Island *m_island;
+  class q3Island *m_island;
   q3ContactConstraintState *m_contacts;
   int m_contactCount;
   q3VelocityState *m_velocities;
 
   bool m_enableFriction;
 };
-
-#endif // Q3CONTACTSOLVER_H

@@ -1,63 +1,8 @@
-//--------------------------------------------------------------------------------------------------
-/**
-@file	q3Contact.cpp
-
-@author	Randy Gaul
-@date	10/10/2014
-
-        Copyright (c) 2014 Randy Gaul http://www.randygaul.net
-
-        This software is provided 'as-is', without any express or implied
-        warranty. In no event will the authors be held liable for any damages
-        arising from the use of this software.
-
-        Permission is granted to anyone to use this software for any purpose,
-        including commercial applications, and to alter it and redistribute it
-        freely, subject to the following restrictions:
-          1. The origin of this software must not be misrepresented; you must
-not claim that you wrote the original software. If you use this software in a
-product, an acknowledgment in the product documentation would be appreciated but
-is not required.
-          2. Altered source versions must be plainly marked as such, and must
-not be misrepresented as being the original software.
-          3. This notice may not be removed or altered from any source
-distribution.
-*/
-//--------------------------------------------------------------------------------------------------
-
-#include "q3Contact.h"
-#include "../scene/q3Body.h"
+#include "q3ClipVertex.h"
+#include "q3Magnifold.h"
 #include "../math/q3Math.h"
 
-//--------------------------------------------------------------------------------------------------
-// q3Contact
-//--------------------------------------------------------------------------------------------------
-// Generate contact information
-void q3ContactConstraint::SolveCollision(void) {
-  manifold.contactCount = 0;
-
-  q3BoxtoBox(&manifold, bodyA, A, bodyB, B);
-
-  if (manifold.contactCount > 0) {
-    if (HasFlag(q3ContactConstraintFlags::eColliding)) {
-      AddFlag(q3ContactConstraintFlags::eWasColliding);
-    } else {
-      AddFlag(q3ContactConstraintFlags::eColliding);
-    }
-  } else {
-    if (HasFlag(q3ContactConstraintFlags::eColliding)) {
-      RemoveFlag(q3ContactConstraintFlags::eColliding);
-      AddFlag(q3ContactConstraintFlags::eWasColliding);
-    } else {
-      RemoveFlag(q3ContactConstraintFlags::eWasColliding);
-    }
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-// qBoxtoBox
-//--------------------------------------------------------------------------------------------------
-inline bool q3TrackFaceAxis(int *axis, int n, float s, float *sMax,
+static bool q3TrackFaceAxis(int *axis, int n, float s, float *sMax,
                             const q3Vec3 &normal, q3Vec3 *axisNormal) {
   if (s > float(0.0))
     return true;
@@ -71,8 +16,7 @@ inline bool q3TrackFaceAxis(int *axis, int n, float s, float *sMax,
   return false;
 }
 
-//--------------------------------------------------------------------------------------------------
-inline bool q3TrackEdgeAxis(int *axis, int n, float s, float *sMax,
+static bool q3TrackEdgeAxis(int *axis, int n, float s, float *sMax,
                             const q3Vec3 &normal, q3Vec3 *axisNormal) {
   if (s > float(0.0))
     return true;
@@ -89,100 +33,13 @@ inline bool q3TrackEdgeAxis(int *axis, int n, float s, float *sMax,
   return false;
 }
 
-//--------------------------------------------------------------------------------------------------
-struct q3ClipVertex {
-  q3ClipVertex() { f.key = ~0; }
-
-  q3Vec3 v;
-  q3FeaturePair f;
-};
-
-//--------------------------------------------------------------------------------------------------
-void q3ComputeReferenceEdgesAndBasis(const q3Vec3 &eR, const q3Transform &rtx,
-                                     q3Vec3 n, int axis, uint8_t *out,
-                                     q3Mat3 *basis, q3Vec3 *e) {
-  n = rtx.rotation.Transposed() * n;
-
-  if (axis >= 3)
-    axis -= 3;
-
-  switch (axis) {
-  case 0:
-    if (n.x > float(0.0)) {
-      out[0] = 1;
-      out[1] = 8;
-      out[2] = 7;
-      out[3] = 9;
-
-      e->Set(eR.y, eR.z, eR.x);
-      basis->SetRows(rtx.rotation.ey, rtx.rotation.ez, rtx.rotation.ex);
-    }
-
-    else {
-      out[0] = 11;
-      out[1] = 3;
-      out[2] = 10;
-      out[3] = 5;
-
-      e->Set(eR.z, eR.y, eR.x);
-      basis->SetRows(rtx.rotation.ez, rtx.rotation.ey, -rtx.rotation.ex);
-    }
-    break;
-
-  case 1:
-    if (n.y > float(0.0)) {
-      out[0] = 0;
-      out[1] = 1;
-      out[2] = 2;
-      out[3] = 3;
-
-      e->Set(eR.z, eR.x, eR.y);
-      basis->SetRows(rtx.rotation.ez, rtx.rotation.ex, rtx.rotation.ey);
-    }
-
-    else {
-      out[0] = 4;
-      out[1] = 5;
-      out[2] = 6;
-      out[3] = 7;
-
-      e->Set(eR.z, eR.x, eR.y);
-      basis->SetRows(rtx.rotation.ez, -rtx.rotation.ex, -rtx.rotation.ey);
-    }
-    break;
-
-  case 2:
-    if (n.z > float(0.0)) {
-      out[0] = 11;
-      out[1] = 4;
-      out[2] = 8;
-      out[3] = 0;
-
-      e->Set(eR.y, eR.x, eR.z);
-      basis->SetRows(-rtx.rotation.ey, rtx.rotation.ex, rtx.rotation.ez);
-    }
-
-    else {
-      out[0] = 6;
-      out[1] = 10;
-      out[2] = 2;
-      out[3] = 9;
-
-      e->Set(eR.y, eR.x, eR.z);
-      basis->SetRows(-rtx.rotation.ey, -rtx.rotation.ex, -rtx.rotation.ez);
-    }
-    break;
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-void q3ComputeIncidentFace(const q3Transform &itx, const q3Vec3 &e, q3Vec3 n,
-                           q3ClipVertex *out) {
+static void q3ComputeIncidentFace(const q3Transform &itx, const q3Vec3 &e,
+                                  q3Vec3 n, q3ClipVertex *out) {
   n = -(itx.rotation.Transposed() * n);
   q3Vec3 absN{
-    std::abs(n.x),
-    std::abs(n.y),
-    std::abs(n.z),
+      std::abs(n.x),
+      std::abs(n.y),
+      std::abs(n.z),
   };
 
   if (absN.x > absN.y && absN.x > absN.z) {
@@ -291,7 +148,84 @@ void q3ComputeIncidentFace(const q3Transform &itx, const q3Vec3 &e, q3Vec3 n,
     out[i].v = itx * out[i].v;
 }
 
-//--------------------------------------------------------------------------------------------------
+static void q3ComputeReferenceEdgesAndBasis(const q3Vec3 &eR,
+                                            const q3Transform &rtx, q3Vec3 n,
+                                            int axis, uint8_t *out,
+                                            q3Mat3 *basis, q3Vec3 *e) {
+  n = rtx.rotation.Transposed() * n;
+
+  if (axis >= 3)
+    axis -= 3;
+
+  switch (axis) {
+  case 0:
+    if (n.x > float(0.0)) {
+      out[0] = 1;
+      out[1] = 8;
+      out[2] = 7;
+      out[3] = 9;
+
+      e->Set(eR.y, eR.z, eR.x);
+      basis->SetRows(rtx.rotation.ey, rtx.rotation.ez, rtx.rotation.ex);
+    }
+
+    else {
+      out[0] = 11;
+      out[1] = 3;
+      out[2] = 10;
+      out[3] = 5;
+
+      e->Set(eR.z, eR.y, eR.x);
+      basis->SetRows(rtx.rotation.ez, rtx.rotation.ey, -rtx.rotation.ex);
+    }
+    break;
+
+  case 1:
+    if (n.y > float(0.0)) {
+      out[0] = 0;
+      out[1] = 1;
+      out[2] = 2;
+      out[3] = 3;
+
+      e->Set(eR.z, eR.x, eR.y);
+      basis->SetRows(rtx.rotation.ez, rtx.rotation.ex, rtx.rotation.ey);
+    }
+
+    else {
+      out[0] = 4;
+      out[1] = 5;
+      out[2] = 6;
+      out[3] = 7;
+
+      e->Set(eR.z, eR.x, eR.y);
+      basis->SetRows(rtx.rotation.ez, -rtx.rotation.ex, -rtx.rotation.ey);
+    }
+    break;
+
+  case 2:
+    if (n.z > float(0.0)) {
+      out[0] = 11;
+      out[1] = 4;
+      out[2] = 8;
+      out[3] = 0;
+
+      e->Set(eR.y, eR.x, eR.z);
+      basis->SetRows(-rtx.rotation.ey, rtx.rotation.ex, rtx.rotation.ez);
+    }
+
+    else {
+      out[0] = 6;
+      out[1] = 10;
+      out[2] = 2;
+      out[3] = 9;
+
+      e->Set(eR.y, eR.x, eR.z);
+      basis->SetRows(-rtx.rotation.ey, -rtx.rotation.ex, -rtx.rotation.ez);
+    }
+    break;
+  }
+}
+
 #define InFront(a) ((a) < float(0.0))
 
 #define Behind(a) ((a) >= float(0.0))
@@ -349,9 +283,9 @@ int q3Orthographic(float sign, float e, int axis, int clipEdge,
 //--------------------------------------------------------------------------------------------------
 // Resources (also see q3BoxtoBox's resources):
 // http://www.randygaul.net/2013/10/27/sutherland-hodgman-clipping/
-int q3Clip(const q3Vec3 &rPos, const q3Vec3 &e, uint8_t *clipEdges,
-           const q3Mat3 &basis, q3ClipVertex *incident, q3ClipVertex *outVerts,
-           float *outDepths) {
+static int q3Clip(const q3Vec3 &rPos, const q3Vec3 &e, uint8_t *clipEdges,
+                  const q3Mat3 &basis, q3ClipVertex *incident,
+                  q3ClipVertex *outVerts, float *outDepths) {
   int inCount = 4;
   int outCount;
   q3ClipVertex in[8];
@@ -396,36 +330,13 @@ int q3Clip(const q3Vec3 &rPos, const q3Vec3 &e, uint8_t *clipEdges,
   return outCount;
 }
 
-//--------------------------------------------------------------------------------------------------
-inline void q3EdgesContact(q3Vec3 *CA, q3Vec3 *CB, const q3Vec3 &PA,
-                           const q3Vec3 &QA, const q3Vec3 &PB,
-                           const q3Vec3 &QB) {
-  q3Vec3 DA = QA - PA;
-  q3Vec3 DB = QB - PB;
-  q3Vec3 r = PA - PB;
-  float a = q3Dot(DA, DA);
-  float e = q3Dot(DB, DB);
-  float f = q3Dot(DB, r);
-  float c = q3Dot(DA, r);
-
-  float b = q3Dot(DA, DB);
-  float denom = a * e - b * b;
-
-  float TA = (b * f - c * e) / denom;
-  float TB = (b * TA + f) / e;
-
-  *CA = PA + DA * TA;
-  *CB = PB + DB * TB;
-}
-
-//--------------------------------------------------------------------------------------------------
-void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
+static void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
                    q3Vec3 *aOut, q3Vec3 *bOut) {
   n = tx.rotation.Transposed() * n;
   q3Vec3 absN{
-    std::abs(n.x),
-    std::abs(n.y),
-    std::abs(n.z),
+      std::abs(n.x),
+      std::abs(n.y),
+      std::abs(n.z),
   };
   q3Vec3 a, b;
 
@@ -474,6 +385,26 @@ void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
   *bOut = tx * b;
 }
 
+static void q3EdgesContact(q3Vec3 *CA, q3Vec3 *CB, const q3Vec3 &PA,
+                           const q3Vec3 &QA, const q3Vec3 &PB,
+                           const q3Vec3 &QB) {
+  q3Vec3 DA = QA - PA;
+  q3Vec3 DB = QB - PB;
+  q3Vec3 r = PA - PB;
+  float a = q3Dot(DA, DA);
+  float e = q3Dot(DB, DB);
+  float f = q3Dot(DB, r);
+  float c = q3Dot(DA, r);
+
+  float b = q3Dot(DA, DB);
+  float denom = a * e - b * b;
+
+  float TA = (b * f - c * e) / denom;
+  float TB = (b * TA + f) / e;
+
+  *CA = PA + DA * TA;
+  *CB = PB + DB * TB;
+}
 //--------------------------------------------------------------------------------------------------
 // Resources:
 // http://www.randygaul.net/2014/05/22/deriving-obb-to-obb-intersection-sat/

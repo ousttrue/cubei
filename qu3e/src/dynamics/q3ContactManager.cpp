@@ -26,13 +26,24 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3ContactManager.h"
-#include "../scene/q3Body.h"
-#include "../scene/q3Box.h"
-#include "../scene/q3Scene.h"
 #include "q3Contact.h"
+#include "q3ContactConstraint.h"
+#include "q3Magnifold.h"
 #include <q3Render.h>
 
 #include <Remotery.h>
+
+// Restitution mixing. The idea is to use the maximum bounciness, so bouncy
+// objects will never not bounce during collisions.
+static float q3MixRestitution(const q3Box *A, const q3Box *B) {
+  return std::max(A->Restitution(), B->Restitution());
+}
+
+// Friction mixing. The idea is to allow a very low friction value to
+// drive down the mixing result. Example: anything slides on ice.
+static float q3MixFriction(const q3Box *A, const q3Box *B) {
+  return std::sqrt(A->Friction() * B->Friction());
+}
 
 q3ContactManager::q3ContactManager() {}
 
@@ -182,7 +193,28 @@ void q3ContactManager::TestCollisions(
     q3Manifold oldManifold = constraint->manifold;
     q3Vec3 ot0 = oldManifold.tangentVectors[0];
     q3Vec3 ot1 = oldManifold.tangentVectors[1];
-    constraint->SolveCollision();
+    // constraint->SolveCollision();
+    // void q3ContactConstraint::SolveCollision(void) {
+    manifold->contactCount = 0;
+
+    q3BoxtoBox(manifold, bodyA, A, bodyB, B);
+
+    if (manifold->contactCount > 0) {
+      if (constraint->HasFlag(q3ContactConstraintFlags::eColliding)) {
+        constraint->AddFlag(q3ContactConstraintFlags::eWasColliding);
+      } else {
+        constraint->AddFlag(q3ContactConstraintFlags::eColliding);
+      }
+    } else {
+      if (constraint->HasFlag(q3ContactConstraintFlags::eColliding)) {
+        constraint->RemoveFlag(q3ContactConstraintFlags::eColliding);
+        constraint->AddFlag(q3ContactConstraintFlags::eWasColliding);
+      } else {
+        constraint->RemoveFlag(q3ContactConstraintFlags::eWasColliding);
+      }
+    }
+    // }
+
     q3ComputeBasis(manifold->normal, manifold->tangentVectors,
                    manifold->tangentVectors + 1);
 

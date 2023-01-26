@@ -26,12 +26,12 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3Island.h"
-#include "../scene/q3Body.h"
-#include "../scene/q3Scene.h"
 #include "q3BroadPhase.h"
 #include "q3Contact.h"
+#include "q3ContactConstraint.h"
 #include "q3ContactManager.h"
 #include "q3ContactSolver.h"
+#include "../scene/q3Scene.h"
 
 #include <Remotery.h>
 

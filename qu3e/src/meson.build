@@ -5,10 +5,10 @@ qu3e_lib = static_library('qu3e', [
     'scene/q3Body.cpp',
     'scene/q3Box.cpp',
     'dynamics/q3BroadPhase.cpp',
-    'dynamics/q3Contact.cpp',
     'dynamics/q3ContactManager.cpp',
     'dynamics/q3ContactSolver.cpp',
     'dynamics/q3Island.cpp',
+    'dynamics/q3Manifold.cpp',
 ],
     dependencies: [remotery_dep],
 )

@@ -26,8 +26,7 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3ContactSolver.h"
-#include "../scene/q3Body.h"
-#include "q3Contact.h"
+#include "q3ContactConstraint.h"
 #include "q3Island.h"
 
 #define Q3_BAUMGARTE float(0.2)

@@ -68,10 +68,10 @@ App::App(GLFWwindow *window) {
        contactManager = contactManager_.get()](q3Body *body, const q3Box *box) {
         // Remove all contacts associated with this shape
         for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;) {
-          q3ContactConstraint *contact = edge->constraint;
+          q3ContactConstraint *constraint = edge->constraint;
           edge = edge->next;
-          if (box == contact->A || box == contact->B) {
-            contactManager->RemoveContact(contact);
+          if (box == constraint->A || box == constraint->B) {
+            contactManager->RemoveContact(constraint);
           }
         }
         broadphase->RemoveBox(box);

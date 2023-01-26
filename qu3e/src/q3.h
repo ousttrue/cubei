@@ -32,6 +32,7 @@ distribution.
 #include "dynamics/q3ContactManager.h"
 #include "dynamics/q3BroadPhase.h"
 #include "dynamics/q3Island.h"
+#include "dynamics/q3ContactConstraint.h"
 #include "math/q3Mat3.h"
 #include "math/q3Quaternion.h"
 #include "math/q3Transform.h"
