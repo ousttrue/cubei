@@ -183,7 +183,7 @@ void q3Body::CalculateMassData() {
     lc *= m_state.m_invMass;
     q3Mat3 identity = {};
     inertia -= (identity * q3Dot(lc, lc) - q3OuterProduct(lc, lc)) * mass;
-    m_invInertiaModel = q3Inverse(inertia);
+    m_invInertiaModel = inertia.Inversed();
 
     if (HasFlag(q3BodyFlags::eLockAxisX))
       m_invInertiaModel.ex = {};

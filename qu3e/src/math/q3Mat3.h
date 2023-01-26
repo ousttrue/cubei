@@ -25,15 +25,8 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3MAT3_H
-#define Q3MAT3_H
-
+#pragma once
 #include "q3Vec3.h"
-#include <cstring> // memset
-
-//--------------------------------------------------------------------------------------------------
-// q3Mat3
-//--------------------------------------------------------------------------------------------------
 struct q3Mat3 {
   q3Vec3 ex = {1, 0, 0};
   q3Vec3 ey = {0, 1, 0};
@@ -67,6 +60,23 @@ struct q3Mat3 {
         {ex.x, ey.x, ez.x},
         {ex.y, ey.y, ez.y},
         {ex.z, ey.z, ez.z},
+    };
+  }
+
+  q3Mat3 Inversed() const{
+    q3Vec3 tmp0, tmp1, tmp2;
+    float detinv;
+
+    tmp0 = q3Cross(ey, ez);
+    tmp1 = q3Cross(ez, ex);
+    tmp2 = q3Cross(ex, ey);
+
+    detinv = float(1.0) / q3Dot(ez, tmp2);
+
+    return {
+        {tmp0.x * detinv, tmp1.x * detinv, tmp2.x * detinv},
+        {tmp0.y * detinv, tmp1.y * detinv, tmp2.y * detinv},
+        {tmp0.z * detinv, tmp1.z * detinv, tmp2.z * detinv},
     };
   }
 
@@ -140,23 +150,3 @@ inline const q3Mat3 q3Covariance(q3Vec3 *points, uint32_t numPoints) {
           {m01inv, m11 * invNumPoints, m12inv},
           {m02inv, m12inv, m22 * invNumPoints}};
 };
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Inverse(const q3Mat3 &m) {
-  q3Vec3 tmp0, tmp1, tmp2;
-  float detinv;
-
-  tmp0 = q3Cross(m.ey, m.ez);
-  tmp1 = q3Cross(m.ez, m.ex);
-  tmp2 = q3Cross(m.ex, m.ey);
-
-  detinv = float(1.0) / q3Dot(m.ez, tmp2);
-
-  return {
-      {tmp0.x * detinv, tmp1.x * detinv, tmp2.x * detinv},
-      {tmp0.y * detinv, tmp1.y * detinv, tmp2.y * detinv},
-      {tmp0.z * detinv, tmp1.z * detinv, tmp2.z * detinv},
-  };
-}
-
-#endif // Q3MAT3_H
