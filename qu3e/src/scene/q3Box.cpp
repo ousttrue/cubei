@@ -141,7 +141,7 @@ std::optional<q3MassData> q3Box::ComputeMass() const {
   float x = float(1.0 / 12.0) * mass * (ey2 + ez2);
   float y = float(1.0 / 12.0) * mass * (ex2 + ez2);
   float z = float(1.0 / 12.0) * mass * (ex2 + ey2);
-  q3Mat3 I = q3Diagonal(x, y, z);
+  q3Mat3 I = q3Mat3::Diagonal(x, y, z);
 
   // Transform tensor to local space
   I = def_.m_tx.rotation * I * def_.m_tx.rotation.Transposed();

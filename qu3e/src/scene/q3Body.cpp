@@ -155,9 +155,9 @@ void q3Body::Sleep(const q3Env &env, float *minSleepTime) {
 }
 
 void q3Body::CalculateMassData() {
-  q3Mat3 inertia = q3Diagonal(float(0.0));
-  m_invInertiaModel = q3Diagonal(float(0.0));
-  m_state.m_invInertiaWorld = q3Diagonal(float(0.0));
+  q3Mat3 inertia = q3Mat3::Diagonal(float(0.0));
+  m_invInertiaModel = q3Mat3::Diagonal(float(0.0));
+  m_state.m_invInertiaWorld = q3Mat3::Diagonal(float(0.0));
   m_state.m_invMass = float(0.0);
   m_mass = float(0.0);
   float mass = float(0.0);
@@ -196,8 +196,8 @@ void q3Body::CalculateMassData() {
   } else {
     // Force all dynamic bodies to have some mass
     m_state.m_invMass = float(1.0);
-    m_invInertiaModel = q3Diagonal(float(0.0));
-    m_state.m_invInertiaWorld = q3Diagonal(float(0.0));
+    m_invInertiaModel = q3Mat3::Diagonal(float(0.0));
+    m_state.m_invInertiaWorld = q3Mat3::Diagonal(float(0.0));
   }
 
   m_localCenter = lc;

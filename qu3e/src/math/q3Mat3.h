@@ -69,36 +69,37 @@ struct q3Mat3 {
         {ex.z, ey.z, ez.z},
     };
   }
+
+  static q3Mat3 Diagonal(float a) {
+    return {
+        {float(a), float(0.0), float(0.0)},
+        {float(0.0), float(a), float(0.0)},
+        {float(0.0), float(0.0), float(a)},
+    };
+  }
+
+  static q3Mat3 Diagonal(float a, float b, float c) {
+    return {
+        {float(a), float(0.0), float(0.0)},
+        {float(0.0), float(b), float(0.0)},
+        {float(0.0), float(0.0), float(c)},
+    };
+  }
+
+  static q3Mat3 Zero() {
+    return {
+        {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0},
+    };
+  }
 };
 
-//--------------------------------------------------------------------------------------------------
 inline const q3Mat3 q3Rotate(const q3Vec3 &x, const q3Vec3 &y,
                              const q3Vec3 &z) {
   return {x, y, z};
 }
 
-//--------------------------------------------------------------------------------------------------
-inline void q3Zero(q3Mat3 &m) { memset(&m, 0, sizeof(float) * 9); }
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Diagonal(float a) {
-  return {
-      {float(a), float(0.0), float(0.0)},
-      {float(0.0), float(a), float(0.0)},
-      {float(0.0), float(0.0), float(a)},
-  };
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3Diagonal(float a, float b, float c) {
-  return {
-      {float(a), float(0.0), float(0.0)},
-      {float(0.0), float(b), float(0.0)},
-      {float(0.0), float(0.0), float(c)},
-  };
-}
-
-//--------------------------------------------------------------------------------------------------
 inline const q3Mat3 q3OuterProduct(const q3Vec3 &u, const q3Vec3 &v) {
   q3Vec3 a = v * u.x;
   q3Vec3 b = v * u.y;
