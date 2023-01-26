@@ -178,7 +178,11 @@ void q3ComputeReferenceEdgesAndBasis(const q3Vec3 &eR, const q3Transform &rtx,
 void q3ComputeIncidentFace(const q3Transform &itx, const q3Vec3 &e, q3Vec3 n,
                            q3ClipVertex *out) {
   n = -(itx.rotation.Transposed() * n);
-  q3Vec3 absN = q3Abs(n);
+  q3Vec3 absN{
+    std::abs(n.x),
+    std::abs(n.y),
+    std::abs(n.z),
+  };
 
   if (absN.x > absN.y && absN.x > absN.z) {
     if (n.x > float(0.0)) {
@@ -417,7 +421,11 @@ inline void q3EdgesContact(q3Vec3 *CA, q3Vec3 *CB, const q3Vec3 &PA,
 void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
                    q3Vec3 *aOut, q3Vec3 *bOut) {
   n = tx.rotation.Transposed() * n;
-  q3Vec3 absN = q3Abs(n);
+  q3Vec3 absN{
+    std::abs(n.x),
+    std::abs(n.y),
+    std::abs(n.z),
+  };
   q3Vec3 a, b;
 
   // x > y

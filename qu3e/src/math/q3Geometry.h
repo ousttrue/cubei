@@ -140,12 +140,20 @@ inline float q3AABB::SurfaceArea() const {
 
 //--------------------------------------------------------------------------------------------------
 inline const q3AABB q3Combine(const q3AABB &a, const q3AABB &b) {
-  q3AABB c;
-
-  c.min = q3Min(a.min, b.min);
-  c.max = q3Max(a.max, b.max);
-
-  return c;
+  return {
+      .min =
+          {
+              std::min(a.min.x, b.min.x),
+              std::min(a.min.y, b.min.y),
+              std::min(a.min.z, b.min.z),
+          },
+      .max =
+          {
+              std::max(a.max.x, b.max.x),
+              std::max(a.max.y, b.max.y),
+              std::max(a.max.z, b.max.z),
+          },
+  };
 }
 
 //--------------------------------------------------------------------------------------------------

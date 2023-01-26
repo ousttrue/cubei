@@ -119,8 +119,16 @@ void q3Box::ComputeAABB(const q3Transform &tx, q3AABB *aabb) const {
   q3Vec3 max{-Q3_R32_MAX, -Q3_R32_MAX, -Q3_R32_MAX};
 
   for (int i = 0; i < 8; ++i) {
-    min = q3Min(min, v[i]);
-    max = q3Max(max, v[i]);
+    min = {
+        std::min(min.x, v[i].x),
+        std::min(min.y, v[i].y),
+        std::min(min.z, v[i].z),
+    };
+    max = {
+        std::max(max.x, v[i].x),
+        std::max(max.y, v[i].y),
+        std::max(max.z, v[i].z),
+    };
   }
 
   aabb->min = min;
