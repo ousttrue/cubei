@@ -43,6 +43,7 @@ struct q3Transform {
   q3Vec3 operator*(const q3Vec3 &v) const {
     return q3Vec3(rotation * v + position);
   }
+
   q3Transform operator*(const q3Transform &u) const {
     q3Transform v;
     v.rotation = rotation * u.rotation;
@@ -50,26 +51,3 @@ struct q3Transform {
     return v;
   }
 };
-
-inline const q3Transform q3MulT(const q3Transform &t, const q3Transform &u) {
-  q3Transform v;
-  v.rotation = t.rotation.Transposed() * u.rotation;
-  v.position = t.rotation.Transposed() * (u.position - t.position);
-  return v;
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3HalfSpace q3MulT(const q3Transform &tx, const q3HalfSpace &p) {
-  q3Vec3 origin = p.normal * p.distance;
-  origin = tx.Inversed() * origin;
-  q3Vec3 n = tx.rotation.Transposed() * p.normal;
-  return q3HalfSpace(n, q3Dot(origin, n));
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Transform q3Inverse(const q3Transform &tx) {
-  q3Transform inverted;
-  inverted.rotation = tx.rotation.Transposed();
-  inverted.position = inverted.rotation * -tx.position;
-  return inverted;
-}
