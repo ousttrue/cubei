@@ -163,7 +163,7 @@ public:
       int id = stack[--sp];
 
       const Node *n = &m_nodes[id];
-      if (q3AABBtoAABB(aabb, n->aabb)) {
+      if (aabb.IsOverlapped(n->aabb)) {
         if (n->IsLeaf()) {
           if (!cb(id))
             return;

@@ -40,9 +40,20 @@ struct q3AABB {
   bool Contains(const q3AABB &other) const;
   bool Contains(const q3Vec3 &point) const;
   float SurfaceArea() const;
-};
 
-const q3AABB q3Combine(const q3AABB &a, const q3AABB &b);
+  bool IsOverlapped(const q3AABB &b) const {
+    if (max.x < b.min.x || min.x > b.max.x)
+      return false;
+
+    if (max.y < b.min.y || min.y > b.max.y)
+      return false;
+
+    if (max.z < b.min.z || min.z > b.max.z)
+      return false;
+
+    return true;
+  }
+};
 
 //--------------------------------------------------------------------------------------------------
 // q3HalfSpace
@@ -104,18 +115,6 @@ inline void q3ComputeBasis(const q3Vec3 &a, q3Vec3 *__restrict b,
 //--------------------------------------------------------------------------------------------------
 // q3AABB
 //--------------------------------------------------------------------------------------------------
-inline bool q3AABBtoAABB(const q3AABB &a, const q3AABB &b) {
-  if (a.max.x < b.min.x || a.min.x > b.max.x)
-    return false;
-
-  if (a.max.y < b.min.y || a.min.y > b.max.y)
-    return false;
-
-  if (a.max.z < b.min.z || a.min.z > b.max.z)
-    return false;
-
-  return true;
-}
 
 //--------------------------------------------------------------------------------------------------
 inline bool q3AABB::Contains(const q3AABB &other) const {

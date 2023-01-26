@@ -121,7 +121,7 @@ void q3BroadPhase::Update(int id, const q3AABB &aabb) {
 }
 
 bool q3BroadPhase::TestOverlap(int A, int B) const {
-  return q3AABBtoAABB(m_tree.GetFatAABB(A), m_tree.GetFatAABB(B));
+  return m_tree.GetFatAABB(A).IsOverlapped(m_tree.GetFatAABB(B));
 }
 
 void q3BroadPhase::SynchronizeProxies(q3Body *body) {
@@ -162,7 +162,7 @@ void q3BroadPhase::QueryAABB(
 
         box->ComputeAABB(body->GetTransform(), &aabb);
 
-        if (q3AABBtoAABB(m_aabb, aabb)) {
+        if (m_aabb.IsOverlapped(aabb)) {
           return cb(body, box);
         }
 
