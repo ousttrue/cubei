@@ -50,7 +50,7 @@ bool q3Box::TestPoint(const q3Transform &tx, const q3Vec3 &p) const {
 //--------------------------------------------------------------------------------------------------
 bool q3Box::Raycast(const q3Transform &tx, q3RaycastData *raycast) const {
   q3Transform world = tx * def_.m_tx;
-  q3Vec3 d = q3MulT(world.rotation, raycast->dir);
+  q3Vec3 d = world.rotation.Transposed() * raycast->dir;
   q3Vec3 p = world.Inversed() * raycast->start;
   const float epsilon = float(1.0e-8);
   float tmin = 0;

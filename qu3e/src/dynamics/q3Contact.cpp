@@ -100,7 +100,7 @@ struct q3ClipVertex {
 void q3ComputeReferenceEdgesAndBasis(const q3Vec3 &eR, const q3Transform &rtx,
                                      q3Vec3 n, int axis, uint8_t *out,
                                      q3Mat3 *basis, q3Vec3 *e) {
-  n = q3MulT(rtx.rotation, n);
+  n = rtx.rotation.Transposed() * n;
 
   if (axis >= 3)
     axis -= 3;
@@ -177,7 +177,7 @@ void q3ComputeReferenceEdgesAndBasis(const q3Vec3 &eR, const q3Transform &rtx,
 //--------------------------------------------------------------------------------------------------
 void q3ComputeIncidentFace(const q3Transform &itx, const q3Vec3 &e, q3Vec3 n,
                            q3ClipVertex *out) {
-  n = -q3MulT(itx.rotation, n);
+  n = -(itx.rotation.Transposed() * n);
   q3Vec3 absN = q3Abs(n);
 
   if (absN.x > absN.y && absN.x > absN.z) {
@@ -353,7 +353,7 @@ int q3Clip(const q3Vec3 &rPos, const q3Vec3 &e, uint8_t *clipEdges,
   q3ClipVertex out[8];
 
   for (int i = 0; i < 4; ++i)
-    in[i].v = q3MulT(basis, incident[i].v - rPos);
+    in[i].v = basis.Transposed() * (incident[i].v - rPos);
 
   outCount = q3Orthographic(float(1.0), e.x, 0, clipEdges[0], in, inCount, out);
 
@@ -416,7 +416,7 @@ inline void q3EdgesContact(q3Vec3 *CA, q3Vec3 *CB, const q3Vec3 &PA,
 //--------------------------------------------------------------------------------------------------
 void q3SupportEdge(const q3Transform &tx, const q3Vec3 &e, q3Vec3 n,
                    q3Vec3 *aOut, q3Vec3 *bOut) {
-  n = q3MulT(tx.rotation, n);
+  n = tx.rotation.Transposed() * n;
   q3Vec3 absN = q3Abs(n);
   q3Vec3 a, b;
 
@@ -498,7 +498,7 @@ void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
   }
 
   // Vector from center A to center B in A's space
-  q3Vec3 t = q3MulT(atx.rotation, btx.position - atx.position);
+  q3Vec3 t = atx.rotation.Transposed() * (btx.position - atx.position);
 
   // Query states
   float s;

@@ -25,9 +25,7 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 
-#ifndef Q3TRANSFORM_H
-#define Q3TRANSFORM_H
-
+#pragma once
 #include "../math/q3Geometry.h"
 
 struct q3Transform {
@@ -53,23 +51,10 @@ struct q3Transform {
   }
 };
 
-//--------------------------------------------------------------------------------------------------
-// q3Transform
-//--------------------------------------------------------------------------------------------------
-inline const q3Vec3 q3MulT(const q3Mat3 &r, const q3Vec3 &v) {
-  return r.Transposed() * v;
-}
-
-//--------------------------------------------------------------------------------------------------
-inline const q3Mat3 q3MulT(const q3Mat3 &r, const q3Mat3 &q) {
-  return r.Transposed() * q;
-}
-
-//--------------------------------------------------------------------------------------------------
 inline const q3Transform q3MulT(const q3Transform &t, const q3Transform &u) {
   q3Transform v;
-  v.rotation = q3MulT(t.rotation, u.rotation);
-  v.position = q3MulT(t.rotation, u.position - t.position);
+  v.rotation = t.rotation.Transposed() * u.rotation;
+  v.position = t.rotation.Transposed() * (u.position - t.position);
   return v;
 }
 
@@ -77,7 +62,7 @@ inline const q3Transform q3MulT(const q3Transform &t, const q3Transform &u) {
 inline const q3HalfSpace q3MulT(const q3Transform &tx, const q3HalfSpace &p) {
   q3Vec3 origin = p.normal * p.distance;
   origin = tx.Inversed() * origin;
-  q3Vec3 n = q3MulT(tx.rotation, p.normal);
+  q3Vec3 n = tx.rotation.Transposed() * p.normal;
   return q3HalfSpace(n, q3Dot(origin, n));
 }
 
@@ -88,5 +73,3 @@ inline const q3Transform q3Inverse(const q3Transform &tx) {
   inverted.position = inverted.rotation * -tx.position;
   return inverted;
 }
-
-#endif // Q3TRANSFORM_H
