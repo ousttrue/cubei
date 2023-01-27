@@ -33,11 +33,14 @@ distribution.
 #define Q3_BAUMGARTE float(0.2)
 #define Q3_PENETRATION_SLOP float(0.05)
 
-q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
-  m_island = island;
-  m_enableFriction = env.m_enableFriction;
+q3ContactSolver::q3ContactSolver(
+    float dt, bool enableFriction,
+    std::span<
+        std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
+        constraints)
+    : m_enableFriction(enableFriction), m_constraints(constraints) {
 
-  for (auto &[cc, cs] : m_island->m_constraints) {
+  for (auto &[cc, cs] : m_constraints) {
     q3Vec3 vA = cs.A->VelocityState().linearVelocity;
     q3Vec3 wA = cs.A->VelocityState().angularVelocity;
     q3Vec3 vB = cs.B->VelocityState().linearVelocity;
@@ -67,7 +70,7 @@ q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
       }
 
       // Precalculate bias factor
-      c->bias = -Q3_BAUMGARTE * (float(1.0) / env.m_dt) *
+      c->bias = -Q3_BAUMGARTE * (float(1.0) / dt) *
                 std::min(float(0.0), c->penetration + Q3_PENETRATION_SLOP);
 
       // Warm start contact
@@ -100,7 +103,7 @@ q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
 }
 
 q3ContactSolver::~q3ContactSolver(void) {
-  for (auto &[cc, c] : m_island->m_constraints) {
+  for (auto &[cc, c] : m_constraints) {
     for (int j = 0; j < c.contactCount; ++j) {
       q3Contact *oc = cc->manifold.contacts + j;
       q3ContactState *cs = c.contacts + j;
@@ -112,7 +115,7 @@ q3ContactSolver::~q3ContactSolver(void) {
 }
 
 void q3ContactSolver::Solve() {
-  for (auto &[cc, cs] : m_island->m_constraints) {
+  for (auto &[cc, cs] : m_constraints) {
 
     q3Vec3 vA = cs.A->VelocityState().linearVelocity;
     q3Vec3 wA = cs.A->VelocityState().angularVelocity;

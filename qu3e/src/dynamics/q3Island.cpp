@@ -144,7 +144,7 @@ void q3Island::Solve(const q3Env &env) {
   {
     // Create contact solver, pass in state buffers, create buffers for contacts
     // Initialize velocity constraint for normal + friction and warm start
-    q3ContactSolver contactSolver(env, this);
+    q3ContactSolver contactSolver(env.m_dt, env.m_enableFriction, m_constraints);
     for (int i = 0; i < env.m_iterations; ++i) {
       contactSolver.Solve();
     }
