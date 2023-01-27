@@ -93,8 +93,8 @@ struct q3BodyDef {
 };
 
 struct q3VelocityState {
-  q3Vec3 w;
-  q3Vec3 v;
+  q3Vec3 angularVelocity = {};
+  q3Vec3 linearVelocity = {};
 };
 
 struct q3BodyState {
@@ -110,8 +110,9 @@ class q3Body {
   q3BodyState m_state;
   q3Mat3 m_invInertiaModel;
   float m_mass;
-  q3Vec3 m_linearVelocity;
-  q3Vec3 m_angularVelocity;
+
+  q3VelocityState m_velocity;
+
   q3Vec3 m_force = {};
   q3Vec3 m_torque = {};
   q3Transform m_tx;
@@ -126,6 +127,9 @@ class q3Body {
   float m_angularDamping;
 
 public:
+  // not applied. working
+  q3VelocityState m_velocityState;
+
   std::function<void(q3Box *)> OnBoxAdd;
   std::function<void(const q3Box *)> OnBoxRemove;
   std::function<void()> OnTransformUpdated;
@@ -144,8 +148,8 @@ public:
   }
   std::list<q3Box *>::const_iterator begin() const { return m_boxes.begin(); }
   std::list<q3Box *>::const_iterator end() const { return m_boxes.end(); }
-  void SetVelocityState(const struct q3Env &env, const q3VelocityState &v);
-  void Sleep(const q3Env &env, float *minSleepTime);
+
+  void Sleep(const struct q3Env &env, float *minSleepTime);
   void ClearForce() {
     m_force = {};
     m_torque = {};
@@ -184,14 +188,15 @@ public:
     SetToAwake();
   }
   void ApplyLinearImpulse(const q3Vec3 &impulse) {
-    m_linearVelocity += impulse * m_state.m_invMass;
+    m_velocity.linearVelocity += impulse * m_state.m_invMass;
     SetToAwake();
   }
   void ApplyLinearImpulseAtWorldPoint(const q3Vec3 &impulse,
                                       const q3Vec3 &point) {
-    m_linearVelocity += impulse * m_state.m_invMass;
-    m_angularVelocity += m_state.m_invInertiaWorld *
-                         q3Cross(point - m_state.m_worldCenter, impulse);
+    m_velocity.linearVelocity += impulse * m_state.m_invMass;
+    m_velocity.angularVelocity +=
+        m_state.m_invInertiaWorld *
+        q3Cross(point - m_state.m_worldCenter, impulse);
     SetToAwake();
   }
   void SetToAwake() {
@@ -203,8 +208,7 @@ public:
   void SetToSleep() {
     RemoveFlag(q3BodyFlags::eAwake);
     m_sleepTime = float(0.0);
-    m_linearVelocity = {};
-    m_angularVelocity = {};
+    m_velocity = {};
     m_force = {};
     m_torque = {};
   }
@@ -220,39 +224,39 @@ public:
   float GetMass() const { return m_mass; }
   float GetInvMass() const { return m_state.m_invMass; }
   q3Vec3 GetWorldVector(const q3Vec3 &v) const { return m_tx.rotation * v; }
-  q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
+  // q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
   q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {
     q3Vec3 directionToPoint = p - m_state.m_worldCenter;
-    q3Vec3 relativeAngularVel = q3Cross(m_angularVelocity, directionToPoint);
+    q3Vec3 relativeAngularVel =
+        q3Cross(m_velocity.angularVelocity, directionToPoint);
 
-    return m_linearVelocity + relativeAngularVel;
+    return m_velocity.linearVelocity + relativeAngularVel;
   }
   void SetLinearVelocity(const q3Vec3 &v) {
     // Velocity of static bodies cannot be adjusted
-    if (HasFlag(q3BodyFlags::eStatic))
+    if (HasFlag(q3BodyFlags::eStatic)) {
       assert(false);
-
+    }
     if (q3Dot(v, v) > float(0.0)) {
       SetToAwake();
     }
-
-    m_linearVelocity = v;
+    m_velocity.linearVelocity = v;
   }
   bool CanCollide(const q3Body *other) const {
-    if (this == other)
+    if (this == other) {
       return false;
-
+    }
     // Every collision must have at least one dynamic body involved
     if (!(HasFlag(q3BodyFlags::eDynamic)) &&
-        !(other->HasFlag(q3BodyFlags::eDynamic)))
+        !(other->HasFlag(q3BodyFlags::eDynamic))) {
       return false;
-
-    if (!(m_layers & other->m_layers))
+    }
+    if (!(m_layers & other->m_layers)) {
       return false;
-
+    }
     return true;
   }
-  const q3Vec3 GetAngularVelocity() const { return m_angularVelocity; }
+  // const q3Vec3 GetAngularVelocity() const { return m_angularVelocity; }
   void SetAngularVelocity(const q3Vec3 v) {
     // Velocity of static bodies cannot be adjusted
     if (HasFlag(q3BodyFlags::eStatic))
@@ -260,7 +264,7 @@ public:
     if (q3Dot(v, v) > float(0.0)) {
       SetToAwake();
     }
-    m_angularVelocity = v;
+    m_velocity.angularVelocity = v;
   }
   const q3Transform GetTransform() const { return m_tx; }
   void SetLayers(int layers) { m_layers = layers; }
@@ -286,7 +290,9 @@ public:
     OnTransformUpdated();
   }
 
-  q3VelocityState Solve(const struct q3Env &env);
+  void ApplyForce(const struct q3Env &env);
+  q3VelocityState &VelocityState() { return m_velocityState; }
+  void ApplyVelocityState(const struct q3Env &env);
 
   // Used for debug rendering lines, triangles and basic lighting
   void Render(class q3Render *render) const;

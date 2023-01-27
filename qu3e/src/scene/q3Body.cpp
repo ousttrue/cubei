@@ -34,8 +34,8 @@ distribution.
 #define Q3_SLEEP_ANGULAR float((3.0 / 180.0) * q3PI)
 
 q3Body::q3Body(const q3BodyDef &def) {
-  m_linearVelocity = def.linearVelocity;
-  m_angularVelocity = def.angularVelocity;
+  m_velocity.linearVelocity = def.linearVelocity;
+  m_velocity.angularVelocity = def.angularVelocity;
   m_q = q3Quaternion::FromAxisAngle(def.axis.Normalized(), def.angle);
   m_tx.rotation = m_q.ToMat3();
   m_tx.position = def.position;
@@ -48,8 +48,8 @@ q3Body::q3Body(const q3BodyDef &def) {
     AddFlag(q3BodyFlags::eDynamic);
   else if (def.bodyType == eStaticBody) {
     AddFlag(q3BodyFlags::eStatic);
-    m_linearVelocity = {};
-    m_angularVelocity = {};
+    m_velocity.linearVelocity = {};
+    m_velocity.angularVelocity = {};
     m_force = {};
     m_torque = {};
   } else if (def.bodyType == eKinematicBody) {
@@ -97,7 +97,7 @@ void q3Body::RemoveAllBoxes() {
   m_boxes.clear();
 }
 
-q3VelocityState q3Body::Solve(const q3Env &env) {
+void q3Body::ApplyForce(const q3Env &env) {
   if (HasFlag(q3BodyFlags::eDynamic)) {
     ApplyLinearForce(env.m_gravity * m_gravityScale);
 
@@ -106,8 +106,9 @@ q3VelocityState q3Body::Solve(const q3Env &env) {
     m_state.m_invInertiaWorld = r * m_invInertiaModel * r.Transposed();
 
     // Integrate velocity
-    m_linearVelocity += (m_force * m_state.m_invMass) * env.m_dt;
-    m_angularVelocity += (m_state.m_invInertiaWorld * m_torque) * env.m_dt;
+    m_velocity.linearVelocity += (m_force * m_state.m_invMass) * env.m_dt;
+    m_velocity.angularVelocity +=
+        (m_state.m_invInertiaWorld * m_torque) * env.m_dt;
 
     // From Box2D!
     // Apply damping.
@@ -116,25 +117,24 @@ q3VelocityState q3Body::Solve(const q3Env &env) {
     // Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) *
     // exp(-c * dt) = v * exp(-c * dt) v2 = exp(-c * dt) * v1 Pade
     // approximation: v2 = v1 * 1 / (1 + c * dt)
-    m_linearVelocity *= float(1.0) / (float(1.0) + env.m_dt * m_linearDamping);
-    m_angularVelocity *=
+    m_velocity.linearVelocity *=
+        float(1.0) / (float(1.0) + env.m_dt * m_linearDamping);
+    m_velocity.angularVelocity *=
         float(1.0) / (float(1.0) + env.m_dt * m_angularDamping);
   }
 
-  return {
-      .w = m_angularVelocity,
-      .v = m_linearVelocity,
-  };
+  // copy working velocity
+  m_velocityState = m_velocity;
 }
 
-void q3Body::SetVelocityState(const q3Env &env, const q3VelocityState &v) {
-  if (HasFlag(q3BodyFlags::eStatic))
+void q3Body::ApplyVelocityState(const q3Env &env) {
+  if (HasFlag(q3BodyFlags::eStatic)) {
     return;
-  m_linearVelocity = v.v;
-  m_angularVelocity = v.w;
+  }
+  m_velocity = m_velocityState;
   // Integrate position
-  m_state.m_worldCenter += m_linearVelocity * env.m_dt;
-  m_q = m_q.Integrated(m_angularVelocity, env.m_dt).Normalized();
+  m_state.m_worldCenter += m_velocity.linearVelocity * env.m_dt;
+  m_q = m_q.Integrated(m_velocityState.angularVelocity, env.m_dt).Normalized();
   m_tx.rotation = m_q.ToMat3();
 }
 
@@ -142,8 +142,10 @@ void q3Body::Sleep(const q3Env &env, float *minSleepTime) {
   if (HasFlag(q3BodyFlags::eStatic))
     return;
 
-  const float sqrLinVel = q3Dot(m_linearVelocity, m_linearVelocity);
-  const float cbAngVel = q3Dot(m_angularVelocity, m_angularVelocity);
+  const float sqrLinVel =
+      q3Dot(m_velocity.linearVelocity, m_velocity.linearVelocity);
+  const float cbAngVel =
+      q3Dot(m_velocity.angularVelocity, m_velocity.angularVelocity);
   const float linTol = Q3_SLEEP_LINEAR;
   const float angTol = Q3_SLEEP_ANGULAR;
 
@@ -252,11 +254,13 @@ void q3Body::Dump(FILE *file, int index) const {
   fprintf(file,
           "\tbd.linearVelocity.Set( float( %.15lf ), float( %.15lf ), float( "
           "%.15lf ) );\n",
-          m_linearVelocity.x, m_linearVelocity.y, m_linearVelocity.z);
+          m_velocity.linearVelocity.x, m_velocity.linearVelocity.y,
+          m_velocity.linearVelocity.z);
   fprintf(file,
           "\tbd.angularVelocity.Set( float( %.15lf ), float( %.15lf ), float( "
           "%.15lf ) );\n",
-          m_angularVelocity.x, m_angularVelocity.y, m_angularVelocity.z);
+          m_velocity.angularVelocity.x, m_velocity.angularVelocity.y,
+          m_velocity.angularVelocity.z);
   fprintf(file, "\tbd.gravityScale = float( %.15lf );\n", m_gravityScale);
   fprintf(file, "\tbd.layers = %d;\n", m_layers);
   fprintf(file, "\tbd.allowSleep = bool( %d );\n",

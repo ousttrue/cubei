@@ -38,8 +38,7 @@ distribution.
 
 #define Q3_SLEEP_TIME float(0.5)
 
-q3Island::q3Island(q3Body *seed,
-                   class q3ContactManager *contactManager) {
+q3Island::q3Island(q3Body *seed, class q3ContactManager *contactManager) {
 
   // Mark seed as apart of island
   seed->AddFlag(q3BodyFlags::eIsland);
@@ -52,7 +51,7 @@ q3Island::q3Island(q3Body *seed,
     // Decrement stack to implement iterative backtracking
     q3Body *body = m_stack.back();
     m_stack.pop_back();
-    m_bodies.insert({body, {}});
+    m_bodies.push_back(body);
 
     // Awaken all bodies connected to the island
     body->SetToAwake();
@@ -127,7 +126,7 @@ q3Island::q3Island(q3Body *seed,
 q3Island::~q3Island() {
   // Reset all static island flags
   // This allows static bodies to participate in other island formations
-  for (auto [body, _] : m_bodies) {
+  for (auto body : m_bodies) {
     if (body->HasFlag(q3BodyFlags::eStatic))
       body->RemoveFlag(q3BodyFlags::eIsland);
   }
@@ -138,8 +137,8 @@ void q3Island::Solve(const q3Env &env) {
 
   // Apply gravity
   // Integrate velocities and create state buffers, calculate world inertia
-  for (auto &[body, velocity] : m_bodies) {
-    velocity = body->Solve(env);
+  for (auto body : m_bodies) {
+    body->ApplyForce(env);
   }
 
   {
@@ -153,14 +152,14 @@ void q3Island::Solve(const q3Env &env) {
 
   // Copy back state buffers
   // Integrate positions
-  for (auto &[body, velocity] : m_bodies) {
-    body->SetVelocityState(env, velocity);
+  for (auto body : m_bodies) {
+    body->ApplyVelocityState(env);
   }
 
   if (env.m_allowSleep) {
     // Find minimum sleep time of the entire island
     float minSleepTime = std::numeric_limits<float>::max();
-    for (auto &[body, velocity] : m_bodies) {
+    for (auto body : m_bodies) {
       body->Sleep(env, &minSleepTime);
     }
 
@@ -169,7 +168,7 @@ void q3Island::Solve(const q3Env &env) {
     // sleeping threshold, the entire island will be reformed next step
     // and sleep test will be tried again.
     if (minSleepTime > Q3_SLEEP_TIME) {
-      for (auto &[body, velocity] : m_bodies) {
+      for (auto body : m_bodies) {
         body->SetToSleep();
       }
     }

@@ -26,9 +26,9 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #include "q3ContactSolver.h"
+#include "../math/q3Math.h"
 #include "q3ContactConstraint.h"
 #include "q3Island.h"
-#include "../math/q3Math.h"
 
 #define Q3_BAUMGARTE float(0.2)
 #define Q3_PENETRATION_SLOP float(0.05)
@@ -38,10 +38,10 @@ q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
   m_enableFriction = env.m_enableFriction;
 
   for (auto &[cc, cs] : m_island->m_constraints) {
-    q3Vec3 vA = m_island->m_bodies[cs.A].v;
-    q3Vec3 wA = m_island->m_bodies[cs.A].w;
-    q3Vec3 vB = m_island->m_bodies[cs.B].v;
-    q3Vec3 wB = m_island->m_bodies[cs.B].w;
+    q3Vec3 vA = cs.A->VelocityState().linearVelocity;
+    q3Vec3 wA = cs.A->VelocityState().angularVelocity;
+    q3Vec3 vB = cs.B->VelocityState().linearVelocity;
+    q3Vec3 wB = cs.B->VelocityState().angularVelocity;
 
     for (int j = 0; j < cs.contactCount; ++j) {
       q3ContactState *c = cs.contacts + j;
@@ -92,10 +92,10 @@ q3ContactSolver::q3ContactSolver(const q3Env &env, q3Island *island) {
         c->bias += -(cs.restitution) * dv;
     }
 
-    m_island->m_bodies[cs.A].v = vA;
-    m_island->m_bodies[cs.A].w = wA;
-    m_island->m_bodies[cs.B].v = vB;
-    m_island->m_bodies[cs.B].w = wB;
+    cs.A->VelocityState().linearVelocity = vA;
+    cs.A->VelocityState().angularVelocity = wA;
+    cs.B->VelocityState().linearVelocity = vB;
+    cs.B->VelocityState().angularVelocity = wB;
   }
 }
 
@@ -114,10 +114,10 @@ q3ContactSolver::~q3ContactSolver(void) {
 void q3ContactSolver::Solve() {
   for (auto &[cc, cs] : m_island->m_constraints) {
 
-    q3Vec3 vA = m_island->m_bodies[cs.A].v;
-    q3Vec3 wA = m_island->m_bodies[cs.A].w;
-    q3Vec3 vB = m_island->m_bodies[cs.B].v;
-    q3Vec3 wB = m_island->m_bodies[cs.B].w;
+    q3Vec3 vA = cs.A->VelocityState().linearVelocity;
+    q3Vec3 wA = cs.A->VelocityState().angularVelocity;
+    q3Vec3 vB = cs.B->VelocityState().linearVelocity;
+    q3Vec3 wB = cs.B->VelocityState().angularVelocity;
 
     for (int j = 0; j < cs.contactCount; ++j) {
       q3ContactState *c = cs.contacts + j;
@@ -173,9 +173,9 @@ void q3ContactSolver::Solve() {
       }
     }
 
-    m_island->m_bodies[cs.A].v = vA;
-    m_island->m_bodies[cs.A].w = wA;
-    m_island->m_bodies[cs.B].v = vB;
-    m_island->m_bodies[cs.B].w = wB;
+    cs.A->VelocityState().linearVelocity = vA;
+    cs.A->VelocityState().angularVelocity = wA;
+    cs.B->VelocityState().linearVelocity = vB;
+    cs.B->VelocityState().angularVelocity = wB;
   }
 }

@@ -29,12 +29,10 @@ distribution.
 #include "../scene/q3Env.h"
 #include "q3ContactConstraintState.h"
 #include "q3ContactSolver.h"
-#include <list>
-#include <unordered_map>
 #include <vector>
 
 struct q3Island {
-  std::unordered_map<class q3Body *, q3VelocityState> m_bodies;
+  std::vector<class q3Body *> m_bodies;
   std::vector<
       std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
       m_constraints;
