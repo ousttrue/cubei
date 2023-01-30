@@ -142,7 +142,7 @@ void q3Island::Solve(const q3Env &env) {
   }
 
   // Solve contacts. Modify velocity of bodies
-  q3ContactSolve(env.m_dt, env.m_enableFriction, m_constraints, env.m_iterations);
+  q3ContactSolve(env, m_constraints);
 
   // Copy back state buffers
   // Integrate positions

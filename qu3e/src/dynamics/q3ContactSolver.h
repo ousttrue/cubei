@@ -29,8 +29,7 @@ distribution.
 #include "q3ContactConstraintState.h"
 #include <span>
 
-void q3ContactSolve(float dt, bool enableFriction,
+void q3ContactSolve(const q3Env &env,
                     std::span<std::tuple<struct q3ContactConstraint *,
                                          q3ContactConstraintState>>
-                        constraints,
-                    int iterations);
+                        constraints);

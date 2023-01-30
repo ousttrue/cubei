@@ -27,6 +27,7 @@ distribution.
 
 #include "q3ContactSolver.h"
 #include "../math/q3Math.h"
+#include "../scene/q3Env.h"
 #include "q3Contact.h"
 #include "q3ContactConstraint.h"
 
@@ -197,15 +198,14 @@ void q3ContactSolver::Solve() {
   }
 }
 
-void q3ContactSolve(float dt, bool enableFriction,
+void q3ContactSolve(const q3Env &env,
                     std::span<std::tuple<struct q3ContactConstraint *,
                                          q3ContactConstraintState>>
-                        constraints,
-                    int iterations) {
+                        constraints) {
   // Create contact solver, pass in state buffers, create buffers for contacts
   // Initialize velocity constraint for normal + friction and warm start
-  q3ContactSolver contactSolver(dt, enableFriction, constraints);
-  for (int i = 0; i < iterations; ++i) {
+  q3ContactSolver contactSolver(env.m_dt, env.m_enableFriction, constraints);
+  for (int i = 0; i < env.m_iterations; ++i) {
     contactSolver.Solve();
   }
 }
