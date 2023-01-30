@@ -27,11 +27,25 @@ distribution.
 
 #include "q3ContactSolver.h"
 #include "../math/q3Math.h"
+#include "q3Contact.h"
 #include "q3ContactConstraint.h"
-#include "q3Island.h"
 
 #define Q3_BAUMGARTE float(0.2)
 #define Q3_PENETRATION_SLOP float(0.05)
+
+struct q3ContactSolver {
+  bool m_enableFriction;
+  std::span<std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
+      m_constraints;
+
+public:
+  q3ContactSolver(float dt, bool enableFriction,
+                  std::span<std::tuple<struct q3ContactConstraint *,
+                                       q3ContactConstraintState>>
+                      constraints);
+  ~q3ContactSolver();
+  void Solve(void);
+};
 
 q3ContactSolver::q3ContactSolver(
     float dt, bool enableFriction,
@@ -180,5 +194,18 @@ void q3ContactSolver::Solve() {
     cs.A->VelocityState().angularVelocity = wA;
     cs.B->VelocityState().linearVelocity = vB;
     cs.B->VelocityState().angularVelocity = wB;
+  }
+}
+
+void q3ContactSolve(float dt, bool enableFriction,
+                    std::span<std::tuple<struct q3ContactConstraint *,
+                                         q3ContactConstraintState>>
+                        constraints,
+                    int iterations) {
+  // Create contact solver, pass in state buffers, create buffers for contacts
+  // Initialize velocity constraint for normal + friction and warm start
+  q3ContactSolver contactSolver(dt, enableFriction, constraints);
+  for (int i = 0; i < iterations; ++i) {
+    contactSolver.Solve();
   }
 }

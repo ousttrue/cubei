@@ -26,19 +26,11 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
-#include "../scene/q3Env.h"
 #include "q3ContactConstraintState.h"
 #include <span>
-struct q3ContactSolver {
-  bool m_enableFriction;
-  std::span<std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
-      m_constraints;
 
-public:
-  q3ContactSolver(float dt, bool enableFriction,
-                  std::span<std::tuple<struct q3ContactConstraint *,
-                                       q3ContactConstraintState>>
-                      constraints);
-  ~q3ContactSolver();
-  void Solve(void);
-};
+void q3ContactSolve(float dt, bool enableFriction,
+                    std::span<std::tuple<struct q3ContactConstraint *,
+                                         q3ContactConstraintState>>
+                        constraints,
+                    int iterations);

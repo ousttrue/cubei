@@ -38,10 +38,6 @@ void q3TimeStep(const q3Env &env, q3Scene *scene,
     body->RemoveFlag(q3BodyFlags::eIsland);
   }
 
-  //   m_bodies.reserve(scene->BodyCount());
-  //   m_stack.resize(scene->BodyCount());
-  //   m_constraints.reserve(contactManager->ContactCount());
-
   // Build each active island and then solve each built island
   for (auto seed : *scene) {
     // Seed cannot be apart of an island already
@@ -55,7 +51,8 @@ void q3TimeStep(const q3Env &env, q3Scene *scene,
     // Seed cannot be a static body in order to keep islands
     // as small as possible
     if (seed->HasFlag(q3BodyFlags::eStatic))
-      continue;;
+      continue;
+    ;
 
     q3Island island(seed, contactManager);
     island.Solve(env);
