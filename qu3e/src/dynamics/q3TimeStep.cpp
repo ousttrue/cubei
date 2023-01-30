@@ -63,10 +63,16 @@ void q3TimeStep(const q3Env &env, q3Scene *scene,
   }
 #else
   // not span. range
-  std::span<q3Body *> bodies(&*scene->begin(), scene->BodyCount());
-  std::span<q3ContactConstraint *> constraints(
-      contactManager->ContactCount() ? &*contactManager->begin() : nullptr,
-      contactManager->ContactCount());
+  std::vector<q3Body *> bodies;
+  for(auto body: *scene)
+  {
+    bodies.push_back(body);
+  }
+  std::vector<q3ContactConstraint *> constraints;
+  for(auto constraint: *contactManager)
+  {
+    constraints.push_back(constraint);
+  }
   q3ContactsSolve(env, bodies, constraints);
 #endif
 
