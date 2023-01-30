@@ -35,6 +35,4 @@ void q3ContactSolve(const q3Env &env,
                         constraints);
 
 void q3ContactsSolve(const q3Env &env, std::span<q3Body *> bodies,
-                     std::span<std::tuple<struct q3ContactConstraint *,
-                                          q3ContactConstraintState>>
-                         constraints);
+                     std::span<struct q3ContactConstraint *> constraints);

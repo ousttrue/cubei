@@ -214,9 +214,7 @@ void q3ContactSolve(const q3Env &env,
 }
 
 void q3ContactsSolve(const q3Env &env, std::span<q3Body *> bodies,
-                     std::span<std::tuple<struct q3ContactConstraint *,
-                                          q3ContactConstraintState>>
-                         constraints) {
+                     std::span<q3ContactConstraint *> constraints) {
   rmt_ScopedCPUSample(q3ContactsSolve, 0);
 
   // Apply gravity
@@ -225,8 +223,37 @@ void q3ContactsSolve(const q3Env &env, std::span<q3Body *> bodies,
     body->ApplyForce(env);
   }
 
+  std::vector<std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
+      constraintWithStates;
+  for (auto cc : constraints) {
+    constraintWithStates.push_back({cc, {}});
+    auto &[_, c] = constraintWithStates.back();
+
+    c.A = cc->bodyA;
+    c.stateA = cc->bodyA->State();
+    c.B = cc->bodyB;
+    c.stateB = cc->bodyB->State();
+    c.restitution = cc->restitution;
+    c.friction = cc->friction;
+    c.normal = cc->manifold.normal;
+    c.tangentVectors[0] = cc->manifold.tangentVectors[0];
+    c.tangentVectors[1] = cc->manifold.tangentVectors[1];
+    c.contactCount = cc->manifold.contactCount;
+
+    int j = 0;
+    for (auto &s : c.span()) {
+      auto cp = &cc->manifold.contacts[j++];
+      s.ra = cp->position - c.stateA.m_worldCenter;
+      s.rb = cp->position - c.stateB.m_worldCenter;
+      s.penetration = cp->penetration;
+      s.normalImpulse = cp->normalImpulse;
+      s.tangentImpulse[0] = cp->tangentImpulse[0];
+      s.tangentImpulse[1] = cp->tangentImpulse[1];
+    }
+  }
+
   // Solve contacts. Modify velocity of bodies
-  q3ContactSolve(env, constraints);
+  q3ContactSolve(env, constraintWithStates);
 
   // Copy back state buffers
   // Integrate positions

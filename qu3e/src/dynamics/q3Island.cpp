@@ -81,7 +81,7 @@ q3Island::q3Island(q3Body *seed, class q3ContactManager *contactManager) {
 
       // Mark island flag and add to island
       contact->AddFlag(q3ContactConstraintFlags::eIsland);
-      m_constraints.push_back({contact, {}});
+      m_constraints.push_back(contact);
 
       // Attempt to add the other body in the contact to the island
       // to simulate contact awakening propogation
@@ -95,30 +95,6 @@ q3Island::q3Island(q3Body *seed, class q3ContactManager *contactManager) {
   }
 
   assert(m_bodies.size() != 0);
-
-  for (auto &[cc, c] : m_constraints) {
-    c.A = cc->bodyA;
-    c.stateA = cc->bodyA->State();
-    c.B = cc->bodyB;
-    c.stateB = cc->bodyB->State();
-    c.restitution = cc->restitution;
-    c.friction = cc->friction;
-    c.normal = cc->manifold.normal;
-    c.tangentVectors[0] = cc->manifold.tangentVectors[0];
-    c.tangentVectors[1] = cc->manifold.tangentVectors[1];
-    c.contactCount = cc->manifold.contactCount;
-
-    int j = 0;
-    for (auto &s : c.span()) {
-      auto cp = &cc->manifold.contacts[j++];
-      s.ra = cp->position - c.stateA.m_worldCenter;
-      s.rb = cp->position - c.stateB.m_worldCenter;
-      s.penetration = cp->penetration;
-      s.normalImpulse = cp->normalImpulse;
-      s.tangentImpulse[0] = cp->tangentImpulse[0];
-      s.tangentImpulse[1] = cp->tangentImpulse[1];
-    }
-  }
 }
 
 q3Island::~q3Island() {

@@ -33,9 +33,7 @@ distribution.
 
 struct q3Island {
   std::vector<class q3Body *> m_bodies;
-  std::vector<
-      std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
-      m_constraints;
+  std::vector<struct q3ContactConstraint *> m_constraints;
 
   q3Island(q3Body *seed, class q3ContactManager *contactManager);
   ~q3Island();
