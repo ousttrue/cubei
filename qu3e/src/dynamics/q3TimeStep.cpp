@@ -39,6 +39,7 @@ void q3TimeStep(const q3Env &env, q3Scene *scene,
     body->RemoveFlag(q3BodyFlags::eIsland);
   }
 
+#if 1
   // Build each active island and then solve each built island
   for (auto seed : *scene) {
     // Seed cannot be apart of an island already
@@ -60,6 +61,14 @@ void q3TimeStep(const q3Env &env, q3Scene *scene,
     q3Island island(seed, contactManager);
     q3ContactsSolve(env, island.m_bodies, island.m_constraints);
   }
+#else
+  // not span. range
+  std::span<q3Body *> bodies(&*scene->begin(), scene->BodyCount());
+  std::span<q3ContactConstraint *> constraints(
+      contactManager->ContactCount() ? &*contactManager->begin() : nullptr,
+      contactManager->ContactCount());
+  q3ContactsSolve(env, bodies, constraints);
+#endif
 
   // Update the broadphase AABBs
   scene->UpdateTransforms();

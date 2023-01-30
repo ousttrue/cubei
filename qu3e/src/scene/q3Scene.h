@@ -49,6 +49,8 @@ public:
     return m_bodyList.begin();
   }
   std::list<q3Body *>::const_iterator end() const { return m_bodyList.end(); }
+  std::list<q3Body *>::iterator begin() { return m_bodyList.begin(); }
+  std::list<q3Body *>::iterator end() { return m_bodyList.end(); }
   size_t BodyCount() const { return m_bodyList.size(); }
 
   bool NewBox() {
