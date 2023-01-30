@@ -36,8 +36,6 @@ distribution.
 
 #include <Remotery.h>
 
-#define Q3_SLEEP_TIME float(0.5)
-
 q3Island::q3Island(q3Body *seed, class q3ContactManager *contactManager) {
 
   // Mark seed as apart of island
@@ -129,42 +127,5 @@ q3Island::~q3Island() {
   for (auto body : m_bodies) {
     if (body->HasFlag(q3BodyFlags::eStatic))
       body->RemoveFlag(q3BodyFlags::eIsland);
-  }
-}
-
-void q3Island::Solve(const q3Env &env) {
-  rmt_ScopedCPUSample(q3IslandSolve, 0);
-
-  // Apply gravity
-  // Integrate velocities and create state buffers, calculate world inertia
-  for (auto body : m_bodies) {
-    body->ApplyForce(env);
-  }
-
-  // Solve contacts. Modify velocity of bodies
-  q3ContactSolve(env, m_constraints);
-
-  // Copy back state buffers
-  // Integrate positions
-  for (auto body : m_bodies) {
-    body->ApplyVelocityState(env);
-  }
-
-  if (env.m_allowSleep) {
-    // Find minimum sleep time of the entire island
-    float minSleepTime = std::numeric_limits<float>::max();
-    for (auto body : m_bodies) {
-      body->Sleep(env, &minSleepTime);
-    }
-
-    // Put entire island to sleep so long as the minimum found sleep time
-    // is below the threshold. If the minimum sleep time reaches below the
-    // sleeping threshold, the entire island will be reformed next step
-    // and sleep test will be tried again.
-    if (minSleepTime > Q3_SLEEP_TIME) {
-      for (auto body : m_bodies) {
-        body->SetToSleep();
-      }
-    }
   }
 }

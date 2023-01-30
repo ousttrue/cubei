@@ -31,8 +31,11 @@ distribution.
 #include "q3Contact.h"
 #include "q3ContactConstraint.h"
 
+#include <Remotery.h>
+
 #define Q3_BAUMGARTE float(0.2)
 #define Q3_PENETRATION_SLOP float(0.05)
+#define Q3_SLEEP_TIME float(0.5)
 
 struct q3ContactSolver {
   bool m_enableFriction;
@@ -207,5 +210,45 @@ void q3ContactSolve(const q3Env &env,
   q3ContactSolver contactSolver(env.m_dt, env.m_enableFriction, constraints);
   for (int i = 0; i < env.m_iterations; ++i) {
     contactSolver.Solve();
+  }
+}
+
+void q3ContactsSolve(const q3Env &env, std::span<q3Body *> bodies,
+                     std::span<std::tuple<struct q3ContactConstraint *,
+                                          q3ContactConstraintState>>
+                         constraints) {
+  rmt_ScopedCPUSample(q3ContactsSolve, 0);
+
+  // Apply gravity
+  // Integrate velocities and create state buffers, calculate world inertia
+  for (auto body : bodies) {
+    body->ApplyForce(env);
+  }
+
+  // Solve contacts. Modify velocity of bodies
+  q3ContactSolve(env, constraints);
+
+  // Copy back state buffers
+  // Integrate positions
+  for (auto body : bodies) {
+    body->ApplyVelocityState(env);
+  }
+
+  if (env.m_allowSleep) {
+    // Find minimum sleep time of the entire island
+    float minSleepTime = std::numeric_limits<float>::max();
+    for (auto body : bodies) {
+      body->Sleep(env, &minSleepTime);
+    }
+
+    // Put entire island to sleep so long as the minimum found sleep time
+    // is below the threshold. If the minimum sleep time reaches below the
+    // sleeping threshold, the entire island will be reformed next step
+    // and sleep test will be tried again.
+    if (minSleepTime > Q3_SLEEP_TIME) {
+      for (auto body : bodies) {
+        body->SetToSleep();
+      }
+    }
   }
 }

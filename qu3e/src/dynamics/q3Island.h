@@ -39,5 +39,4 @@ struct q3Island {
 
   q3Island(q3Body *seed, class q3ContactManager *contactManager);
   ~q3Island();
-  void Solve(const q3Env &env);
 };

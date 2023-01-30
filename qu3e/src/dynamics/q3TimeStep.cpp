@@ -3,6 +3,7 @@
 #include "q3BroadPhase.h"
 #include "q3ContactConstraint.h"
 #include "q3ContactManager.h"
+#include "q3ContactSolver.h"
 #include "q3Island.h"
 #include <Remotery.h>
 
@@ -41,21 +42,23 @@ void q3TimeStep(const q3Env &env, q3Scene *scene,
   // Build each active island and then solve each built island
   for (auto seed : *scene) {
     // Seed cannot be apart of an island already
-    if (seed->HasFlag(q3BodyFlags::eIsland))
+    if (seed->HasFlag(q3BodyFlags::eIsland)) {
       continue;
+    }
 
     // Seed must be awake
-    if (!seed->HasFlag(q3BodyFlags::eAwake))
+    if (!seed->HasFlag(q3BodyFlags::eAwake)) {
       continue;
+    }
 
     // Seed cannot be a static body in order to keep islands
     // as small as possible
-    if (seed->HasFlag(q3BodyFlags::eStatic))
+    if (seed->HasFlag(q3BodyFlags::eStatic)) {
       continue;
-    ;
+    }
 
     q3Island island(seed, contactManager);
-    island.Solve(env);
+    q3ContactsSolve(env, island.m_bodies, island.m_constraints);
   }
 
   // Update the broadphase AABBs
