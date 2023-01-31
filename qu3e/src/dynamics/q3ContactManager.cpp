@@ -56,25 +56,29 @@ void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
   m_contactList.push_back(contact);
 
   // Connect A
-  contact->edgeA.constraint = contact;
-  contact->edgeA.other = bodyB;
-
-  contact->edgeA.prev = NULL;
   auto edgeA = ContactEdge(bodyA);
-  contact->edgeA.next = edgeA;
-  if (edgeA)
+  contact->edgeA = {
+      .other = bodyB,
+      .constraint = contact,
+      .next = edgeA,
+      .prev = NULL,
+  };
+  if (edgeA) {
     edgeA->prev = &contact->edgeA;
+  }
   m_edgeMap[bodyA] = &contact->edgeA;
 
   // Connect B
-  contact->edgeB.constraint = contact;
-  contact->edgeB.other = bodyA;
-
-  contact->edgeB.prev = NULL;
   auto edgeB = ContactEdge(bodyB);
-  contact->edgeB.next = edgeB;
-  if (edgeB)
+  contact->edgeB = {
+      .other = bodyA,
+      .constraint = contact,
+      .next = edgeB,
+      .prev = NULL,
+  };
+  if (edgeB) {
     edgeB->prev = &contact->edgeB;
+  }
   m_edgeMap[bodyB] = &contact->edgeB;
 
   bodyA->SetToAwake();
