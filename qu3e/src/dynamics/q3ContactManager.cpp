@@ -33,18 +33,6 @@ distribution.
 
 #include <Remotery.h>
 
-// Restitution mixing. The idea is to use the maximum bounciness, so bouncy
-// objects will never not bounce during collisions.
-static float q3MixRestitution(const q3Box *A, const q3Box *B) {
-  return std::max(A->Restitution(), B->Restitution());
-}
-
-// Friction mixing. The idea is to allow a very low friction value to
-// drive down the mixing result. Example: anything slides on ice.
-static float q3MixFriction(const q3Box *A, const q3Box *B) {
-  return std::sqrt(A->Friction() * B->Friction());
-}
-
 q3ContactManager::q3ContactManager() {}
 
 void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
@@ -64,20 +52,7 @@ void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
   }
 
   // Create new contact
-  auto contact = new q3ContactConstraint;
-  contact->A = A;
-  contact->B = B;
-  contact->bodyA = bodyA;
-  contact->bodyB = bodyB;
-  contact->m_flags = {};
-  contact->friction = q3MixFriction(A, B);
-  contact->restitution = q3MixRestitution(A, B);
-
-  contact->manifold.SetPair(bodyA, A, bodyB, B);
-  contact->manifold.contactCount = 0;
-  for (int i = 0; i < 8; ++i)
-    contact->manifold.contacts[i].warmStarted = 0;
-
+  auto contact = std::make_shared<q3ContactConstraint>(A, bodyA, B, bodyB);
   m_contactList.push_back(contact);
 
   // Connect A
@@ -106,8 +81,8 @@ void q3ContactManager::AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB,
   bodyB->SetToAwake();
 }
 
-std::list<q3ContactConstraint *>::iterator
-q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
+std::list<q3ContactConstraintPtr>::iterator
+q3ContactManager::RemoveContact(q3ContactConstraintPtr contact) {
   q3Body *A = contact->bodyA;
   q3Body *B = contact->bodyB;
 
@@ -139,7 +114,6 @@ q3ContactManager::RemoveContact(q3ContactConstraint *contact) {
   auto it = std::find(m_contactList.begin(), m_contactList.end(), contact);
   assert(it != m_contactList.end());
   it = m_contactList.erase(it);
-  delete contact;
   return it;
 }
 

@@ -1,5 +1,29 @@
 #include "q3ContactConstraint.h"
 
+// Restitution mixing. The idea is to use the maximum bounciness, so bouncy
+// objects will never not bounce during collisions.
+static float q3MixRestitution(const q3Box *A, const q3Box *B) {
+  return std::max(A->Restitution(), B->Restitution());
+}
+
+// Friction mixing. The idea is to allow a very low friction value to
+// drive down the mixing result. Example: anything slides on ice.
+static float q3MixFriction(const q3Box *A, const q3Box *B) {
+  return std::sqrt(A->Friction() * B->Friction());
+}
+
+q3ContactConstraint::q3ContactConstraint(q3Box *A, q3Body *bodyA, q3Box *B,
+                                         q3Body *bodyB)
+    : A(A), B(B), bodyA(bodyA), bodyB(bodyB) {
+  friction = q3MixFriction(A, B);
+  restitution = q3MixRestitution(A, B);
+
+  manifold.SetPair(bodyA, A, bodyB, B);
+  manifold.contactCount = 0;
+  for (int i = 0; i < 8; ++i)
+    manifold.contacts[i].warmStarted = 0;
+}
+
 bool q3ContactConstraint::Test(
     const std::function<bool(q3Box *, q3Box *)> &testOverlap) {
   // auto constraint = *it;

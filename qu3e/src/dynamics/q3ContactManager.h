@@ -26,30 +26,27 @@ distribution.
 //--------------------------------------------------------------------------------------------------
 
 #pragma once
+#include "q3ContactConstraint.h"
 #include <functional>
 #include <list>
+#include <memory>
 #include <unordered_map>
-//--------------------------------------------------------------------------------------------------
-// q3ContactManager
-//--------------------------------------------------------------------------------------------------
-struct q3ContactConstraint;
-
 class q3Box;
 class q3Body;
 class q3Render;
 class q3Stack;
 
 class q3ContactManager {
-  std::list<q3ContactConstraint *> m_contactList;
+  std::list<q3ContactConstraintPtr> m_contactList;
 
   std::unordered_map<class q3Body *, struct q3ContactEdge *> m_edgeMap;
 
 public:
   q3ContactManager();
-  std::list<q3ContactConstraint *>::iterator begin() {
+  std::list<q3ContactConstraintPtr>::iterator begin() {
     return m_contactList.begin();
   }
-  std::list<q3ContactConstraint *>::iterator end() {
+  std::list<q3ContactConstraintPtr>::iterator end() {
     return m_contactList.end();
   }
   size_t ContactCount() const { return m_contactList.size(); }
@@ -67,8 +64,8 @@ public:
   void AddContact(q3Body *bodyA, q3Box *A, q3Body *bodyB, q3Box *B);
 
   // Remove a specific contact
-  std::list<q3ContactConstraint *>::iterator
-  RemoveContact(q3ContactConstraint *contact);
+  std::list<q3ContactConstraintPtr>::iterator
+  RemoveContact(q3ContactConstraintPtr contact);
 
   // Remove all contacts from a body
   void RemoveContactsFromBody(q3Body *body);

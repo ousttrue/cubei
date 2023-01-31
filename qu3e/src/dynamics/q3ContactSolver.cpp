@@ -29,7 +29,6 @@ distribution.
 #include "../math/q3Math.h"
 #include "../scene/q3Env.h"
 #include "q3Contact.h"
-#include "q3ContactConstraint.h"
 
 #include <Remotery.h>
 
@@ -39,12 +38,12 @@ distribution.
 
 struct q3ContactSolver {
   bool m_enableFriction;
-  std::span<std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
+  std::span<std::tuple<q3ContactConstraintPtr, q3ContactConstraintState>>
       m_constraints;
 
 public:
   q3ContactSolver(float dt, bool enableFriction,
-                  std::span<std::tuple<struct q3ContactConstraint *,
+                  std::span<std::tuple<q3ContactConstraintPtr,
                                        q3ContactConstraintState>>
                       constraints);
   ~q3ContactSolver();
@@ -54,7 +53,7 @@ public:
 q3ContactSolver::q3ContactSolver(
     float dt, bool enableFriction,
     std::span<
-        std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
+        std::tuple<q3ContactConstraintPtr, q3ContactConstraintState>>
         constraints)
     : m_enableFriction(enableFriction), m_constraints(constraints) {
 
@@ -201,10 +200,10 @@ void q3ContactSolver::Solve() {
   }
 }
 
-void q3ContactSolve(const q3Env &env,
-                    std::span<std::tuple<struct q3ContactConstraint *,
-                                         q3ContactConstraintState>>
-                        constraints) {
+void q3ContactSolve(
+    const q3Env &env,
+    std::span<std::tuple<q3ContactConstraintPtr, q3ContactConstraintState>>
+        constraints) {
   // Create contact solver, pass in state buffers, create buffers for contacts
   // Initialize velocity constraint for normal + friction and warm start
   q3ContactSolver contactSolver(env.m_dt, env.m_enableFriction, constraints);
@@ -214,7 +213,7 @@ void q3ContactSolve(const q3Env &env,
 }
 
 void q3ContactsSolve(const q3Env &env, std::span<q3Body *> bodies,
-                     std::span<q3ContactConstraint *> constraints) {
+                     std::span<q3ContactConstraintPtr> constraints) {
   rmt_ScopedCPUSample(q3ContactsSolve, 0);
 
   // Apply gravity
@@ -223,7 +222,7 @@ void q3ContactsSolve(const q3Env &env, std::span<q3Body *> bodies,
     body->ApplyForce(env);
   }
 
-  std::vector<std::tuple<struct q3ContactConstraint *, q3ContactConstraintState>>
+  std::vector<std::tuple<q3ContactConstraintPtr, q3ContactConstraintState>>
       constraintWithStates;
   for (auto cc : constraints) {
     constraintWithStates.push_back({cc, {}});

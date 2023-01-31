@@ -29,11 +29,12 @@ distribution.
 #include "../scene/q3Env.h"
 #include "q3ContactConstraintState.h"
 #include "q3ContactSolver.h"
+#include <memory>
 #include <vector>
 
 struct q3Island {
   std::vector<class q3Body *> m_bodies;
-  std::vector<struct q3ContactConstraint *> m_constraints;
+  std::vector<std::shared_ptr<struct q3ContactConstraint>> m_constraints;
 
   q3Island(q3Body *seed, class q3ContactManager *contactManager);
   ~q3Island();

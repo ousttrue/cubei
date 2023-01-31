@@ -64,7 +64,7 @@ q3Island::q3Island(q3Body *seed, class q3ContactManager *contactManager) {
     // Search all contacts connected to this body
     for (q3ContactEdge *edge = contactManager->ContactEdge(body); edge;
          edge = edge->next) {
-      q3ContactConstraint *contact = edge->constraint;
+      auto contact = edge->constraint;
 
       // Skip contacts that have been added to an island already
       if (contact->HasFlag(q3ContactConstraintFlags::eIsland))
