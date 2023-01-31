@@ -87,7 +87,7 @@ App::~App() {
 }
 
 void App::KeyDown(char key) {
-  const float increment = 0.2f;
+  // const float increment = 0.2f;
   switch (key) {
   case 'p':
     DemosTogglePause();

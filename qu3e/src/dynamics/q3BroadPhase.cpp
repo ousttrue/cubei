@@ -156,7 +156,7 @@ void q3BroadPhase::QueryAABB(
   m_tree.QueryAABB(
       [broadPhase = this, cb, m_aabb = aabb](int id) {
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
-        if (m_aabb.IsOverlapped(box->ComputeAABB(body->GetTransform()))) {
+        if (m_aabb.IsOverlapped(box->ComputeAABB(body->Transform()))) {
           return cb(body, box);
         }
         return true;
@@ -175,7 +175,7 @@ void q3BroadPhase::QueryPoint(
   m_tree.QueryAABB(
       [broadPhase = this, m_point = point, cb](int id) {
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
-        if (box->TestPoint(body->GetTransform(), m_point)) {
+        if (box->TestPoint(body->Transform(), m_point)) {
           cb(body, box);
         }
         return true;
@@ -189,7 +189,7 @@ void q3BroadPhase::RayCast(
   m_tree.QueryRay(
       [m_rayCast = &rayCast, broadPhase = this, cb](int id) {
         auto [body, box] = broadPhase->m_tree.GetUserData(id);
-        if (box->Raycast(body->GetTransform(), m_rayCast)) {
+        if (box->Raycast(body->Transform(), m_rayCast)) {
           return cb(body, box);
         }
         return true;

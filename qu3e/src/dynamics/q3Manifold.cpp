@@ -412,8 +412,8 @@ static void q3EdgesContact(q3Vec3 *CA, q3Vec3 *CB, const q3Vec3 &PA,
 // https://box2d.googlecode.com/files/Box2D_Lite.zip
 void q3BoxtoBox(q3Manifold *m, q3Body *a_body, q3Box *a, q3Body *b_body,
                 q3Box *b) {
-  q3Transform atx = a_body->GetTransform();
-  q3Transform btx = b_body->GetTransform();
+  q3Transform atx = a_body->Transform();
+  q3Transform btx = b_body->Transform();
   q3Transform aL = a->Local();
   q3Transform bL = b->Local();
   atx = atx * aL;

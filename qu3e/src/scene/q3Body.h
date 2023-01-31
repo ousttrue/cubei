@@ -133,23 +133,24 @@ public:
   std::function<void(q3Box *)> OnBoxAdd;
   std::function<void(const q3Box *)> OnBoxRemove;
   std::function<void()> OnTransformUpdated;
-  // q3ContactEdge *m_contactList = nullptr;
   q3Body(const q3BodyDef &def);
   q3BodyState State() const { return m_state; }
-  // q3VelocityState VelocityState() const {
-  //   return {
-  //       .w = m_angularVelocity,
-  //       .v = m_linearVelocity,
-  //   };
-  // }
   q3Transform UpdatePosition() {
     m_tx.position = m_state.m_worldCenter - m_tx.rotation * m_localCenter;
     return m_tx;
   }
   std::list<q3Box *>::const_iterator begin() const { return m_boxes.begin(); }
   std::list<q3Box *>::const_iterator end() const { return m_boxes.end(); }
+  q3Transform Transform() const { return m_tx; }
 
   void Sleep(const struct q3Env &env, float *minSleepTime);
+  void SetToSleep() {
+    RemoveFlag(q3BodyFlags::eAwake);
+    m_sleepTime = float(0.0);
+    m_velocity = {};
+    m_force = {};
+    m_torque = {};
+  }
   void ClearForce() {
     m_force = {};
     m_torque = {};
@@ -158,7 +159,13 @@ public:
     m_boxes.push_back(box);
     OnBoxAdd(box);
   }
-  q3Transform Transform() const { return m_tx; }
+  // Removes this box from the body and broadphase. Forces the body
+  // to recompute its mass if the body is dynamic. Frees the memory
+  // pointed to by the box pointer.
+  void RemoveBox(const q3Box *box);
+
+  // Removes all boxes from this body and the broadphase.
+  void RemoveAllBoxes();
   void CalculateMassData();
   q3BodyFlags GetFlags() const { return m_flags; }
   bool HasFlag(q3BodyFlags flag) const {
@@ -170,13 +177,6 @@ public:
   void RemoveFlag(q3BodyFlags flag) {
     m_flags = (q3BodyFlags)((int)m_flags & ~(int)flag);
   }
-  // Removes this box from the body and broadphase. Forces the body
-  // to recompute its mass if the body is dynamic. Frees the memory
-  // pointed to by the box pointer.
-  void RemoveBox(const q3Box *box);
-
-  // Removes all boxes from this body and the broadphase.
-  void RemoveAllBoxes();
 
   void ApplyLinearForce(const q3Vec3 &force) {
     m_force += force * m_mass;
@@ -205,43 +205,7 @@ public:
       m_sleepTime = float(0.0);
     }
   }
-  void SetToSleep() {
-    RemoveFlag(q3BodyFlags::eAwake);
-    m_sleepTime = float(0.0);
-    m_velocity = {};
-    m_force = {};
-    m_torque = {};
-  }
-  void ApplyTorque(const q3Vec3 &torque) { m_torque += torque; }
   bool IsAwake() const { return HasFlag(q3BodyFlags::eAwake) ? true : false; }
-  float GetGravityScale() const { return m_gravityScale; }
-  void SetGravityScale(float scale) { m_gravityScale = scale; }
-  q3Vec3 GetLocalPoint(const q3Vec3 &p) const { return m_tx.Inversed() * p; }
-  q3Vec3 GetLocalVector(const q3Vec3 &v) const {
-    return m_tx.rotation.Transposed() * v;
-  }
-  q3Vec3 GetWorldPoint(const q3Vec3 &p) const { return m_tx * p; }
-  float GetMass() const { return m_mass; }
-  float GetInvMass() const { return m_state.m_invMass; }
-  q3Vec3 GetWorldVector(const q3Vec3 &v) const { return m_tx.rotation * v; }
-  // q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
-  q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {
-    q3Vec3 directionToPoint = p - m_state.m_worldCenter;
-    q3Vec3 relativeAngularVel =
-        q3Cross(m_velocity.angularVelocity, directionToPoint);
-
-    return m_velocity.linearVelocity + relativeAngularVel;
-  }
-  void SetLinearVelocity(const q3Vec3 &v) {
-    // Velocity of static bodies cannot be adjusted
-    if (HasFlag(q3BodyFlags::eStatic)) {
-      assert(false);
-    }
-    if (q3Dot(v, v) > float(0.0)) {
-      SetToAwake();
-    }
-    m_velocity.linearVelocity = v;
-  }
   bool CanCollide(const q3Body *other) const {
     if (this == other) {
       return false;
@@ -256,39 +220,6 @@ public:
     }
     return true;
   }
-  // const q3Vec3 GetAngularVelocity() const { return m_angularVelocity; }
-  void SetAngularVelocity(const q3Vec3 v) {
-    // Velocity of static bodies cannot be adjusted
-    if (HasFlag(q3BodyFlags::eStatic))
-      assert(false);
-    if (q3Dot(v, v) > float(0.0)) {
-      SetToAwake();
-    }
-    m_velocity.angularVelocity = v;
-  }
-  const q3Transform GetTransform() const { return m_tx; }
-  void SetLayers(int layers) { m_layers = layers; }
-  int GetLayers() const { return m_layers; }
-  const q3Quaternion GetQuaternion() const { return m_q; }
-  void SetLinearDamping(float damping) { m_linearDamping = damping; }
-  float GetLinearDamping(float damping) const { return m_linearDamping; }
-  void SetAngularDamping(float damping) { m_angularDamping = damping; }
-  float GetAngularDamping(float damping) const { return m_angularDamping; }
-
-  // Manipulating the transformation of a body manually will result in
-  // non-physical behavior. Contacts are updated upon the next call to
-  // q3Scene::Step( ). Parameters are in world space. All body types
-  // can be updated.
-  void SetTransform(const q3Vec3 &position) {
-    m_state.m_worldCenter = position;
-    OnTransformUpdated();
-  }
-  void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle) {
-    m_state.m_worldCenter = position;
-    m_q = q3Quaternion::FromAxisAngle(axis, angle);
-    m_tx.rotation = m_q.ToMat3();
-    OnTransformUpdated();
-  }
 
   void ApplyForce(const struct q3Env &env);
   q3VelocityState &VelocityState() { return m_velocityState; }
@@ -300,4 +231,68 @@ public:
   // Dump this rigid body and its shapes into a log file. The log can be
   // used as C++ code to re-create an initial scene setup.
   void Dump(FILE *file, int index) const;
+
+private:
+  // void ApplyTorque(const q3Vec3 &torque) { m_torque += torque; }
+  // float GetGravityScale() const { return m_gravityScale; }
+  // void SetGravityScale(float scale) { m_gravityScale = scale; }
+  // q3Vec3 GetLocalPoint(const q3Vec3 &p) const { return m_tx.Inversed() * p; }
+  // q3Vec3 GetLocalVector(const q3Vec3 &v) const {
+  //   return m_tx.rotation.Transposed() * v;
+  // }
+  // q3Vec3 GetWorldPoint(const q3Vec3 &p) const { return m_tx * p; }
+  // float GetMass() const { return m_mass; }
+  // float GetInvMass() const { return m_state.m_invMass; }
+  // q3Vec3 GetWorldVector(const q3Vec3 &v) const { return m_tx.rotation * v; }
+  // // q3Vec3 GetLinearVelocity() const { return m_linearVelocity; }
+  // q3Vec3 GetVelocityAtWorldPoint(const q3Vec3 &p) const {
+  //   q3Vec3 directionToPoint = p - m_state.m_worldCenter;
+  //   q3Vec3 relativeAngularVel =
+  //       q3Cross(m_velocity.angularVelocity, directionToPoint);
+
+  //   return m_velocity.linearVelocity + relativeAngularVel;
+  // }
+  // void SetLinearVelocity(const q3Vec3 &v) {
+  //   // Velocity of static bodies cannot be adjusted
+  //   if (HasFlag(q3BodyFlags::eStatic)) {
+  //     assert(false);
+  //   }
+  //   if (q3Dot(v, v) > float(0.0)) {
+  //     SetToAwake();
+  //   }
+  //   m_velocity.linearVelocity = v;
+  // }
+  // // const q3Vec3 GetAngularVelocity() const { return m_angularVelocity; }
+  // void SetAngularVelocity(const q3Vec3 v) {
+  //   // Velocity of static bodies cannot be adjusted
+  //   if (HasFlag(q3BodyFlags::eStatic))
+  //     assert(false);
+  //   if (q3Dot(v, v) > float(0.0)) {
+  //     SetToAwake();
+  //   }
+  //   m_velocity.angularVelocity = v;
+  // }
+  // void SetLayers(int layers) { m_layers = layers; }
+  // int GetLayers() const { return m_layers; }
+  // const q3Quaternion GetQuaternion() const { return m_q; }
+  // void SetLinearDamping(float damping) { m_linearDamping = damping; }
+  // float GetLinearDamping(float damping) const { return m_linearDamping; }
+  // void SetAngularDamping(float damping) { m_angularDamping = damping; }
+  // float GetAngularDamping(float damping) const { return m_angularDamping; }
+
+  // // Manipulating the transformation of a body manually will result in
+  // // non-physical behavior. Contacts are updated upon the next call to
+  // // q3Scene::Step( ). Parameters are in world space. All body types
+  // // can be updated.
+  // void SetTransform(const q3Vec3 &position) {
+  //   m_state.m_worldCenter = position;
+  //   OnTransformUpdated();
+  // }
+  // void SetTransform(const q3Vec3 &position, const q3Vec3 &axis, float angle)
+  // {
+  //   m_state.m_worldCenter = position;
+  //   m_q = q3Quaternion::FromAxisAngle(axis, angle);
+  //   m_tx.rotation = m_q.ToMat3();
+  //   OnTransformUpdated();
+  // }
 };
