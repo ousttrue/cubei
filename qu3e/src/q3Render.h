@@ -25,6 +25,7 @@ distribution.
 */
 //--------------------------------------------------------------------------------------------------
 #pragma once
+#include "math/q3AABB.h"
 #include "math/q3Transform.h"
 
 class q3Render {
@@ -35,16 +36,20 @@ public:
   virtual void EndFrame(const float *projection, const float *view) {}
 
   virtual void SetPenColor(float r, float g, float b, float a = 1.0f) = 0;
-  virtual void SetPenPosition(float x, float y, float z) = 0;
   virtual void SetScale(float sx, float sy, float sz) = 0;
+
+  // Draw a point with the scale from SetScale
+  virtual void Point() = 0;
+
+  virtual void LineAABB(const q3AABB &aabb);
+
+  virtual void SetPenPosition(float x, float y, float z) = 0;
 
   // Render a line from pen position to this point.
   // Sets the pen position to the new point.
   virtual void Line(float x, float y, float z) = 0;
 
-  // Draw a point with the scale from SetScale
-  virtual void Point() = 0;
-
+public:
   virtual void Cube(const q3Transform &world, const q3Vec3 extent);
 
 protected:

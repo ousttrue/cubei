@@ -1,5 +1,28 @@
 #include "q3Render.h"
 
+void q3Render::LineAABB(const q3AABB &b) {
+  SetPenPosition(b.min.x, b.max.y, b.min.z);
+  Line(b.min.x, b.max.y, b.max.z);
+  Line(b.max.x, b.max.y, b.max.z);
+  Line(b.max.x, b.max.y, b.min.z);
+  Line(b.min.x, b.max.y, b.min.z);
+
+  SetPenPosition(b.min.x, b.min.y, b.min.z);
+  Line(b.min.x, b.min.y, b.max.z);
+  Line(b.max.x, b.min.y, b.max.z);
+  Line(b.max.x, b.min.y, b.min.z);
+  Line(b.min.x, b.min.y, b.min.z);
+
+  SetPenPosition(b.min.x, b.min.y, b.min.z);
+  Line(b.min.x, b.max.y, b.min.z);
+  SetPenPosition(b.max.x, b.min.y, b.min.z);
+  Line(b.max.x, b.max.y, b.min.z);
+  SetPenPosition(b.max.x, b.min.y, b.max.z);
+  Line(b.max.x, b.max.y, b.max.z);
+  SetPenPosition(b.min.x, b.min.y, b.max.z);
+  Line(b.min.x, b.max.y, b.max.z);
+}
+
 const int kBoxIndices[36] = {
     1 - 1, 7 - 1, 5 - 1, 1 - 1, 3 - 1, 7 - 1, 1 - 1, 4 - 1, 3 - 1,
     1 - 1, 2 - 1, 4 - 1, 3 - 1, 8 - 1, 7 - 1, 3 - 1, 4 - 1, 8 - 1,
@@ -20,11 +43,11 @@ void q3Render::Cube(const q3Transform &world, const q3Vec3 extent) {
 
     q3Vec3 n = q3Cross(b - a, c - a).Normalized();
 
-    // render->SetPenColor( 0.2f, 0.4f, 0.7f, 0.5f );
-    // render->SetPenPosition( a.x, a.y, a.z );
-    // render->Line( b.x, b.y, b.z );
-    // render->Line( c.x, c.y, c.z );
-    // render->Line( a.x, a.y, a.z );
+    // SetPenColor( 0.2f, 0.4f, 0.7f, 0.5f );
+    // SetPenPosition( a.x, a.y, a.z );
+    // Line( b.x, b.y, b.z );
+    // Line( c.x, c.y, c.z );
+    // Line( a.x, a.y, a.z );
 
     SetTriNormal(n.x, n.y, n.z);
     Triangle(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);

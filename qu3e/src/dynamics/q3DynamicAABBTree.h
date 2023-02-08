@@ -577,35 +577,13 @@ private:
   void RenderNode(q3Render *render, int index) const {
     assert(index >= 0 && index < m_nodes.size());
 
-    auto n = &m_nodes[index];
-    const q3AABB &b = n->aabb;
+    auto node = &m_nodes[index];
 
-    render->SetPenPosition(b.min.x, b.max.y, b.min.z);
+    render->LineAABB(node->aabb);
 
-    render->Line(b.min.x, b.max.y, b.max.z);
-    render->Line(b.max.x, b.max.y, b.max.z);
-    render->Line(b.max.x, b.max.y, b.min.z);
-    render->Line(b.min.x, b.max.y, b.min.z);
-
-    render->SetPenPosition(b.min.x, b.min.y, b.min.z);
-
-    render->Line(b.min.x, b.min.y, b.max.z);
-    render->Line(b.max.x, b.min.y, b.max.z);
-    render->Line(b.max.x, b.min.y, b.min.z);
-    render->Line(b.min.x, b.min.y, b.min.z);
-
-    render->SetPenPosition(b.min.x, b.min.y, b.min.z);
-    render->Line(b.min.x, b.max.y, b.min.z);
-    render->SetPenPosition(b.max.x, b.min.y, b.min.z);
-    render->Line(b.max.x, b.max.y, b.min.z);
-    render->SetPenPosition(b.max.x, b.min.y, b.max.z);
-    render->Line(b.max.x, b.max.y, b.max.z);
-    render->SetPenPosition(b.min.x, b.min.y, b.max.z);
-    render->Line(b.min.x, b.max.y, b.max.z);
-
-    if (!n->IsLeaf()) {
-      RenderNode(render, n->left);
-      RenderNode(render, n->right);
+    if (!node->IsLeaf()) {
+      RenderNode(render, node->left);
+      RenderNode(render, node->right);
     }
   }
 
