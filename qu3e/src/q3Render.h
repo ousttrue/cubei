@@ -24,13 +24,9 @@ not be misrepresented as being the original software.
 distribution.
 */
 //--------------------------------------------------------------------------------------------------
+#pragma once
+#include "math/q3Transform.h"
 
-#ifndef Q3RENDER_H
-#define Q3RENDER_H
-
-//--------------------------------------------------------------------------------------------------
-// q3Render
-//--------------------------------------------------------------------------------------------------
 class q3Render {
 public:
   virtual ~q3Render() {}
@@ -46,14 +42,15 @@ public:
   // Sets the pen position to the new point.
   virtual void Line(float x, float y, float z) = 0;
 
+  // Draw a point with the scale from SetScale
+  virtual void Point() = 0;
+
+  virtual void Cube(const q3Transform &world, const q3Vec3 extent);
+
+protected:
   virtual void SetTriNormal(float x, float y, float z) = 0;
 
   // Render a triangle with the normal set by SetTriNormal.
   virtual void Triangle(float x1, float y1, float z1, float x2, float y2,
                         float z2, float x3, float y3, float z3) = 0;
-
-  // Draw a point with the scale from SetScale
-  virtual void Point() = 0;
 };
-
-#endif // Q3RENDER_H

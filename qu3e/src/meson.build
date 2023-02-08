@@ -13,6 +13,7 @@ qu3e_lib = static_library(
         'dynamics/q3Island.cpp',
         'dynamics/q3Manifold.cpp',
         'dynamics/q3TimeStep.cpp',
+        'q3Render.cpp',
     ],
     dependencies: [remotery_dep],
 )
