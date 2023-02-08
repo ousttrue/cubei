@@ -49,13 +49,12 @@ public:
   // Sets the pen position to the new point.
   virtual void Line(float x, float y, float z) = 0;
 
-public:
   virtual void Cube(const q3Transform &world, const q3Vec3 extent);
 
 protected:
-  virtual void SetTriNormal(float x, float y, float z) = 0;
+  virtual void SetTriNormal(float x, float y, float z){}
 
   // Render a triangle with the normal set by SetTriNormal.
   virtual void Triangle(float x1, float y1, float z1, float x2, float y2,
-                        float z2, float x3, float y3, float z3) = 0;
+                        float z2, float x3, float y3, float z3){}
 };

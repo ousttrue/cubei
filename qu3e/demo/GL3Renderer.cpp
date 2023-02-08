@@ -1,5 +1,6 @@
 #include "GL3Renderer.h"
 #include "glo.h"
+#include <cuber.h>
 #include <gl/glew.h>
 #include <plog/Log.h>
 #include <stdint.h>
@@ -81,12 +82,14 @@ class GL3RendererImpl {
   uint32_t program_ = 0;
   glo::VBO vbo_;
   glo::VAO vao_;
-  std::vector<Vertex> triangles_;
+  std::vector<DirectX::XMFLOAT4X4> cubes_;
   std::vector<Vertex> lines_;
   std::vector<Vertex> points_;
 
   glo::UBO<VertexUbo> vertexUbo_ = {0};
   glo::UBO<Light> fragmentUbo_ = {1};
+
+  cuber::CubeRenderer cubes;
 
 public:
   GL3RendererImpl() {
@@ -95,7 +98,7 @@ public:
       PLOG_FATAL << msg;
     };
     program_ = glo::BuildShader(VS, FS, errorMessage);
-    vbo_.Initialize(sizeof(triangles_), nullptr);
+    vbo_.Initialize(65535, nullptr);
     uint32_t vbos[] = {
         vbo_.vbo_,
         vbo_.vbo_,
@@ -107,34 +110,38 @@ public:
   }
   ~GL3RendererImpl() {}
   void Clear() {
-    triangles_.clear();
+    cubes_.clear();
     lines_.clear();
     points_.clear();
-  }
-  void PushTriangle(const Vertex &v0, const Vertex &v1, const Vertex &v2) {
-    triangles_.push_back(v0);
-    triangles_.push_back(v1);
-    triangles_.push_back(v2);
   }
   void PushLine(const Vertex &v0, const Vertex &v1) {
     lines_.push_back(v0);
     lines_.push_back(v1);
   }
   void PushPoint(const Vertex &v0) { points_.push_back(v0); }
-  void Render(const float m[16]) {
+  void PushCube(const q3Transform &world, const q3Vec3 extent) {
+    auto pos = world.position;
+    auto t = DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
+    auto rot = world.rotation;
+    auto r = DirectX::XMLoadFloat3x3((const DirectX::XMFLOAT3X3 *)&rot);
+    auto scale =
+        DirectX::XMMatrixScaling(extent.x * 2, extent.y * 2, extent.z * 2);
+    DirectX::XMFLOAT4X4 m;
+    DirectX::XMStoreFloat4x4(&m, scale * r * t);
+    cubes_.push_back(m);
+  }
+  void Render(const float m[16], const float *projection, const float *view) {
     // upload
     vertexUbo_.value_.uVP = *((const DirectX::XMFLOAT4X4 *)m);
     vertexUbo_.Upload();
     fragmentUbo_.Upload();
 
     // render
+    cubes.Render<DirectX::XMFLOAT4X4>(projection, view, cubes_);
+
     glUseProgram(program_);
     vertexUbo_.Bind(program_, "VertexUbo");
     fragmentUbo_.Bind(program_, "FragmentUbo");
-    {
-      vbo_.Initialize(triangles_.size() * sizeof(Vertex), triangles_.data());
-      vao_.Render(triangles_.size(), GL_TRIANGLES);
-    }
     {
       vbo_.Initialize(lines_.size() * sizeof(Vertex), lines_.data());
       vao_.Render(lines_.size(), GL_LINES);
@@ -183,30 +190,8 @@ void GL3Renderer::Line(float x, float y, float z) {
   y_ = y;
   z_ = z;
 }
-void GL3Renderer::Triangle(float x1, float y1, float z1, float x2, float y2,
-                           float z2, float x3, float y3, float z3) {
-  Float3 rgb = {0.2f, 0.4f, 0.7f};
-  impl_->PushTriangle(
-      Vertex{
-          .position{x1, y1, z1},
-          .normal{.x = nx_, .y = ny_, .z = nz_},
-          .color = rgb,
-      },
-      Vertex{
-          .position{x2, y2, z2},
-          .normal{.x = nx_, .y = ny_, .z = nz_},
-          .color = rgb,
-      },
-      Vertex{
-          .position{x3, y3, z3},
-          .normal{.x = nx_, .y = ny_, .z = nz_},
-          .color = rgb,
-      });
-}
-void GL3Renderer::SetTriNormal(float x, float y, float z) {
-  nx_ = x;
-  ny_ = y;
-  nz_ = z;
+void GL3Renderer::Cube(const q3Transform &world, const q3Vec3 extent) {
+  impl_->PushCube(world, extent);
 }
 void GL3Renderer::Point() {
   impl_->PushPoint(Vertex{
@@ -238,5 +223,5 @@ void GL3Renderer::EndFrame(const float *projection, const float *view) {
 
   DirectX::XMFLOAT4X4 mvp;
   DirectX::XMStoreFloat4x4(&mvp, m);
-  impl_->Render(&mvp._11);
+  impl_->Render(&mvp._11, projection, view);
 }

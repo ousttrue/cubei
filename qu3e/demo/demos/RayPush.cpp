@@ -65,14 +65,15 @@ void RayPush::Update(q3Scene *scene, std::chrono::nanoseconds dt,
 void RayPush::Render(q3Render *render) {
   render->SetScale(1.0f, 1.0f, 1.0f);
   render->SetPenColor(0.2f, 0.5f, 1.0f);
+  q3Vec3 impact = rayCast.data.GetImpactPoint();
+
   render->SetPenPosition(rayCast.data.start.x, rayCast.data.start.y,
                          rayCast.data.start.z);
-  q3Vec3 impact = rayCast.data.GetImpactPoint();
   render->Line(impact.x, impact.y, impact.z);
 
-  render->SetPenPosition(impact.x, impact.y, impact.z);
   render->SetPenColor(1.0f, 0.5f, 0.5f);
   render->SetScale(10.0f, 10.0f, 10.0f);
+  render->SetPenPosition(impact.x, impact.y, impact.z);
   render->Point();
 
   render->SetPenColor(1.0f, 0.5f, 0.2f);

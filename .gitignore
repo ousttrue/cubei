@@ -3,4 +3,9 @@
 /subprojects/*
 !/subprojects/packagefiles
 !/subprojects/*.wrap
+/subprojects/spanmath.wrap
+/subprojects/meshutils.wrap
+/subprojects/DirectXTK.wrap
+/subprojects/catch2.wrap
+/subprojects/asio.wrap
 imgui.ini

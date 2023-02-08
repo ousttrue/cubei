@@ -4,6 +4,7 @@ glfw_dep = dependency('glfw3', default_options: ['install=true'])
 gl_dep = dependency('opengl')
 glew_dep = dependency('glew')
 imgui_dep = dependency('imgui', default_options: ['default_library=static'])
+cuber_dep = dependency('cuber')
 executable('demo', [
     'main.cpp',
     'App.cpp',
@@ -25,5 +26,6 @@ executable('demo', [
         glew_dep, 
         directxmath_dep,
         remotery_dep,
+        cuber_dep,
     ]
 )
