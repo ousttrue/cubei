@@ -1,6 +1,6 @@
 #include "GL3Renderer.h"
 #include "glo.h"
-#include <cuber.h>
+#include <cuber/GlCubeRenderer.h>
 #include <gl/glew.h>
 #include <plog/Log.h>
 #include <stdint.h>
@@ -89,7 +89,7 @@ class GL3RendererImpl {
   glo::UBO<VertexUbo> vertexUbo_ = {0};
   glo::UBO<Light> fragmentUbo_ = {1};
 
-  cuber::CubeRenderer cubes;
+  cuber::GlCubeRenderer cubes;
 
 public:
   GL3RendererImpl() {

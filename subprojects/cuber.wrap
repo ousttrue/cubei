@@ -2,7 +2,6 @@
 url = https://github.com/ousttrue/cuber.git
 revision = master
 depth = 1
-; patch_directory = cuber
 
 [provide]
-cuber = cuber_dep
+cuber_gl3 = cuber_gl3_dep
