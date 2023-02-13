@@ -47,18 +47,18 @@ const EpxVector3 gravity(0.0f, -9.8f, 0.0f);
 EpxState states[maxRigidBodies];
 EpxRigidBody bodies[maxRigidBodies];
 EpxCollidable collidables[maxRigidBodies];
-EpxUInt32 numRigidBodies = 0;
+EpxUInt32 g_numRigidBodies = 0;
 
 // ジョイント
 EpxBallJoint joints[maxJoints];
-EpxUInt32 numJoints = 0;
+EpxUInt32 g_numJoints = 0;
 
 // ペア
-unsigned int pairSwap;
-EpxUInt32 numPairs[2];
+unsigned int g_pairSwap;
+EpxUInt32 g_numPairs[2];
 EpxPair pairs[2][maxPairs];
 
-static int frame = 0;
+static int g_frame = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 // メモリアロケータ
@@ -92,12 +92,12 @@ struct Perf {
 
 void physicsSimulate() {
   Perf perf;
-  perf.setFrame(frame);
+  perf.setFrame(g_frame);
 
-  pairSwap = 1 - pairSwap;
+  g_pairSwap = 1 - g_pairSwap;
 
   perf.begin();
-  for (EpxUInt32 i = 0; i < numRigidBodies; i++) {
+  for (EpxUInt32 i = 0; i < g_numRigidBodies; i++) {
     EpxVector3 externalForce = gravity * bodies[i].m_mass;
     EpxVector3 externalTorque(0.0f);
     epxApplyExternalForce(states[i], bodies[i], externalForce, externalTorque,
@@ -106,24 +106,24 @@ void physicsSimulate() {
   perf.end("apply force");
 
   perf.begin();
-  epxBroadPhase(states, collidables, numRigidBodies, pairs[1 - pairSwap],
-                numPairs[1 - pairSwap], pairs[pairSwap], numPairs[pairSwap],
+  epxBroadPhase(states, collidables, g_numRigidBodies, pairs[1 - g_pairSwap],
+                g_numPairs[1 - g_pairSwap], pairs[g_pairSwap], g_numPairs[g_pairSwap],
                 maxPairs, &allocator, NULL, NULL);
   perf.end("broadphase");
 
   perf.begin();
-  epxDetectCollision(states, collidables, numRigidBodies, pairs[pairSwap],
-                     numPairs[pairSwap]);
+  epxDetectCollision(states, collidables, g_numRigidBodies, pairs[g_pairSwap],
+                     g_numPairs[g_pairSwap]);
   perf.end("collision");
 
   perf.begin();
-  epxSolveConstraints(states, bodies, numRigidBodies, pairs[pairSwap],
-                      numPairs[pairSwap], joints, numJoints, iteration,
+  epxSolveConstraints(states, bodies, g_numRigidBodies, pairs[g_pairSwap],
+                      g_numPairs[g_pairSwap], joints, g_numJoints, iteration,
                       contactBias, contactSlop, timeStep, &allocator);
   perf.end("solver");
 
   perf.begin();
-  epxIntegrate(states, numRigidBodies, timeStep);
+  epxIntegrate(states, g_numRigidBodies, timeStep);
   perf.end("integrate");
 
   // epxPrintf("--- frame %d -------------\n",frame);
@@ -133,7 +133,7 @@ void physicsSimulate() {
   //%u\n",p.rigidBodyA,p.rigidBodyB,p.contact->m_numContacts);
   // }
 
-  frame++;
+  g_frame++;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,7 +142,7 @@ void physicsSimulate() {
 static int fireRigidBodyId;
 
 static void createFireBody(Renderer *renderer) {
-  fireRigidBodyId = numRigidBodies++;
+  fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
 
@@ -168,7 +168,7 @@ static void createFireBody(Renderer *renderer) {
 static void createSceneCompound(Renderer *renderer) {
   // 地面
   {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
 
@@ -192,7 +192,7 @@ static void createSceneCompound(Renderer *renderer) {
 
   // 複合形状
   for (int i = 0; i < 5; i++) {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     states[id].reset();
     states[id].m_position = EpxVector3(0.0f, 3.0f + 2.0f * i, 0.0f);
@@ -244,7 +244,7 @@ static void createSceneCompound(Renderer *renderer) {
 static void createSceneDaruma(Renderer *renderer) {
   // 地面
   {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
 
@@ -268,7 +268,7 @@ static void createSceneDaruma(Renderer *renderer) {
 
   // ダルマ複合形状
   for (int i = 0; i <= 5; i++) {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     states[id].reset();
     states[id].m_position = EpxVector3(-5.0f + i * 2.0f, 3.0f, 0.0f);
@@ -310,7 +310,7 @@ static void createSceneDaruma(Renderer *renderer) {
 static void createSceneStackingPole(Renderer *renderer) {
   // 地面
   {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
 
@@ -337,7 +337,7 @@ static void createSceneStackingPole(Renderer *renderer) {
   const EpxVector3 brickScale(0.5f);
 
   for (int i = 0; i < 7; i++) {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     states[id].reset();
     states[id].m_position = EpxVector3(0.0f, brickScale[1] + i, 0.0f);
@@ -361,7 +361,7 @@ static void createSceneStackingPole(Renderer *renderer) {
 static void createSceneStackingWall(Renderer *renderer) {
   // 地面
   {
-    int id = numRigidBodies++;
+    int id = g_numRigidBodies++;
 
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
 
@@ -395,7 +395,7 @@ static void createSceneStackingWall(Renderer *renderer) {
 
   while (stackSize) {
     for (int i = 0; i < stackSize; i++) {
-      int id = numRigidBodies++;
+      int id = g_numRigidBodies++;
 
       pos[0] = offset + i * diff * 2.0f;
 
@@ -433,12 +433,12 @@ static const char titles[][32] = {
 const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
 
 void physicsCreateScene(int sceneId, Renderer *renderer) {
-  frame = 0;
+  g_frame = 0;
 
-  numRigidBodies = 0;
-  numJoints = 0;
-  numPairs[0] = numPairs[1] = 0;
-  pairSwap = 0;
+  g_numRigidBodies = 0;
+  g_numJoints = 0;
+  g_numPairs[0] = g_numPairs[1] = 0;
+  g_pairSwap = 0;
 
   switch (sceneId % maxScenes) {
   case 0:
@@ -471,7 +471,7 @@ void physicsRelease() {}
 ///////////////////////////////////////////////////////////////////////////////
 // 外部から物理データへのアクセス
 
-int physicsGetNumRigidbodies() { return numRigidBodies; }
+int physicsGetNumRigidbodies() { return g_numRigidBodies; }
 
 const EpxState &physicsGetState(int i) { return states[i]; }
 
@@ -479,18 +479,18 @@ const EpxRigidBody &physicsGetRigidBody(int i) { return bodies[i]; }
 
 const EpxCollidable &physicsGetCollidable(int i) { return collidables[i]; }
 
-int physicsGetNumContacts() { return numPairs[pairSwap]; }
+int physicsGetNumContacts() { return g_numPairs[g_pairSwap]; }
 
 const EasyPhysics::EpxContact &physicsGetContact(int i) {
-  return *pairs[pairSwap][i].contact;
+  return *pairs[g_pairSwap][i].contact;
 }
 
 EpxUInt32 physicsGetRigidBodyAInContact(int i) {
-  return pairs[pairSwap][i].rigidBodyA;
+  return pairs[g_pairSwap][i].rigidBodyA;
 }
 
 EpxUInt32 physicsGetRigidBodyBInContact(int i) {
-  return pairs[pairSwap][i].rigidBodyB;
+  return pairs[g_pairSwap][i].rigidBodyB;
 }
 
 void physicsFire(const EasyPhysics::EpxVector3 &position,

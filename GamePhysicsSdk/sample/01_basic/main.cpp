@@ -31,7 +31,6 @@
 
 static bool s_isRunning = true;
 
-int sceneId = 0;
 bool simulating = false;
 
 static void render(Renderer *renderer, FontRenderer *font) {
@@ -93,7 +92,7 @@ static void render(Renderer *renderer, FontRenderer *font) {
   EasyPhysics::EpxFloat sy = height * 0.5f - 10.0f;
 
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
-              physicsGetSceneTitle(sceneId));
+              physicsGetSceneTitle());
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
@@ -152,13 +151,14 @@ static void update(Renderer *renderer, Control *ctrl) {
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
     renderer->Wait();
     renderer->ReleaseMeshAll();
-    physicsCreateScene(sceneId, renderer);
+    physicsCreateScene(renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
     renderer->Wait();
     renderer->ReleaseMeshAll();
-    physicsCreateScene(++sceneId, renderer);
+    physicsNextScene();
+    physicsCreateScene(renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
@@ -195,7 +195,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   Control ctrl;
   Renderer renderer(SAMPLE_NAME);
   FontRenderer font(&renderer);
-  physicsCreateScene(sceneId, &renderer);
+  physicsCreateScene(&renderer);
 
   MSG msg;
   while (s_isRunning) {

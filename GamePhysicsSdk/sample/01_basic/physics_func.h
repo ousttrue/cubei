@@ -29,11 +29,12 @@
 // シミュレーション関数
 bool physicsInit();
 void physicsRelease();
-void physicsCreateScene(int sceneId, class Renderer *renderer);
 void physicsSimulate();
 
+void physicsCreateScene(class Renderer *renderer);
+void physicsNextScene();
 // シーンのタイトル名を取得する
-const char *physicsGetSceneTitle(int i);
+const char *physicsGetSceneTitle();
 
 // 剛体に関連するデータを取得する関数
 int physicsGetNumRigidbodies();
