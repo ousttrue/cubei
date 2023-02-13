@@ -130,14 +130,15 @@ void physicsSimulate() {
   perf.end("broadphase");
 
   perf.begin();
-  epxDetectCollision(states, collidables, g_numRigidBodies, pairs[g_pairSwap],
-                     g_numPairs[g_pairSwap]);
+  epxDetectCollision(states, collidables, g_numRigidBodies,
+                     {pairs[g_pairSwap], g_numPairs[g_pairSwap]});
   perf.end("collision");
 
   perf.begin();
-  epxSolveConstraints(states, bodies, g_numRigidBodies, pairs[g_pairSwap],
-                      g_numPairs[g_pairSwap], joints, g_numJoints, iteration,
-                      contactBias, contactSlop, timeStep, &allocator);
+  epxSolveConstraints(states, bodies, g_numRigidBodies,
+                      {pairs[g_pairSwap], g_numPairs[g_pairSwap]}, joints,
+                      g_numJoints, iteration, contactBias, contactSlop,
+                      timeStep, &allocator);
   perf.end("solver");
 
   perf.begin();

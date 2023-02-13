@@ -26,13 +26,40 @@
 
 #include "../../easy_physics/EpxInclude.h"
 
-struct PhysicsScene
-{
+struct PhysicsScene {};
 
-};
-struct PhysicsState
-{
+const int maxPairs = 5000;
+struct PhysicsState {
+  struct PhysicsPair {
+    EasyPhysics::EpxUInt32 numPairs;
+    EasyPhysics::EpxPair pairs[maxPairs];
+    std::span<EasyPhysics::EpxPair> Span() { return {pairs, numPairs}; }
+    std::span<EasyPhysics::EpxPair> MaxSpan() { return {pairs, maxPairs}; }
+  };
+  unsigned int g_pairSwap = 0;
+  PhysicsPair g_pairs[2];
 
+  void Clear() {
+    g_pairs[0].numPairs = g_pairs[1].numPairs = 0;
+    g_pairSwap = 0;
+  }
+  void NewFrame() { g_pairSwap = 1 - g_pairSwap; }
+  PhysicsPair &CurrentPair() { return g_pairs[g_pairSwap]; }
+  PhysicsPair &OtherPair() { return g_pairs[1 - g_pairSwap]; }
+
+  int physicsGetNumContacts() { return g_pairs[g_pairSwap].numPairs; }
+
+  const EasyPhysics::EpxContact &physicsGetContact(int i) {
+    return *g_pairs[g_pairSwap].pairs[i].contact;
+  }
+
+  uint32_t physicsGetRigidBodyAInContact(int i) {
+    return g_pairs[g_pairSwap].pairs[i].rigidBodyA;
+  }
+
+  uint32_t physicsGetRigidBodyBInContact(int i) {
+    return g_pairs[g_pairSwap].pairs[i].rigidBodyB;
+  }
 };
 
 // シミュレーション関数

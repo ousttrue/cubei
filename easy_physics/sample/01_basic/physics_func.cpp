@@ -33,7 +33,7 @@ using namespace EasyPhysics;
 
 const int maxRigidBodies = 500;
 const int maxJoints = 100;
-const int maxPairs = 5000;
+
 const float timeStep = 0.016f;
 const float contactBias = 0.1f;
 const float contactSlop = 0.001f;
@@ -53,10 +53,8 @@ EpxUInt32 g_numRigidBodies = 0;
 EpxBallJoint joints[maxJoints];
 EpxUInt32 g_numJoints = 0;
 
-// ペア
-unsigned int g_pairSwap;
-EpxUInt32 g_numPairs[2];
-EpxPair pairs[2][maxPairs];
+// state
+PhysicsState g_state = {};
 
 static int g_frame = 0;
 
@@ -94,7 +92,7 @@ void physicsSimulate() {
   Perf perf;
   perf.setFrame(g_frame);
 
-  g_pairSwap = 1 - g_pairSwap;
+  g_state.NewFrame();
 
   perf.begin();
   for (EpxUInt32 i = 0; i < g_numRigidBodies; i++) {
@@ -106,21 +104,21 @@ void physicsSimulate() {
   perf.end("apply force");
 
   perf.begin();
-  g_numPairs[g_pairSwap] =
+  g_state.CurrentPair().numPairs =
       epxBroadPhase({states, g_numRigidBodies}, {collidables, g_numRigidBodies},
-                    {pairs[1 - g_pairSwap], g_numPairs[1 - g_pairSwap]},
-                    {pairs[g_pairSwap], maxPairs}, &allocator, NULL, NULL);
+                    g_state.OtherPair().Span(), g_state.CurrentPair().MaxSpan(),
+                    &allocator, NULL, NULL);
   perf.end("broadphase");
 
   perf.begin();
-  epxDetectCollision(states, collidables, g_numRigidBodies, pairs[g_pairSwap],
-                     g_numPairs[g_pairSwap]);
+  epxDetectCollision(states, collidables, g_numRigidBodies,
+                     g_state.CurrentPair().Span());
   perf.end("collision");
 
   perf.begin();
-  epxSolveConstraints(states, bodies, g_numRigidBodies, pairs[g_pairSwap],
-                      g_numPairs[g_pairSwap], joints, g_numJoints, iteration,
-                      contactBias, contactSlop, timeStep, &allocator);
+  epxSolveConstraints(
+      states, bodies, g_numRigidBodies, g_state.CurrentPair().Span(), joints,
+      g_numJoints, iteration, contactBias, contactSlop, timeStep, &allocator);
   perf.end("solver");
 
   perf.begin();
@@ -478,8 +476,7 @@ void physicsCreateScene(Renderer *renderer) {
 
   g_numRigidBodies = 0;
   g_numJoints = 0;
-  g_numPairs[0] = g_numPairs[1] = 0;
-  g_pairSwap = 0;
+  g_state.Clear();
 
   switch (g_sceneId % maxScenes) {
   case 0:
@@ -520,18 +517,18 @@ const EpxRigidBody &physicsGetRigidBody(int i) { return bodies[i]; }
 
 const EpxCollidable &physicsGetCollidable(int i) { return collidables[i]; }
 
-int physicsGetNumContacts() { return g_numPairs[g_pairSwap]; }
+int physicsGetNumContacts() { return g_state.physicsGetNumContacts(); }
 
 const EasyPhysics::EpxContact &physicsGetContact(int i) {
-  return *pairs[g_pairSwap][i].contact;
+  return g_state.physicsGetContact(i);
 }
 
 EpxUInt32 physicsGetRigidBodyAInContact(int i) {
-  return pairs[g_pairSwap][i].rigidBodyA;
+  return g_state.physicsGetRigidBodyAInContact(i);
 }
 
 EpxUInt32 physicsGetRigidBodyBInContact(int i) {
-  return pairs[g_pairSwap][i].rigidBodyB;
+  return g_state.physicsGetRigidBodyBInContact(i);
 }
 
 void physicsFire(const EasyPhysics::EpxVector3 &position,
