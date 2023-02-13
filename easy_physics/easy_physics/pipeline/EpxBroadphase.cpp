@@ -41,18 +41,16 @@ static inline EpxBool epxIntersectAABB(const EpxVector3 &centerA,
   return true;
 }
 
-void epxBroadPhase(std::span<const EpxState> states,
-                   std::span<const EpxCollidable> collidables,
-                   std::span<const EpxPair> oldPairs, EpxPair *newPairs,
-                   EpxUInt32 &numNewPairs, const EpxUInt32 maxPairs,
-                   EpxAllocator *allocator, void *userData,
-                   epxBroadPhaseCallback callback) {
+uint32_t epxBroadPhase(std::span<const EpxState> states,
+                       std::span<const EpxCollidable> collidables,
+                       std::span<const EpxPair> oldPairs, EpxPair *newPairs,
+                       const EpxUInt32 maxPairs, EpxAllocator *allocator,
+                       void *userData, epxBroadPhaseCallback callback) {
   assert(states.size() == collidables.size());
-  assert(oldPairs.size());
   assert(newPairs);
   assert(allocator);
 
-  numNewPairs = 0;
+  uint32_t numNewPairs = 0;
 
   // AABB交差ペアを見つける（総当たり）
   // 処理の内容を明確にするため、ここでは空間分割テクニックを使っていませんが、
@@ -184,6 +182,8 @@ void epxBroadPhase(std::span<const EpxState> states,
                      {sortBuff, numNewPairs});
     allocator->deallocate(sortBuff);
   }
+
+  return numNewPairs;
 }
 
 } // namespace EasyPhysics
