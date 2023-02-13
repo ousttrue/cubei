@@ -60,7 +60,7 @@ typedef EpxBool (*epxBroadPhaseCallback)(EpxUInt32 rigidBodyIdA,
 /// @param callback コールバック
 void epxBroadPhase(std::span<const EpxState> states,
                    std::span<const EpxCollidable> collidables,
-                   const EpxPair *oldPairs, const EpxUInt32 numOldPairs,
+                   std::span<const EpxPair> oldPairs,
                    EpxPair *newPairs, EpxUInt32 &numNewPairs,
                    const EpxUInt32 maxPairs, EpxAllocator *allocator,
                    void *userData, epxBroadPhaseCallback callback = NULL);

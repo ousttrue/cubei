@@ -43,12 +43,12 @@ static inline EpxBool epxIntersectAABB(const EpxVector3 &centerA,
 
 void epxBroadPhase(std::span<const EpxState> states,
                    std::span<const EpxCollidable> collidables,
-                   const EpxPair *oldPairs, const EpxUInt32 numOldPairs,
-                   EpxPair *newPairs, EpxUInt32 &numNewPairs,
-                   const EpxUInt32 maxPairs, EpxAllocator *allocator,
-                   void *userData, epxBroadPhaseCallback callback) {
+                   std::span<const EpxPair> oldPairs, EpxPair *newPairs,
+                   EpxUInt32 &numNewPairs, const EpxUInt32 maxPairs,
+                   EpxAllocator *allocator, void *userData,
+                   epxBroadPhaseCallback callback) {
   assert(states.size() == collidables.size());
-  assert(oldPairs);
+  assert(oldPairs.size());
   assert(newPairs);
   assert(allocator);
 
@@ -106,7 +106,7 @@ void epxBroadPhase(std::span<const EpxState> states,
   EpxPair *outNewPairs =
       (EpxPair *)allocator->allocate(sizeof(EpxPair) * numNewPairs);
   EpxPair *outKeepPairs =
-      (EpxPair *)allocator->allocate(sizeof(EpxPair) * numOldPairs);
+      (EpxPair *)allocator->allocate(sizeof(EpxPair) * oldPairs.size());
   assert(outNewPairs);
   assert(outKeepPairs);
 
@@ -115,14 +115,14 @@ void epxBroadPhase(std::span<const EpxState> states,
 
   EpxUInt32 oldId = 0, newId = 0;
 
-  while (oldId < numOldPairs && newId < numNewPairs) {
+  while (oldId < oldPairs.size() && newId < numNewPairs) {
     if (newPairs[newId].key > oldPairs[oldId].key) {
       // remove
       allocator->deallocate(oldPairs[oldId].contact);
       oldId++;
     } else if (newPairs[newId].key == oldPairs[oldId].key) {
       // keep
-      assert(nKeep <= numOldPairs);
+      assert(nKeep <= oldPairs.size());
       outKeepPairs[nKeep] = oldPairs[oldId];
       nKeep++;
       oldId++;
@@ -142,9 +142,9 @@ void epxBroadPhase(std::span<const EpxState> states,
       assert(nNew <= numNewPairs);
       outNewPairs[nNew] = newPairs[newId];
     }
-  } else if (oldId < numOldPairs) {
+  } else if (oldId < oldPairs.size()) {
     // all remove
-    for (; oldId < numOldPairs; oldId++) {
+    for (; oldId < oldPairs.size(); oldId++) {
       allocator->deallocate(oldPairs[oldId].contact);
     }
   }
