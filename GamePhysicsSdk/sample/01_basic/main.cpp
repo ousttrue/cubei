@@ -108,7 +108,6 @@ static void render(FontRenderer *font) {
 }
 
 static int init(void) {
-  ctrlInit();
   renderInit(SAMPLE_NAME);
   physicsInit();
 
@@ -116,20 +115,19 @@ static int init(void) {
 }
 
 static int shutdown(void) {
-  ctrlRelease();
   renderRelease();
   physicsRelease();
 
   return 0;
 }
 
-static void update(void) {
+static void update(Control *ctrl) {
   float angX, angY, r;
   renderGetViewAngle(angX, angY, r);
 
-  ctrlUpdate();
+  ctrl->Update();
 
-  if (ctrlButtonPressed(BTN_UP)) {
+  if (ctrl->ButtonPressed(BTN_UP)) {
     angX -= 0.05f;
     if (angX < -1.4f)
       angX = -1.4f;
@@ -137,7 +135,7 @@ static void update(void) {
       angX = -0.01f;
   }
 
-  if (ctrlButtonPressed(BTN_DOWN)) {
+  if (ctrl->ButtonPressed(BTN_DOWN)) {
     angX += 0.05f;
     if (angX < -1.4f)
       angX = -1.4f;
@@ -145,52 +143,52 @@ static void update(void) {
       angX = -0.01f;
   }
 
-  if (ctrlButtonPressed(BTN_LEFT)) {
+  if (ctrl->ButtonPressed(BTN_LEFT)) {
     angY -= 0.05f;
   }
 
-  if (ctrlButtonPressed(BTN_RIGHT)) {
+  if (ctrl->ButtonPressed(BTN_RIGHT)) {
     angY += 0.05f;
   }
 
-  if (ctrlButtonPressed(BTN_ZOOM_OUT)) {
+  if (ctrl->ButtonPressed(BTN_ZOOM_OUT)) {
     r *= 1.1f;
     if (r > 500.0f)
       r = 500.0f;
   }
 
-  if (ctrlButtonPressed(BTN_ZOOM_IN)) {
+  if (ctrl->ButtonPressed(BTN_ZOOM_IN)) {
     r *= 0.9f;
     if (r < 1.0f)
       r = 1.0f;
   }
 
-  if (ctrlButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
+  if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
     renderWait();
     renderReleaseMeshAll();
     physicsCreateScene(sceneId);
   }
 
-  if (ctrlButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
+  if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
     renderWait();
     renderReleaseMeshAll();
     physicsCreateScene(++sceneId);
   }
 
-  if (ctrlButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
+  if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
     simulating = !simulating;
   }
 
-  if (ctrlButtonPressed(BTN_STEP) == BTN_STAT_DOWN) {
+  if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_DOWN) {
     simulating = true;
-  } else if (ctrlButtonPressed(BTN_STEP) == BTN_STAT_UP ||
-             ctrlButtonPressed(BTN_STEP) == BTN_STAT_KEEP) {
+  } else if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_UP ||
+             ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_KEEP) {
     simulating = false;
   }
 
-  if (ctrlButtonPressed(BTN_PICK) == BTN_STAT_DOWN) {
+  if (ctrl->ButtonPressed(BTN_PICK) == BTN_STAT_DOWN) {
     int sx, sy;
-    ctrlGetCursorPosition(sx, sy);
+    ctrl->GetCursorPosition(sx, sy);
     EasyPhysics::EpxVector3 wp1((float)sx, (float)sy, 0.0f);
     EasyPhysics::EpxVector3 wp2((float)sx, (float)sy, 1.0f);
     wp1 = renderGetWorldPosition(wp1);
@@ -211,6 +209,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   physicsCreateScene(sceneId);
 
   FontRenderer font;
+  Control ctrl;
 
   MSG msg;
   while (s_isRunning) {
@@ -222,7 +221,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessage(&msg);
       }
     } else {
-      update();
+      update(&ctrl);
       if (simulating)
         physicsSimulate();
       render(&font);

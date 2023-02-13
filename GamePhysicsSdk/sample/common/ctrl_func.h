@@ -21,8 +21,7 @@
    distribution.
 */
 
-#ifndef __CTRL_FUNC_H__
-#define __CTRL_FUNC_H__
+#pragma once
 
 enum ButtonID {
   BTN_SCENE_RESET = 0,
@@ -46,14 +45,18 @@ enum ButtonStatus {
   BTN_STAT_KEEP
 };
 
-void ctrlInit();
-void ctrlRelease();
-void ctrlUpdate();
+class Control {
+  int s_keyState[2][BTN_NUM] = {};
+  int s_keySw = 0;
 
-void ctrlSetScreenSize(int w, int h);
-void ctrlGetCursorPosition(int &cursorX, int &cursorY);
-bool ctrlGetCursorEnable();
-
-ButtonStatus ctrlButtonPressed(ButtonID btnId);
-
-#endif /* __CTRL_FUNC_H__ */
+public:
+  Control(const Control &) = delete;
+  Control &operator=(const Control &) = delete;
+  Control();
+  ~Control();
+  void Update();
+  void SetScreenSize(int w, int h);
+  void GetCursorPosition(int &cursorX, int &cursorY);
+  bool GetCursorEnable();
+  ButtonStatus ButtonPressed(ButtonID btnId);
+};
