@@ -106,9 +106,10 @@ void physicsSimulate() {
   perf.end("apply force");
 
   perf.begin();
-  epxBroadPhase(states, collidables, g_numRigidBodies, pairs[1 - g_pairSwap],
-                g_numPairs[1 - g_pairSwap], pairs[g_pairSwap],
-                g_numPairs[g_pairSwap], maxPairs, &allocator, NULL, NULL);
+  epxBroadPhase({states, g_numRigidBodies}, {collidables, g_numRigidBodies},
+                pairs[1 - g_pairSwap], g_numPairs[1 - g_pairSwap],
+                pairs[g_pairSwap], g_numPairs[g_pairSwap], maxPairs, &allocator,
+                NULL, NULL);
   perf.end("broadphase");
 
   perf.begin();

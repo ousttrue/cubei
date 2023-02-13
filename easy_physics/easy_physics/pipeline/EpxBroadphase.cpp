@@ -41,14 +41,13 @@ static inline EpxBool epxIntersectAABB(const EpxVector3 &centerA,
   return true;
 }
 
-void epxBroadPhase(const EpxState *states, const EpxCollidable *collidables,
-                   EpxUInt32 numRigidBodies, const EpxPair *oldPairs,
-                   const EpxUInt32 numOldPairs, EpxPair *newPairs,
-                   EpxUInt32 &numNewPairs, const EpxUInt32 maxPairs,
-                   EpxAllocator *allocator, void *userData,
-                   epxBroadPhaseCallback callback) {
-  assert(states);
-  assert(collidables);
+void epxBroadPhase(std::span<const EpxState> states,
+                   std::span<const EpxCollidable> collidables,
+                   const EpxPair *oldPairs, const EpxUInt32 numOldPairs,
+                   EpxPair *newPairs, EpxUInt32 &numNewPairs,
+                   const EpxUInt32 maxPairs, EpxAllocator *allocator,
+                   void *userData, epxBroadPhaseCallback callback) {
+  assert(states.size() == collidables.size());
   assert(oldPairs);
   assert(newPairs);
   assert(allocator);
@@ -58,8 +57,8 @@ void epxBroadPhase(const EpxState *states, const EpxCollidable *collidables,
   // AABB交差ペアを見つける（総当たり）
   // 処理の内容を明確にするため、ここでは空間分割テクニックを使っていませんが、
   // 理論編で解説されているSweet and prune等の手法を使えば高速化できます。
-  for (EpxUInt32 i = 0; i < numRigidBodies; i++) {
-    for (EpxUInt32 j = i + 1; j < numRigidBodies; j++) {
+  for (EpxUInt32 i = 0; i < states.size(); i++) {
+    for (EpxUInt32 j = i + 1; j < states.size(); j++) {
       const EpxState &stateA = states[i];
       const EpxCollidable &collidableA = collidables[i];
       const EpxState &stateB = states[j];
