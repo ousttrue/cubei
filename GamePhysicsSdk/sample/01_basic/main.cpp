@@ -34,7 +34,7 @@ static bool s_isRunning = true;
 int sceneId = 0;
 bool simulating = false;
 
-static void render(void) {
+static void render(FontRenderer *font) {
   renderBegin();
 
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
@@ -92,17 +92,15 @@ static void render(void) {
   EasyPhysics::EpxFloat sx = -width * 0.5f + 20.0f;
   EasyPhysics::EpxFloat sy = height * 0.5f - 10.0f;
 
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f,
-                  "Easy Physics : %s", physicsGetSceneTitle(sceneId));
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F4:Step");
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f,
-                  "Cursor:Rotate view");
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f,
-                  "Ins/Del:Move view");
-  fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
+              physicsGetSceneTitle(sceneId));
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F4:Step");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Cursor:Rotate view");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Ins/Del:Move view");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
 
   renderDebug2dEnd();
 
@@ -112,7 +110,6 @@ static void render(void) {
 static int init(void) {
   ctrlInit();
   renderInit(SAMPLE_NAME);
-  fontRenderInit();
   physicsInit();
 
   return 0;
@@ -120,7 +117,6 @@ static int init(void) {
 
 static int shutdown(void) {
   ctrlRelease();
-  fontRenderRelease();
   renderRelease();
   physicsRelease();
 
@@ -214,6 +210,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   physicsCreateScene(sceneId);
 
+  FontRenderer font;
+
   MSG msg;
   while (s_isRunning) {
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -227,7 +225,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       update();
       if (simulating)
         physicsSimulate();
-      render();
+      render(&font);
     }
   }
 
