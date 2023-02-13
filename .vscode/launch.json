@@ -5,7 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "demo",
+            "name": "01_basic",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/prefix/bin/01_basic.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "cu3e_demo",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/prefix/bin/demo.exe",

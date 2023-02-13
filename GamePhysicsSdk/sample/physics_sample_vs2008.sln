@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "easy_physics", "..\easy_physics\project\easy_physics.vcproj", "{678CE296-707E-414A-A406-1DC3FABDE9F1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01_basic", "01_basic\01_basic.vcproj", "{0337B7B7-F9D0-4B99-B207-9FC6246189FA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "02_compound", "02_compound\02_compound.vcproj", "{E8C500D7-8BC2-44FA-8DB2-C7C7088BE67D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "03_joint", "03_joint\03_joint.vcproj", "{3BD1DC1E-91C2-4E1F-9A97-0A197470F644}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{678CE296-707E-414A-A406-1DC3FABDE9F1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{678CE296-707E-414A-A406-1DC3FABDE9F1}.Debug|Win32.Build.0 = Debug|Win32
+		{678CE296-707E-414A-A406-1DC3FABDE9F1}.Release|Win32.ActiveCfg = Release|Win32
+		{678CE296-707E-414A-A406-1DC3FABDE9F1}.Release|Win32.Build.0 = Release|Win32
+		{0337B7B7-F9D0-4B99-B207-9FC6246189FA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0337B7B7-F9D0-4B99-B207-9FC6246189FA}.Debug|Win32.Build.0 = Debug|Win32
+		{0337B7B7-F9D0-4B99-B207-9FC6246189FA}.Release|Win32.ActiveCfg = Release|Win32
+		{0337B7B7-F9D0-4B99-B207-9FC6246189FA}.Release|Win32.Build.0 = Release|Win32
+		{3BD1DC1E-91C2-4E1F-9A97-0A197470F644}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3BD1DC1E-91C2-4E1F-9A97-0A197470F644}.Debug|Win32.Build.0 = Debug|Win32
+		{3BD1DC1E-91C2-4E1F-9A97-0A197470F644}.Release|Win32.ActiveCfg = Release|Win32
+		{3BD1DC1E-91C2-4E1F-9A97-0A197470F644}.Release|Win32.Build.0 = Release|Win32
+		{E8C500D7-8BC2-44FA-8DB2-C7C7088BE67D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E8C500D7-8BC2-44FA-8DB2-C7C7088BE67D}.Debug|Win32.Build.0 = Debug|Win32
+		{E8C500D7-8BC2-44FA-8DB2-C7C7088BE67D}.Release|Win32.ActiveCfg = Release|Win32
+		{E8C500D7-8BC2-44FA-8DB2-C7C7088BE67D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
