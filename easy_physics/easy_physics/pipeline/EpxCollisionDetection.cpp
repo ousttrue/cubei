@@ -32,8 +32,7 @@ void epxDetectCollision(const EpxState *states,
                         std::span<const EpxPair> pairs) {
   assert(states);
   assert(collidables);
-  assert(pairs.size());
-
+  
   for (EpxUInt32 i = 0; i < pairs.size(); i++) {
     const EpxPair &pair = pairs[i];
 

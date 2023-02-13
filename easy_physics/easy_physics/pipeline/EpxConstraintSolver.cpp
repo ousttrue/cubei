@@ -35,7 +35,6 @@ void epxSolveConstraints(EpxState *states, const EpxRigidBody *bodies,
                          EpxAllocator *allocator) {
   assert(states);
   assert(bodies);
-  assert(pairs.size());
 
   // ソルバー用プロキシを作成
   EpxSolverBody *solverBodies = (EpxSolverBody *)allocator->allocate(

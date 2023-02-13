@@ -25,6 +25,7 @@
 #include "../common/common.h"
 #include "../common/geometry_data.h"
 #include <stdlib.h>
+#include <tuple>
 
 using namespace EasyPhysics;
 
@@ -164,95 +165,115 @@ static void createFireBody(Renderer *renderer) {
   collidables[fireRigidBodyId].finish();
 }
 
+static int AddBody() {
+  int id = g_numRigidBodies++;
+  states[id].reset();
+  bodies[id].reset();
+  collidables[id].reset();
+  return id;
+}
+
+static void AddBoxShape(Renderer *renderer, int id, const EpxVector3 &scale) {
+  // 凸メッシュを作成
+  EpxShape shape;
+  shape.reset();
+  epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
+                      box_indices, box_numIndices, scale);
+
+  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
+  // 描画用メッシュは、終了時に自動的に破棄される
+  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+
+  // 凸メッシュ形状を登録
+  collidables[id].addShape(shape);
+  collidables[id].finish();
+}
+
+static void AddSphereShape(Renderer *renderer, int id,
+                           const EpxVector3 &scale) {
+  // 凸メッシュを作成
+  EpxShape shape;
+  shape.reset();
+  epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
+                      sphere_indices, sphere_numIndices, scale);
+
+  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
+  // 描画用メッシュは、終了時に自動的に破棄される
+  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+
+  // 凸メッシュ形状を登録
+  collidables[id].addShape(shape);
+  collidables[id].finish();
+}
+
+static void AddCylinderShape(Renderer *renderer, int id,
+                             const EpxVector3 &scale) {
+  // 凸メッシュを作成
+  EpxShape shape;
+  shape.reset();
+  epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
+                      cylinder_numVertices, cylinder_indices,
+                      cylinder_numIndices, scale);
+
+  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
+  // 描画用メッシュは、終了時に自動的に破棄される
+  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+
+  // 凸メッシュ形状を登録
+  collidables[id].addShape(shape);
+  collidables[id].finish();
+}
+
+static void AddTetrahedronShape(Renderer *renderer, int id,
+                                const EpxVector3 &scale) {
+  // 凸メッシュを作成
+  EpxShape shape;
+  shape.reset();
+  epxCreateConvexMesh(&shape.m_geometry, tetrahedron_vertices,
+                      tetrahedron_numVertices, tetrahedron_indices,
+                      tetrahedron_numIndices, scale);
+
+  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
+  // 描画用メッシュは、終了時に自動的に破棄される
+  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+
+  // 凸メッシュ形状を登録
+  collidables[id].addShape(shape);
+  collidables[id].finish();
+}
+
 static void createSceneTwoBox(Renderer *renderer) {
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    auto id = AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
-
     // 剛体を表現するための各種データを初期化
-    states[id].reset();
     states[id].m_motionType = EpxMotionTypeStatic;
     states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    // 凸メッシュを作成
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-
-    // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-    // 描画用メッシュは、終了時に自動的に破棄される
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-    // 凸メッシュ形状を登録
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 
   // ボックス
   {
-    int id = g_numRigidBodies++;
-
+    auto id = AddBody();
     EpxVector3 scale(2.0f, 0.25f, 1.0f);
-
     // 剛体を表現するための各種データを初期化
-    states[id].reset();
     states[id].m_position = EpxVector3(0.0f, scale[1], 0.0f);
-    bodies[id].reset();
     bodies[id].m_mass = 1.0f;
     bodies[id].m_inertia = epxCalcInertiaBox(scale, 1.0f);
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    // 凸メッシュを作成
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-
-    // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-    // 描画用メッシュは、シーン切り替え時に自動的に破棄される
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-    // 凸メッシュ形状を登録
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 
   {
-    int id = g_numRigidBodies++;
-
+    auto id = AddBody();
     EpxVector3 scale(2.0f, 0.25f, 1.0f);
-
     // 剛体を表現するための各種データを初期化
-    states[id].reset();
     states[id].m_position = EpxVector3(0.0f, 3.0f, 0.0f);
     states[id].m_orientation =
         EpxQuat::rotationZ(2.0f) * EpxQuat::rotationY(0.7f);
-    bodies[id].reset();
     bodies[id].m_mass = 1.0f;
     bodies[id].m_inertia = epxCalcInertiaBox(scale, 1.0f);
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    // 凸メッシュを作成
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-
-    // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-    // 描画用メッシュは、シーン切り替え時に自動的に破棄される
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-    // 凸メッシュ形状を登録
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 }
 
@@ -261,149 +282,60 @@ static void createSceneFriction(Renderer *renderer) {
 
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    int id = AddBody();
     EpxVector3 scale(10.0f, 0.5f, 10.0f);
-
-    states[id].reset();
     states[id].m_motionType = EpxMotionTypeStatic;
     states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
     states[id].m_orientation = EpxQuat::rotationX(angle);
-    bodies[id].reset();
     bodies[id].m_friction = 0.4f;
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 
-  int renderMeshId = -1;
   const EpxVector3 brickScale(0.5f, 0.125f, 0.5f);
 
   for (int i = 0; i < 5; i++) {
-    int id = g_numRigidBodies++;
-
+    int id = AddBody();
     // 剛体を表現するための各種データを初期化
-    states[id].reset();
     states[id].m_position = EpxVector3(2.0f * (i - 2), 3.0f, 0.0f);
     states[id].m_orientation = EpxQuat::rotationX(angle);
-    bodies[id].reset();
     bodies[id].m_mass = 2.0f;
     bodies[id].m_inertia = epxCalcInertiaBox(brickScale, 2.0f);
     bodies[id].m_friction = 0.25f * i;
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    // 凸メッシュを作成
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, brickScale);
-
-    // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-    // 描画用メッシュは、シーン切り替え時に自動的に破棄される
-    if (renderMeshId < 0) {
-      renderMeshId = createRenderMesh(renderer, &shape.m_geometry);
-    }
-    shape.userData = (void *)renderMeshId;
-
-    // 凸メッシュ形状を登録
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, brickScale);
   }
 }
 
 static void createSceneRestitution(Renderer *renderer) {
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    int id = AddBody();
     EpxVector3 scale(10.0f, 0.5f, 10.0f);
-
-    states[id].reset();
     states[id].m_motionType = EpxMotionTypeStatic;
     states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 
-  int renderMeshId = -1;
   const EpxVector3 scale(0.5f);
 
   for (int i = 0; i < 5; i++) {
-    int id = g_numRigidBodies++;
-
+    int id = AddBody();
     // 剛体を表現するための各種データを初期化
-    states[id].reset();
     states[id].m_position = EpxVector3(2.0f * (i - 2), 5.0f, 0.0f);
-    bodies[id].reset();
     bodies[id].m_mass = 2.0f;
     bodies[id].m_inertia = epxCalcInertiaSphere(1.0f, 2.0f);
     bodies[id].m_restitution = 0.25f * i;
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    // 凸メッシュを作成
-    epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
-                        sphere_indices, sphere_numIndices, scale);
-
-    // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-    // 描画用メッシュは、シーン切り替え時に自動的に破棄される
-    if (renderMeshId < 0) {
-      renderMeshId = createRenderMesh(renderer, &shape.m_geometry);
-    }
-    shape.userData = (void *)renderMeshId;
-
-    // 凸メッシュ形状を登録
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 }
 
 static void createSceneGeometries(Renderer *renderer) {
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    int id = AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
-
-    states[id].reset();
     states[id].m_motionType = EpxMotionTypeStatic;
     states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-    shape.reset();
-
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    AddBoxShape(renderer, id, scale);
   }
 
   srand(9999);
@@ -411,51 +343,34 @@ static void createSceneGeometries(Renderer *renderer) {
   const int width = 5;
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < width; j++) {
-      int id = g_numRigidBodies++;
+      int id = AddBody();
 
       EpxVector3 scale(0.1f + (rand() % 90) / 100.0f,
                        0.1f + (rand() % 90) / 100.0f,
                        0.1f + (rand() % 90) / 100.0f);
 
-      states[id].reset();
       states[id].m_position =
           EpxVector3(2 * (j - width / 2), 2.0f + 2 * i, 0.0f);
-      bodies[id].reset();
       bodies[id].m_mass = 1.0f;
       bodies[id].m_inertia = epxCalcInertiaBox(scale, 1.0f);
-      collidables[id].reset();
-
-      EpxShape shape;
-      shape.reset();
 
       switch ((i * width + j) % 4) {
       case 0:
-        epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
-                            sphere_numVertices, sphere_indices,
-                            sphere_numIndices, scale);
+        AddSphereShape(renderer, id, scale);
         break;
 
       case 1:
-        epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                            box_indices, box_numIndices, scale);
+        AddBoxShape(renderer, id, scale);
         break;
 
       case 2:
-        epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
-                            cylinder_numVertices, cylinder_indices,
-                            cylinder_numIndices, scale);
+        AddCylinderShape(renderer, id, scale);
         break;
 
       case 3:
-        epxCreateConvexMesh(&shape.m_geometry, tetrahedron_vertices,
-                            tetrahedron_numVertices, tetrahedron_indices,
-                            tetrahedron_numIndices, scale);
+        AddTetrahedronShape(renderer, id, scale);
         break;
       }
-
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-      collidables[id].addShape(shape);
-      collidables[id].finish();
     }
   }
 }
