@@ -9,9 +9,10 @@ easy_physics_common_lib = static_library(
         'font_render_func.cpp',
         'render_func.cpp',
     ],
+    dependencies: [gl_dep, easy_physics_dep],
 )
 easy_physics_common_dep = declare_dependency(
     include_directories: include_directories('.'),
     link_with: easy_physics_common_lib,
-    dependencies: [gl_dep],
+    dependencies: [gl_dep, easy_physics_dep],
 )

@@ -32,7 +32,7 @@
 	#include <stdint.h>
 #endif
 
-#include "../extra/vectormath/vectormath_aos.h"
+#include <vectormath/vectormath_aos.h>
 
 #define EPX_PI		3.14159265358979f
 #define EPX_EPSILON	1e-5f
