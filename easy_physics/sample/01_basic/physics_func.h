@@ -26,6 +26,15 @@
 
 #include "../../easy_physics/EpxInclude.h"
 
+struct PhysicsScene
+{
+
+};
+struct PhysicsState
+{
+
+};
+
 // シミュレーション関数
 bool physicsInit();
 void physicsRelease();

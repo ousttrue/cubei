@@ -43,11 +43,11 @@ static inline EpxBool epxIntersectAABB(const EpxVector3 &centerA,
 
 uint32_t epxBroadPhase(std::span<const EpxState> states,
                        std::span<const EpxCollidable> collidables,
-                       std::span<const EpxPair> oldPairs, EpxPair *newPairs,
-                       const EpxUInt32 maxPairs, EpxAllocator *allocator,
+                       std::span<const EpxPair> oldPairs,
+                       std::span<EpxPair> newPairs, EpxAllocator *allocator,
                        void *userData, epxBroadPhaseCallback callback) {
   assert(states.size() == collidables.size());
-  assert(newPairs);
+  assert(newPairs.size());
   assert(allocator);
 
   uint32_t numNewPairs = 0;
@@ -81,7 +81,7 @@ uint32_t epxBroadPhase(std::span<const EpxState> states,
                           EpxVector3(EPX_AABB_EXPAND)); // AABBサイズを若干拡張
 
       if (epxIntersectAABB(centerA, halfA, centerB, halfB) &&
-          numNewPairs < maxPairs) {
+          numNewPairs < newPairs.size()) {
         EpxPair &newPair = newPairs[numNewPairs++];
 
         newPair.rigidBodyA = i < j ? i : j;
@@ -95,8 +95,7 @@ uint32_t epxBroadPhase(std::span<const EpxState> states,
   {
     EpxPair *sortBuff =
         (EpxPair *)allocator->allocate(sizeof(EpxPair) * numNewPairs);
-    epxSort<EpxPair>(std::span<EpxPair>(newPairs, numNewPairs),
-                     {sortBuff, numNewPairs});
+    epxSort<EpxPair>(newPairs.subspan(0, numNewPairs), {sortBuff, numNewPairs});
     allocator->deallocate(sortBuff);
   }
 
@@ -178,8 +177,7 @@ uint32_t epxBroadPhase(std::span<const EpxState> states,
   {
     EpxPair *sortBuff =
         (EpxPair *)allocator->allocate(sizeof(EpxPair) * numNewPairs);
-    epxSort<EpxPair>(std::span<EpxPair>(newPairs, numNewPairs),
-                     {sortBuff, numNewPairs});
+    epxSort<EpxPair>(newPairs.subspan(0, numNewPairs), {sortBuff, numNewPairs});
     allocator->deallocate(sortBuff);
   }
 

@@ -52,15 +52,16 @@ typedef EpxBool (*epxBroadPhaseCallback)(EpxUInt32 rigidBodyIdA,
 /// @param numRigidBodies 剛体の数
 /// @param oldPairs 前フレームのペア配列
 /// @param numOldPairs 前フレームのペア数
-/// @param[out] newPairs 検出されたペア配列
+/// @param[out] newPairs 検出されたペアを格納するバッファ
 /// @param maxPairs 検出ペアの最大数
 /// @param allocator アロケータ
 /// @param userData コールバック呼び出し時に渡されるユーザーデータ
 /// @param callback コールバック
+/// @return 検出されたペア数
 uint32_t epxBroadPhase(std::span<const EpxState> states,
                        std::span<const EpxCollidable> collidables,
-                       std::span<const EpxPair> oldPairs, EpxPair *newPairs,
-                       const EpxUInt32 maxPairs, EpxAllocator *allocator,
+                       std::span<const EpxPair> oldPairs,
+                       std::span<EpxPair> newPairs, EpxAllocator *allocator,
                        void *userData, epxBroadPhaseCallback callback = NULL);
 
 } // namespace EasyPhysics
