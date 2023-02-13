@@ -27,9 +27,6 @@
 #include "../common/render_func.h"
 #include "physics_func.h"
 
-
-using namespace EasyPhysics;
-
 #define SAMPLE_NAME "01_basic"
 
 static bool s_isRunning = true;
@@ -41,39 +38,42 @@ static void render(void) {
   renderBegin();
 
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
-    const EpxState &state = physicsGetState(i);
-    const EpxCollidable &collidable = physicsGetCollidable(i);
+    auto &state = physicsGetState(i);
+    auto &collidable = physicsGetCollidable(i);
 
-    EpxTransform3 rigidBodyTransform(state.m_orientation, state.m_position);
+    EasyPhysics::EpxTransform3 rigidBodyTransform(state.m_orientation,
+                                                  state.m_position);
 
     for (int j = 0; j < collidable.m_numShapes; j++) {
-      const EpxShape &shape = collidable.m_shapes[j];
-      EpxTransform3 shapeTransform(shape.m_offsetOrientation,
-                                   shape.m_offsetPosition);
-      EpxTransform3 worldTransform = rigidBodyTransform * shapeTransform;
+      auto shape = collidable.m_shapes[j];
+      EasyPhysics::EpxTransform3 shapeTransform(shape.m_offsetOrientation,
+                                                shape.m_offsetPosition);
+      EasyPhysics::EpxTransform3 worldTransform =
+          rigidBodyTransform * shapeTransform;
 
-      renderMesh(worldTransform, EpxVector3(1, 1, 1), (int)shape.userData);
+      renderMesh(worldTransform, EasyPhysics::EpxVector3(1, 1, 1),
+                 (int)shape.userData);
     }
   }
 
   renderDebugBegin();
 
   // 衝突点の表示
-  const EpxVector3 colorA(1, 0, 0);
-  const EpxVector3 colorB(0, 0, 1);
-  const EpxVector3 colorLine(0, 1, 1);
+  const EasyPhysics::EpxVector3 colorA(1, 0, 0);
+  const EasyPhysics::EpxVector3 colorB(0, 0, 1);
+  const EasyPhysics::EpxVector3 colorLine(0, 1, 1);
 
   for (int i = 0; i < physicsGetNumContacts(); i++) {
-    const EpxContact &contact = physicsGetContact(i);
-    const EpxState &stateA = physicsGetState(physicsGetRigidBodyAInContact(i));
-    const EpxState &stateB = physicsGetState(physicsGetRigidBodyBInContact(i));
+    auto &contact = physicsGetContact(i);
+    auto &stateA = physicsGetState(physicsGetRigidBodyAInContact(i));
+    auto &stateB = physicsGetState(physicsGetRigidBodyBInContact(i));
     for (unsigned int j = 0; j < contact.m_numContacts; j++) {
-      const EpxContactPoint &contactPoint = contact.m_contactPoints[j];
-      EpxVector3 pointA =
+      auto &contactPoint = contact.m_contactPoints[j];
+      auto pointA =
           stateA.m_position + rotate(stateA.m_orientation, contactPoint.pointA);
-      EpxVector3 pointB =
+      auto pointB =
           stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
-      EpxVector3 normal = contactPoint.normal;
+      auto normal = contactPoint.normal;
       renderDebugPoint(pointA, colorA);
       renderDebugPoint(pointB, colorB);
       renderDebugLine(pointA, pointA + 0.1f * normal, colorLine);
@@ -88,9 +88,9 @@ static void render(void) {
   int width, height;
   renderGetScreenSize(width, height);
 
-  EpxFloat dh = 20.0f;
-  EpxFloat sx = -width * 0.5f + 20.0f;
-  EpxFloat sy = height * 0.5f - 10.0f;
+  EasyPhysics::EpxFloat dh = 20.0f;
+  EasyPhysics::EpxFloat sx = -width * 0.5f + 20.0f;
+  EasyPhysics::EpxFloat sy = height * 0.5f - 10.0f;
 
   fontRenderPrint((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f,
                   "Easy Physics : %s", physicsGetSceneTitle(sceneId));
@@ -195,8 +195,8 @@ static void update(void) {
   if (ctrlButtonPressed(BTN_PICK) == BTN_STAT_DOWN) {
     int sx, sy;
     ctrlGetCursorPosition(sx, sy);
-    EpxVector3 wp1((float)sx, (float)sy, 0.0f);
-    EpxVector3 wp2((float)sx, (float)sy, 1.0f);
+    EasyPhysics::EpxVector3 wp1((float)sx, (float)sy, 0.0f);
+    EasyPhysics::EpxVector3 wp2((float)sx, (float)sy, 1.0f);
     wp1 = renderGetWorldPosition(wp1);
     wp2 = renderGetWorldPosition(wp2);
     physicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
