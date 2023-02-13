@@ -26,11 +26,11 @@
 #include <render_func.h>
 #include <tchar.h>
 
-FontRenderer::FontRenderer() {
+FontRenderer::FontRenderer(Renderer *renderer) {
 
   base_ = glGenLists(96);
 
-  renderGetContext(hDC_, hRC_);
+  renderer->GetContext(hDC_, hRC_);
 
   auto font = CreateFont(16, 0, 0, 0, 0, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                          OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,

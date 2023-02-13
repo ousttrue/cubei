@@ -21,77 +21,74 @@
    distribution.
 */
 
-#ifndef __RENDER_FUNC_H__
-#define __RENDER_FUNC_H__
-
+#pragma once
 #include "common.h"
 
 #define DISPLAY_WIDTH 640
 #define DISPLAY_HEIGHT 480
 
-///////////////////////////////////////////////////////////////////////////////
-// Draw Primitives
+class Renderer {
 
-void renderInit(const char *title = NULL);
-void renderRelease();
-void renderBegin();
-void renderEnd();
+public:
+  Renderer(const char *title = NULL);
+  ~Renderer();
+  void Begin();
+  void End();
 
-int renderInitMesh(const float *vtx, unsigned int vtxStrideBytes,
-                   const float *nml, unsigned int nmlStrideBytes,
-                   const unsigned short *tri, unsigned int triStrideBytes,
-                   int numVtx, int numTri);
+  int InitMesh(const float *vtx, unsigned int vtxStrideBytes,
+                     const float *nml, unsigned int nmlStrideBytes,
+                     const unsigned short *tri, unsigned int triStrideBytes,
+                     int numVtx, int numTri);
 
-void renderReleaseMeshAll();
+  void ReleaseMeshAll();
 
-void renderMesh(const EasyPhysics::EpxTransform3 &transform,
-                const EasyPhysics::EpxVector3 &color, int meshId);
+  void Mesh(const EasyPhysics::EpxTransform3 &transform,
+                  const EasyPhysics::EpxVector3 &color, int meshId);
 
-///////////////////////////////////////////////////////////////////////////////
-// Debug Drawing
+  ///////////////////////////////////////////////////////////////////////////////
+  // Debug Drawing
 
-void renderDebugBegin();
-void renderDebugEnd();
+  void DebugBegin();
+  void DebugEnd();
 
-void renderDebugPoint(const EasyPhysics::EpxVector3 &position,
-                      const EasyPhysics::EpxVector3 &color);
+  void DebugPoint(const EasyPhysics::EpxVector3 &position,
+                        const EasyPhysics::EpxVector3 &color);
 
-void renderDebugLine(const EasyPhysics::EpxVector3 &position1,
-                     const EasyPhysics::EpxVector3 &position2,
-                     const EasyPhysics::EpxVector3 &color);
+  void DebugLine(const EasyPhysics::EpxVector3 &position1,
+                       const EasyPhysics::EpxVector3 &position2,
+                       const EasyPhysics::EpxVector3 &color);
 
-void renderDebugAabb(const EasyPhysics::EpxVector3 &center,
-                     const EasyPhysics::EpxVector3 &extent,
-                     const EasyPhysics::EpxVector3 &color);
+  void DebugAabb(const EasyPhysics::EpxVector3 &center,
+                       const EasyPhysics::EpxVector3 &extent,
+                       const EasyPhysics::EpxVector3 &color);
 
-///////////////////////////////////////////////////////////////////////////////
-// 2D
+  ///////////////////////////////////////////////////////////////////////////////
+  // 2D
 
-void renderDebug2dBegin();
-void renderDebug2dEnd();
+  void Debug2dBegin();
+  void Debug2dEnd();
 
-///////////////////////////////////////////////////////////////////////////////
-// Render Parameter
+  ///////////////////////////////////////////////////////////////////////////////
+  // Render Parameter
 
-void renderGetViewAngle(float &angleX, float &angleY, float &radius);
-void renderSetViewAngle(float angleX, float angleY, float radius);
-void renderResize(int width, int height);
+  void GetViewAngle(float &angleX, float &angleY, float &radius);
+  void SetViewAngle(float angleX, float angleY, float radius);
+  void Resize(int width, int height);
 
-void renderGetViewTarget(EasyPhysics::EpxVector3 &targetPos);
-void renderSetViewTarget(const EasyPhysics::EpxVector3 &targetPos);
-void renderGetViewRadius(float &radius);
-void renderSetViewRadius(float radius);
-void renderLookAtTarget(const EasyPhysics::EpxVector3 &viewPos,
-                        const EasyPhysics::EpxVector3 &viewTarget);
+  void GetViewTarget(EasyPhysics::EpxVector3 &targetPos);
+  void SetViewTarget(const EasyPhysics::EpxVector3 &targetPos);
+  void GetViewRadius(float &radius);
+  void SetViewRadius(float radius);
+  void LookAtTarget(const EasyPhysics::EpxVector3 &viewPos,
+                          const EasyPhysics::EpxVector3 &viewTarget);
 
-void renderGetScreenSize(int &width, int &height);
+  void GetScreenSize(int &width, int &height);
 
-EasyPhysics::EpxVector3
-renderGetWorldPosition(const EasyPhysics::EpxVector3 &screenPos);
-EasyPhysics::EpxVector3
-renderGetScreenPosition(const EasyPhysics::EpxVector3 &worldPos);
+  EasyPhysics::EpxVector3
+  GetWorldPosition(const EasyPhysics::EpxVector3 &screenPos);
+  EasyPhysics::EpxVector3
+  GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos);
 
-void renderWait();
-void renderGetContext(HDC &hDC, HGLRC &hRC);
-
-#endif /* __RENDER_FUNC_H__ */
+  void Wait();
+  void GetContext(HDC &hDC, HGLRC &hRC);
+};

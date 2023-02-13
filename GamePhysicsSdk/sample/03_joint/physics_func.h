@@ -28,7 +28,7 @@
 // シミュレーション関数
 bool physicsInit();
 void physicsRelease();
-void physicsCreateScene(int sceneId);
+void physicsCreateScene(int sceneId, class Renderer *renderer);
 void physicsSimulate();
 
 // シーンのタイトル名を取得する

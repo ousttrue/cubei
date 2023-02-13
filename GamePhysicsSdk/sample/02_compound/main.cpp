@@ -36,8 +36,8 @@ static bool s_isRunning = true;
 int sceneId = 0;
 bool simulating = false;
 
-static void render(FontRenderer *font) {
-  renderBegin();
+static void render(Renderer *renderer, FontRenderer *font) {
+  renderer->Begin();
 
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
     const EpxState &state = physicsGetState(i);
@@ -51,11 +51,11 @@ static void render(FontRenderer *font) {
                                    shape.m_offsetPosition);
       EpxTransform3 worldTransform = rigidBodyTransform * shapeTransform;
 
-      renderMesh(worldTransform, EpxVector3(1, 1, 1), (int)shape.userData);
+      renderer->Mesh(worldTransform, EpxVector3(1, 1, 1), (int)shape.userData);
     }
   }
 
-  renderDebugBegin();
+  renderer->DebugBegin();
 
   // 衝突点の表示
   const EpxVector3 colorA(1, 0, 0);
@@ -73,19 +73,19 @@ static void render(FontRenderer *font) {
       EpxVector3 pointB =
           stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
       EpxVector3 normal = contactPoint.normal;
-      renderDebugPoint(pointA, colorA);
-      renderDebugPoint(pointB, colorB);
-      renderDebugLine(pointA, pointA + 0.1f * normal, colorLine);
-      renderDebugLine(pointB, pointB - 0.1f * normal, colorLine);
+      renderer->DebugPoint(pointA, colorA);
+      renderer->DebugPoint(pointB, colorB);
+      renderer->DebugLine(pointA, pointA + 0.1f * normal, colorLine);
+      renderer->DebugLine(pointB, pointB - 0.1f * normal, colorLine);
     }
   }
 
-  renderDebugEnd();
+  renderer->DebugEnd();
 
-  renderDebug2dBegin();
+  renderer->Debug2dBegin();
 
   int width, height;
-  renderGetScreenSize(width, height);
+  renderer->GetScreenSize(width, height);
 
   EpxFloat dh = 20.0f;
   EpxFloat sx = -width * 0.5f + 20.0f;
@@ -101,28 +101,14 @@ static void render(FontRenderer *font) {
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Ins/Del:Move view");
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
 
-  renderDebug2dEnd();
+  renderer->Debug2dEnd();
 
-  renderEnd();
+  renderer->End();
 }
 
-static int init(void) {
-  renderInit(SAMPLE_NAME);
-  physicsInit();
-
-  return 0;
-}
-
-static int shutdown(void) {
-  renderRelease();
-  physicsRelease();
-
-  return 0;
-}
-
-static void update(Control *ctrl) {
+static void update(Renderer *renderer, Control *ctrl) {
   float angX, angY, r;
-  renderGetViewAngle(angX, angY, r);
+  renderer->GetViewAngle(angX, angY, r);
 
   ctrl->Update();
 
@@ -163,15 +149,15 @@ static void update(Control *ctrl) {
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
-    renderWait();
-    renderReleaseMeshAll();
-    physicsCreateScene(sceneId);
+    renderer->Wait();
+    renderer->ReleaseMeshAll();
+    physicsCreateScene(sceneId, renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
-    renderWait();
-    renderReleaseMeshAll();
-    physicsCreateScene(++sceneId);
+    renderer->Wait();
+    renderer->ReleaseMeshAll();
+    physicsCreateScene(++sceneId, renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
@@ -190,12 +176,12 @@ static void update(Control *ctrl) {
     ctrl->GetCursorPosition(sx, sy);
     EpxVector3 wp1((float)sx, (float)sy, 0.0f);
     EpxVector3 wp2((float)sx, (float)sy, 1.0f);
-    wp1 = renderGetWorldPosition(wp1);
-    wp2 = renderGetWorldPosition(wp2);
+    wp1 = renderer->GetWorldPosition(wp1);
+    wp2 = renderer->GetWorldPosition(wp2);
     physicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
   }
 
-  renderSetViewAngle(angX, angY, r);
+  renderer->SetViewAngle(angX, angY, r);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -203,11 +189,11 @@ static void update(Control *ctrl) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
-  init();
 
-  physicsCreateScene(sceneId);
-
-  FontRenderer font;
+  physicsInit();
+  Renderer renderer(SAMPLE_NAME);
+  physicsCreateScene(sceneId, &renderer);
+  FontRenderer font(&renderer);
   Control ctrl;
 
   MSG msg;
@@ -220,14 +206,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessage(&msg);
       }
     } else {
-      update(&ctrl);
+      update(&renderer, &ctrl);
       if (simulating)
         physicsSimulate();
-      render(&font);
+      render(&renderer, &font);
     }
   }
 
-  shutdown();
+  physicsRelease();
 
   return (msg.wParam);
 }

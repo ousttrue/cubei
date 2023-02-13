@@ -33,7 +33,7 @@ class FontRenderer {
 public:
   FontRenderer(const FontRenderer &) = delete;
   FontRenderer &operator=(const FontRenderer &) = delete;
-  FontRenderer();
+  FontRenderer(class Renderer *renderer);
   ~FontRenderer();
   void Print(int sx, int sy, float r, float g, float b, const char *fmt, ...);
 };
