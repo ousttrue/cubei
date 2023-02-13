@@ -1,4 +1,4 @@
 subdir('common')
 subdir('01_basic')
-# subdir('02_compound')
-# subdir('03_joint')
+subdir('02_compound')
+subdir('03_joint')
