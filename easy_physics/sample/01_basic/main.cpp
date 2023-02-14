@@ -127,8 +127,6 @@ int main(int argc, char **argv) {
 
   Control ctrl;
   Renderer renderer(SAMPLE_NAME);
-  // FontRenderer font(renderer.GetDC());
-
   FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
@@ -155,8 +153,6 @@ int main(int argc, char **argv) {
       renderer.Begin();
       PhysicsRender(*g_scene, g_state, &renderer, nullptr);
 
-      // int width, height;
-      // renderer.GetScreenSize(width, height);
       renderer.Debug2dBegin();
       int width, height;
       renderer.GetScreenSize(width, height);

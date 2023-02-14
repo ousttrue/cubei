@@ -34,7 +34,7 @@ using namespace EasyPhysics;
 
 static bool g_isRunning = true;
 
-int sceneId = 0;
+int g_sceneId = 0;
 bool g_simulating = false;
 
 static void render(Renderer *renderer, FontRenderer *font) {
@@ -93,7 +93,7 @@ static void render(Renderer *renderer, FontRenderer *font) {
   EpxFloat sy = height * 0.5f - 10.0f;
 
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
-              physicsGetSceneTitle(sceneId));
+              physicsGetSceneTitle(g_sceneId));
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
   font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
@@ -152,13 +152,13 @@ static void update(Renderer *renderer, Control *ctrl) {
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
     renderer->Wait();
     renderer->ReleaseMeshAll();
-    physicsCreateScene(sceneId, renderer);
+    physicsCreateScene(g_sceneId, renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
     renderer->Wait();
     renderer->ReleaseMeshAll();
-    physicsCreateScene(++sceneId, renderer);
+    physicsCreateScene(++g_sceneId, renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
@@ -193,7 +193,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   physicsInit();
   Renderer renderer(SAMPLE_NAME);
-  physicsCreateScene(sceneId, &renderer);
+  physicsCreateScene(g_sceneId, &renderer);
   FontRenderer font(renderer.GetDC());
   Control ctrl;
 
