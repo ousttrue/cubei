@@ -22,18 +22,17 @@
 */
 
 #include "physics_func.h"
+#include <GLFW/glfw3.h>
 #include <common/FontStashRenderer.h>
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
-#include <common/win32window.h>
 #include <format>
 #include <gl/GL.h>
 #include <stdexcept>
 
 #define SAMPLE_NAME "01_basic"
 
-static bool g_isRunning = true;
 static bool g_simulating = false;
 static int g_sceneId = 0;
 PhysicsState g_state = {};
@@ -120,14 +119,41 @@ static void update(Gl1Renderer *renderer, Control *ctrl, int width,
   renderer->SetViewAngle(angX, angY, r);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// WinMain
+class GlfwPlatform {
+  GLFWwindow *window_ = nullptr;
+
+public:
+  GlfwPlatform() {
+    if (!glfwInit()) {
+      throw std::runtime_error("glfwInit");
+    }
+    window_ = glfwCreateWindow(640, 480, SAMPLE_NAME, NULL, NULL);
+    if (!window_) {
+      throw std::runtime_error("glfwCreateWindow");
+    }
+    glfwMakeContextCurrent(window_);
+  }
+
+  ~GlfwPlatform() { glfwTerminate(); }
+
+  bool NewFrame(int *width, int *height) {
+    if (glfwWindowShouldClose(window_)) {
+      return false;
+    }
+    glfwPollEvents();
+    glfwGetFramebufferSize(window_, width, height);
+    return true;
+  }
+
+  void EndFrame() { glfwSwapBuffers(window_); }
+};
 
 // int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 // lpCmdLine, int nCmdShow)
 int main(int argc, char **argv) {
 
-  Win32Window window(NULL, SAMPLE_NAME, 640, 480);
+  GlfwPlatform platform;
+
   Control ctrl;
   Gl1Renderer renderer;
   FontStashRenderer stash(
@@ -138,33 +164,23 @@ int main(int argc, char **argv) {
   g_scene = physicsCreateScene(g_sceneId, &renderer);
   g_state.Clear();
 
-  MSG msg;
-  while (g_isRunning) {
-    if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-      if (msg.message == WM_QUIT) {
-        g_isRunning = false;
-      } else {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-      }
-    } else {
-      auto [width, height] = window.GetSize();
+  int width, height;
+  while (platform.NewFrame(&width, &height)) {
 
-      update(&renderer, &ctrl, width, height);
-      if (g_simulating) {
-        g_scene->Simulate(g_state);
-      }
-
-      renderer.Begin(width, height);
-      PhysicsRender(*g_scene, g_state, &renderer, nullptr);
-
-      renderer.Debug2dBegin(width, height);
-      stash.Draw(width, height, g_scene->title_);
-      renderer.Debug2dEnd();
-
-      window.SwapBuffers();
+    update(&renderer, &ctrl, width, height);
+    if (g_simulating) {
+      g_scene->Simulate(g_state);
     }
+
+    renderer.Begin(width, height);
+    PhysicsRender(*g_scene, g_state, &renderer, nullptr);
+
+    renderer.Debug2dBegin(width, height);
+    stash.Draw(width, height, g_scene->title_);
+    renderer.Debug2dEnd();
+
+    platform.EndFrame();
   }
 
-  return (msg.wParam);
+  return 0;
 }

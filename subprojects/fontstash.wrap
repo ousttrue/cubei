@@ -2,7 +2,7 @@
 url = https://github.com/memononen/fontstash.git
 revision = master
 depth = 1
-; patch_directory = fontstash
+patch_directory = fontstash
 
 [provide]
 fontstash = fontstash_dep
