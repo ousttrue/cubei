@@ -188,12 +188,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         physicsSimulate();
       }
 
-      renderer.Begin();
+      auto [width, height] = renderer.GetScreenSize();
+
+      renderer.Begin(width, height);
       render(&renderer);
 
-      renderer.Debug2dBegin();
-      int width, height;
-      renderer.GetScreenSize(width, height);
+      renderer.Debug2dBegin(width, height);
       stash.Draw(width, height, physicsGetSceneTitle(g_sceneId));
       renderer.Debug2dEnd();
 

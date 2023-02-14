@@ -21,24 +21,18 @@
    distribution.
 */
 
+#include "win32window.h"
 #include <common/render_func.h>
-
 #include <gl/gl.h>
+#include <stdexcept>
 #include <vector>
 
-using namespace std;
+// using namespace std;
 using namespace EasyPhysics;
-
-// context
-static HDC s_hDC;
-static HGLRC s_hRC;
-static HWND s_hWnd;
-static HINSTANCE s_hInstance;
-static bool s_enableGlWindow;
 
 // local variables
 static char s_title[256];
-static int s_screenWidth, s_screenHeight;
+
 static EpxMatrix4 s_pMat, s_vMat;
 static EpxVector3 s_viewPos, s_lightPos, s_viewTgt;
 static float s_lightRadius, s_lightRadX, s_lightRadY;
@@ -55,178 +49,36 @@ struct MeshBuff {
   MeshBuff() : vtx(0), nml(0), numVtx(0), idx(0), wireIdx(0), numIdx(0) {}
 };
 
-Renderer *g_renderer = nullptr;
+// Renderer *g_renderer = nullptr;
 
-static vector<MeshBuff> *s_meshBuff;
+static std::vector<MeshBuff> *s_meshBuff;
 
-void releaseWindow() {
-  if (s_enableGlWindow) {
-    if (s_hRC) {
-      wglMakeCurrent(0, 0);
-      wglDeleteContext(s_hRC);
-    }
-  }
-  if (s_hDC)
-    ReleaseDC(s_hWnd, s_hDC);
-  if (s_hWnd)
-    DestroyWindow(s_hWnd);
+// strncpy_s(s_title, title, sizeof(s_title));
+// s_title[255] = 0;
+// s_hInstance = GetModuleHandle(NULL);
 
-  UnregisterClass(s_title, s_hInstance);
-}
+// g_renderer->Resize(width, height);
 
-LRESULT CALLBACK WndProc(HWND s_hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-  switch (uMsg) {
-  case WM_SYSCOMMAND: {
-    switch (wParam) {
-    case SC_SCREENSAVE:
-    case SC_MONITORPOWER:
-      return 0;
-    }
-    break;
-  }
+// glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+// glClearDepth(1.0f);
 
-  case WM_CLOSE:
-    PostQuitMessage(0);
-    return 0;
+// return TRUE;
+// }
 
-  case WM_SIZE:
-    g_renderer->Resize(LOWORD(lParam), HIWORD(lParam));
-    return 0;
-  }
+struct RendererImpl {
+  Win32Window window_;
 
-  return DefWindowProc(s_hWnd, uMsg, wParam, lParam);
-}
+  RendererImpl(HINSTANCE hInstance, const char *title, int width, int height)
+      : window_(hInstance, title, width, height) {}
+};
 
-bool createWindow(const char *title, int width, int height) {
-  strncpy_s(s_title, title, sizeof(s_title));
-  s_title[255] = 0;
+Renderer::Renderer(const char *title, HINSTANCE hInstance)
+    : impl_(new RendererImpl(hInstance, title, DISPLAY_WIDTH, DISPLAY_HEIGHT)) {
 
-  WNDCLASS wc;
-  RECT rect;
-  rect.left = 0;
-  rect.right = width;
-  rect.top = 0;
-  rect.bottom = height;
-
-  s_hInstance = GetModuleHandle(NULL);
-  wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-  wc.lpfnWndProc = (WNDPROC)WndProc;
-  wc.cbClsExtra = 0;
-  wc.cbWndExtra = 0;
-  wc.hInstance = s_hInstance;
-  wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-  wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-  wc.hbrBackground = NULL;
-  wc.lpszMenuName = NULL;
-  wc.lpszClassName = s_title;
-
-  if (!RegisterClass(&wc)) {
-    return false;
-  }
-
-  AdjustWindowRectEx(&rect, WS_OVERLAPPEDWINDOW, FALSE,
-                     WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
-
-  if (!(s_hWnd = CreateWindowEx(
-            WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, s_title, s_title,
-            WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, 0,
-            rect.right - rect.left, rect.bottom - rect.top, NULL, NULL,
-            s_hInstance, NULL))) {
-    releaseWindow();
-    return false;
-  }
-
-  static PIXELFORMATDESCRIPTOR pfd = {sizeof(PIXELFORMATDESCRIPTOR),
-                                      1,
-                                      PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL |
-                                          PFD_DOUBLEBUFFER,
-                                      PFD_TYPE_RGBA,
-                                      32,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      32,
-                                      0,
-                                      0,
-                                      PFD_MAIN_PLANE,
-                                      0,
-                                      0,
-                                      0,
-                                      0};
-
-  if (!(s_hDC = GetDC(s_hWnd))) {
-    releaseWindow();
-    OutputDebugString("");
-    return FALSE;
-  }
-
-  int pixelformat;
-
-  if ((pixelformat = ChoosePixelFormat(s_hDC, &pfd)) == 0) {
-    OutputDebugString("ChoosePixelFormat Failed....");
-    return FALSE;
-  }
-
-  if (SetPixelFormat(s_hDC, pixelformat, &pfd) == FALSE) {
-    OutputDebugString("SetPixelFormat Failed....");
-    return FALSE;
-  }
-
-  if (!(s_hRC = wglCreateContext(s_hDC))) {
-    OutputDebugString("Creating HGLRC Failed....");
-    return FALSE;
-  }
-
-  wglMakeCurrent(s_hDC, s_hRC);
-
-  // Set Vsync
-  BOOL(WINAPI * wglSwapIntervalEXT)(int) = NULL;
-  wglSwapIntervalEXT =
-      (BOOL(WINAPI *)(int))wglGetProcAddress("wglSwapIntervalEXT");
-  if (wglSwapIntervalEXT)
-    wglSwapIntervalEXT(1);
-
-  ShowWindow(s_hWnd, SW_SHOW);
-  SetForegroundWindow(s_hWnd);
-  SetFocus(s_hWnd);
-
-  g_renderer->Resize(width, height);
-
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClearDepth(1.0f);
-
-  return TRUE;
-}
-
-Renderer::Renderer(const char *title) {
-  g_renderer = this;
-
-  s_enableGlWindow = (title != NULL);
-
-  s_screenWidth = DISPLAY_WIDTH;
-  s_screenHeight = DISPLAY_HEIGHT;
-
-  if (s_enableGlWindow) {
-    if (!createWindow(title, s_screenWidth, s_screenHeight)) {
-      MessageBox(NULL, "Can't create gl window.", "ERROR",
-                 MB_OK | MB_ICONEXCLAMATION);
-      assert(0);
-    }
-  }
+  auto [width, height] = impl_->window_.GetSize();
 
   // initalize matrix
-  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f,
-                                   (float)s_screenWidth / (float)s_screenHeight,
+  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
                                    0.1f, 1000.0f);
 
   // initalize parameters
@@ -240,7 +92,7 @@ Renderer::Renderer(const char *title) {
 
   s_viewTgt = EpxVector3(0.0f, s_viewHeight, 0.0f);
 
-  s_meshBuff = new vector<MeshBuff>();
+  s_meshBuff = new std::vector<MeshBuff>();
 }
 
 Renderer::~Renderer() {
@@ -253,11 +105,16 @@ Renderer::~Renderer() {
   s_meshBuff->clear();
   delete s_meshBuff;
 
-  releaseWindow();
+  delete impl_;
 }
 
-void Renderer::Begin() {
-  wglMakeCurrent(s_hDC, s_hRC);
+void Renderer::Begin(int width, int height) {
+  impl_->window_.MakeCurrent();
+
+  glViewport(0, 0, width, height);
+  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
+                                   0.1f, 1000.0f);
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glFrontFace(GL_CCW);
@@ -302,7 +159,7 @@ void Renderer::LookAtTarget(const EpxVector3 &viewPos,
   glMultMatrixf((GLfloat *)&viewMtx);
 }
 
-void Renderer::End() { SwapBuffers(s_hDC); }
+void Renderer::End() { impl_->window_.SwapBuffers(); }
 
 void Renderer::DebugBegin() {
   glDepthMask(GL_FALSE);
@@ -407,14 +264,6 @@ void Renderer::Mesh(const EpxTransform3 &transform, const EpxVector3 &color,
   glPopMatrix();
 }
 
-void Renderer::Resize(int width, int height) {
-  glViewport(0, 0, width, height);
-  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
-                                   0.1f, 1000.0f);
-  s_screenWidth = width;
-  s_screenHeight = height;
-}
-
 void Renderer::DebugPoint(const EpxVector3 &position, const EpxVector3 &color) {
   glColor4f(color[0], color[1], color[2], 1.0f);
 
@@ -465,14 +314,14 @@ void Renderer::DebugAabb(const EpxVector3 &center, const EpxVector3 &extent,
   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void Renderer::Debug2dBegin() {
+void Renderer::Debug2dBegin(int width, int height) {
   glPushMatrix();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  EpxMatrix4 proj = EpxMatrix4::orthographic(
-      -s_screenWidth * 0.5f, s_screenWidth * 0.5f, -s_screenHeight * 0.5f,
-      s_screenHeight * 0.5f, -10.0f, 10.0f);
+  EpxMatrix4 proj =
+      EpxMatrix4::orthographic(-width * 0.5f, width * 0.5f, -height * 0.5f,
+                               height * 0.5f, -10.0f, 10.0f);
   glMultMatrixf((GLfloat *)&proj);
 
   glMatrixMode(GL_MODELVIEW);
@@ -496,8 +345,9 @@ EpxVector3 Renderer::GetWorldPosition(const EpxVector3 &screenPos) {
 
   EpxVector4 wp(screenPos, 1.0f);
 
-  wp[0] /= (0.5f * (float)s_screenWidth);
-  wp[1] /= (0.5f * (float)s_screenHeight);
+  auto [width, height] = impl_->window_.GetSize();
+  wp[0] /= (0.5f * (float)width);
+  wp[1] /= (0.5f * (float)height);
 
   float w = mvpInv[0][3] * wp[0] + mvpInv[1][3] * wp[1] + mvpInv[2][3] * wp[2] +
             mvpInv[3][3];
@@ -516,15 +366,15 @@ EpxVector3 Renderer::GetScreenPosition(const EpxVector3 &worldPos) {
 
   sp = mvp * sp;
   sp /= (float)sp[3];
-  sp[0] *= (0.5f * (float)s_screenWidth);
-  sp[1] *= (0.5f * (float)s_screenHeight);
+  auto [width, height] = impl_->window_.GetSize();
+  sp[0] *= (0.5f * (float)width);
+  sp[1] *= (0.5f * (float)height);
 
   return sp.getXYZ();
 }
 
-void Renderer::GetScreenSize(int &width, int &height) {
-  width = s_screenWidth;
-  height = s_screenHeight;
+std::tuple<int, int> Renderer::GetScreenSize() {
+  return impl_->window_.GetSize();
 }
 
 void Renderer::GetViewTarget(EpxVector3 &targetPos) { targetPos = s_viewTgt; }
@@ -537,6 +387,6 @@ void Renderer::GetViewRadius(float &radius) { radius = s_viewRadius; }
 
 void Renderer::SetViewRadius(float radius) { s_viewRadius = radius; }
 
-HDC Renderer::GetDC() { return s_hDC; }
+
 
 void Renderer::Wait() { glFinish(); }

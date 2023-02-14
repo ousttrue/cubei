@@ -22,13 +22,14 @@
 */
 
 #include "physics_func.h"
+#include <common/FontStashRenderer.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
-#include <common/FontStashRenderer.h>
 #include <common/render_func.h>
 #include <format>
 #include <gl/GL.h>
 #include <stdexcept>
+
 
 #define SAMPLE_NAME "01_basic"
 
@@ -150,12 +151,11 @@ int main(int argc, char **argv) {
         g_scene->Simulate(g_state);
       }
 
-      renderer.Begin();
+      auto [width, height] = renderer.GetScreenSize();
+      renderer.Begin(width, height);
       PhysicsRender(*g_scene, g_state, &renderer, nullptr);
 
-      renderer.Debug2dBegin();
-      int width, height;
-      renderer.GetScreenSize(width, height);
+      renderer.Debug2dBegin(width, height);
       stash.Draw(width, height, g_scene->title_);
       renderer.Debug2dEnd();
 
