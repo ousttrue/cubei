@@ -204,8 +204,6 @@ void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
 
 void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
                    Renderer *renderer, FontRenderer *font) {
-  renderer->Begin();
-
   for (int i = 0; i < scene.g_numRigidBodies; i++) {
     auto &state = scene.states[i];
     auto &collidable = scene.collidables[i];
@@ -251,27 +249,4 @@ void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
   }
 
   renderer->DebugEnd();
-
-  renderer->Debug2dBegin();
-
-  int width, height;
-  renderer->GetScreenSize(width, height);
-
-  EasyPhysics::EpxFloat dh = 20.0f;
-  EasyPhysics::EpxFloat sx = -width * 0.5f + 20.0f;
-  EasyPhysics::EpxFloat sy = height * 0.5f - 10.0f;
-
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
-              scene.title_.c_str());
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F4:Step");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Cursor:Rotate view");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Ins/Del:Move view");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
-
-  renderer->Debug2dEnd();
-
-  renderer->End();
 }
