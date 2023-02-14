@@ -40,6 +40,7 @@ void physicsSimulate() {
   g_scene->BroadPhase(perf, g_state);
   g_scene->Collision(perf, g_state);
   g_scene->Solver(perf, g_state);
+  g_scene->Integrate(perf);
   // epxPrintf("--- frame %d -------------\n",frame);
   // for(int i=0;i<numPairs[pairSwap];i++) {
   //	EpxPair &p = pairs[pairSwap][i];
