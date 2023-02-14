@@ -3,6 +3,7 @@
 #include <common/geometry_data.h>
 #include <common/physics_scene.h>
 #include <common/render_func.h>
+#include <stdexcept>
 
 using namespace EasyPhysics;
 
@@ -43,74 +44,49 @@ PhysicsBody PhysicsScene::AddBody() {
   };
 }
 
-void PhysicsScene::AddBoxShape(Renderer *renderer, int id,
-                               const EpxVector3 &scale) {
+EpxShape *PhysicsScene::AddShape(Renderer *renderer, int id, ShapeType type,
+                                 const EpxVector3 &scale, bool finish) {
   // 凸メッシュを作成
   EpxShape shape;
   shape.reset();
-  epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                      box_indices, box_numIndices, scale);
+
+  switch (type) {
+  case ShapeType::Sphere:
+    epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
+                        sphere_indices, sphere_numIndices, scale);
+    break;
+
+  case ShapeType::Box:
+    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
+                        box_indices, box_numIndices, scale);
+    break;
+
+  case ShapeType::Cylinder:
+    epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
+                        cylinder_numVertices, cylinder_indices,
+                        cylinder_numIndices, scale);
+    break;
+
+  case ShapeType::Tetrahedron:
+    epxCreateConvexMesh(&shape.m_geometry, tetrahedron_vertices,
+                        tetrahedron_numVertices, tetrahedron_indices,
+                        tetrahedron_numIndices, scale);
+    break;
+
+  default:
+    throw std::invalid_argument("unknown");
+  }
 
   // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
   // 描画用メッシュは、終了時に自動的に破棄される
   shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
 
   // 凸メッシュ形状を登録
-  collidables[id].addShape(shape);
-  collidables[id].finish();
-}
-
-void PhysicsScene::AddSphereShape(Renderer *renderer, int id,
-                                  const EpxVector3 &scale) {
-  // 凸メッシュを作成
-  EpxShape shape;
-  shape.reset();
-  epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
-                      sphere_indices, sphere_numIndices, scale);
-
-  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-  // 描画用メッシュは、終了時に自動的に破棄される
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-  // 凸メッシュ形状を登録
-  collidables[id].addShape(shape);
-  collidables[id].finish();
-}
-
-void PhysicsScene::AddCylinderShape(Renderer *renderer, int id,
-                                    const EpxVector3 &scale) {
-  // 凸メッシュを作成
-  EpxShape shape;
-  shape.reset();
-  epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
-                      cylinder_numVertices, cylinder_indices,
-                      cylinder_numIndices, scale);
-
-  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-  // 描画用メッシュは、終了時に自動的に破棄される
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-  // 凸メッシュ形状を登録
-  collidables[id].addShape(shape);
-  collidables[id].finish();
-}
-
-void PhysicsScene::AddTetrahedronShape(Renderer *renderer, int id,
-                                       const EpxVector3 &scale) {
-  // 凸メッシュを作成
-  EpxShape shape;
-  shape.reset();
-  epxCreateConvexMesh(&shape.m_geometry, tetrahedron_vertices,
-                      tetrahedron_numVertices, tetrahedron_indices,
-                      tetrahedron_numIndices, scale);
-
-  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-  // 描画用メッシュは、終了時に自動的に破棄される
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
-
-  // 凸メッシュ形状を登録
-  collidables[id].addShape(shape);
-  collidables[id].finish();
+  auto added = collidables[id].addShape(shape);
+  if (finish) {
+    collidables[id].finish();
+  }
+  return added;
 }
 
 void PhysicsScene::Simulate(PhysicsState &state) {

@@ -1,5 +1,6 @@
 #pragma once
 #include <EpxInclude.h>
+#include <common/geometry_data.h>
 #include <string>
 
 struct Perf {
@@ -79,14 +80,31 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  void AddBoxShape(class Renderer *renderer, int id,
-                   const EasyPhysics::EpxVector3 &scale);
-  void AddSphereShape(Renderer *renderer, int id,
-                      const EasyPhysics::EpxVector3 &scale);
-  void AddCylinderShape(Renderer *renderer, int id,
-                        const EasyPhysics::EpxVector3 &scale);
-  void AddTetrahedronShape(Renderer *renderer, int id,
-                           const EasyPhysics::EpxVector3 &scale);
+  EasyPhysics::EpxShape *AddShape(class Renderer *renderer, int id,
+                                  ShapeType type,
+                                  const EasyPhysics::EpxVector3 &scale,
+                                  bool finish);
+  EasyPhysics::EpxShape *AddBoxShape(class Renderer *renderer, int id,
+                                     const EasyPhysics::EpxVector3 &scale,
+                                     bool finish = true) {
+    return AddShape(renderer, id, ShapeType::Box, scale, finish);
+  }
+  EasyPhysics::EpxShape *AddSphereShape(Renderer *renderer, int id,
+                                        const EasyPhysics::EpxVector3 &scale,
+                                        bool finish = true) {
+    return AddShape(renderer, id, ShapeType::Sphere, scale, finish);
+  }
+  EasyPhysics::EpxShape *AddCylinderShape(Renderer *renderer, int id,
+                                          const EasyPhysics::EpxVector3 &scale,
+                                          bool finish = true) {
+    return AddShape(renderer, id, ShapeType::Cylinder, scale, finish);
+  }
+  EasyPhysics::EpxShape *
+  AddTetrahedronShape(Renderer *renderer, int id,
+                      const EasyPhysics::EpxVector3 &scale,
+                      bool finish = true) {
+    return AddShape(renderer, id, ShapeType::Tetrahedron, scale, finish);
+  }
 
   // simulation
   void Simulate(PhysicsState &state);
