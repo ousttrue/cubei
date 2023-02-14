@@ -66,7 +66,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////////
   // Render Parameter
 
-  void GetViewAngle(float &angleX, float &angleY, float &radius);
+  std::tuple<float, float, float> GetViewAngle() const;
   void SetViewAngle(float angleX, float angleY, float radius);
 
   void GetViewTarget(EasyPhysics::EpxVector3 &targetPos);
@@ -77,9 +77,11 @@ public:
                     const EasyPhysics::EpxVector3 &viewTarget);
 
   EasyPhysics::EpxVector3
-  GetWorldPosition(const EasyPhysics::EpxVector3 &screenPos, int width, int height);
+  GetWorldPosition(const EasyPhysics::EpxVector3 &screenPos, int width,
+                   int height);
   EasyPhysics::EpxVector3
-  GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos, int width, int height);
+  GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos, int width,
+                    int height);
 };
 
 uint64_t createRenderMesh(class Gl1Renderer *renderer,

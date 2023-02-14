@@ -1,35 +1,14 @@
-﻿/*
-        Copyright (c) 2012 Hiroshi Matsuike
-
-        This software is provided 'as-is', without any express or implied
-        warranty. In no event will the authors be held liable for any damages
-        arising from the use of this software.
-
-        Permission is granted to anyone to use this software for any purpose,
-        including commercial applications, and to alter it and redistribute it
-        freely, subject to the following restrictions:
-
-        1. The origin of this software must not be misrepresented; you must not
-        claim that you wrote the original software. If you use this software
-        in a product, an acknowledgment in the product documentation would be
-        appreciated but is not required.
-
-        2. Altered source versions must be plainly marked as such, and must not
-   be misrepresented as being the original software.
-
-        3. This notice may not be removed or altered from any source
-   distribution.
-*/
-
-#include "physics_func.h"
+﻿#include "physics_func.h"
 #include <GLFW/glfw3.h>
 #include <common/FontStashRenderer.h>
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
-#include <common/ctrl_func.h>
 #include <format>
+#include <functional>
 #include <gl/GL.h>
 #include <stdexcept>
+#include <unordered_map>
+#include <unordered_set>
 
 #define SAMPLE_NAME "01_basic"
 
@@ -38,89 +17,34 @@ static int g_sceneId = 0;
 PhysicsState g_state = {};
 static std::shared_ptr<PhysicsScene> g_scene;
 
-static void update(Gl1Renderer *renderer, Control *ctrl, int width,
-                   int height) {
-  float angX, angY, r;
-  renderer->GetViewAngle(angX, angY, r);
-
-  ctrl->Update();
-
-  if (ctrl->ButtonPressed(BTN_UP)) {
-    angX -= 0.05f;
-    if (angX < -1.4f)
-      angX = -1.4f;
-    if (angX > -0.01f)
-      angX = -0.01f;
-  }
-
-  if (ctrl->ButtonPressed(BTN_DOWN)) {
-    angX += 0.05f;
-    if (angX < -1.4f)
-      angX = -1.4f;
-    if (angX > -0.01f)
-      angX = -0.01f;
-  }
-
-  if (ctrl->ButtonPressed(BTN_LEFT)) {
-    angY -= 0.05f;
-  }
-
-  if (ctrl->ButtonPressed(BTN_RIGHT)) {
-    angY += 0.05f;
-  }
-
-  if (ctrl->ButtonPressed(BTN_ZOOM_OUT)) {
-    r *= 1.1f;
-    if (r > 500.0f)
-      r = 500.0f;
-  }
-
-  if (ctrl->ButtonPressed(BTN_ZOOM_IN)) {
-    r *= 0.9f;
-    if (r < 1.0f)
-      r = 1.0f;
-  }
-
-  if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
-    // renderer->Wait();
-    renderer->ReleaseMeshAll();
-    physicsCreateScene(g_sceneId, renderer);
-    g_state.Clear();
-  }
-
-  if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
-    // renderer->Wait();
-    renderer->ReleaseMeshAll();
-    g_scene = physicsCreateScene(++g_sceneId, renderer);
-    g_state.Clear();
-  }
-
-  if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
-    g_simulating = !g_simulating;
-  }
-
-  if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_DOWN) {
-    g_simulating = true;
-  } else if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_UP ||
-             ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_KEEP) {
-    g_simulating = false;
-  }
-
-  if (ctrl->ButtonPressed(BTN_PICK) == BTN_STAT_DOWN) {
-    int sx, sy;
-    ctrl->GetCursorPosition(sx, sy);
-    EasyPhysics::EpxVector3 wp1((float)sx, (float)sy, 0.0f);
-    EasyPhysics::EpxVector3 wp2((float)sx, (float)sy, 1.0f);
-    wp1 = renderer->GetWorldPosition(wp1, width, height);
-    wp2 = renderer->GetWorldPosition(wp2, width, height);
-    g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
-  }
-
-  renderer->SetViewAngle(angX, angY, r);
-}
-
 class GlfwPlatform {
   GLFWwindow *window_ = nullptr;
+  int x_, y_, width_, height_;
+  using KeyCallback = std::function<void(int x, int y, int width, int height)>;
+  std::unordered_set<uint32_t> m_isDown;
+  std::unordered_map<uint32_t, KeyCallback> m_onKeyIsDown;
+  std::unordered_map<uint32_t, KeyCallback> m_onKeyPress;
+
+  static void key_callback(GLFWwindow *window, int key, int scancode,
+                           int action, int mods) {
+    auto self = (GlfwPlatform *)glfwGetWindowUserPointer(window);
+    if (action == GLFW_PRESS) {
+      auto found = self->m_onKeyPress.find(key);
+      if (found != self->m_onKeyPress.end()) {
+        found->second(self->x_, self->y_, self->width_, self->height_);
+      }
+      self->m_isDown.insert(key);
+    } else if (action == GLFW_RELEASE) {
+      self->m_isDown.erase(key);
+    }
+  }
+
+  static void cursor_position_callback(GLFWwindow *window, double xpos,
+                                       double ypos) {
+    auto self = (GlfwPlatform *)glfwGetWindowUserPointer(window);
+    self->x_ = xpos - self->width_ / 2;
+    self->y_ = -ypos + self->height_ / 2;
+  }
 
 public:
   GlfwPlatform() {
@@ -132,20 +56,119 @@ public:
       throw std::runtime_error("glfwCreateWindow");
     }
     glfwMakeContextCurrent(window_);
+
+    glfwSetWindowUserPointer(window_, this);
+    glfwSetKeyCallback(window_, key_callback);
+    glfwSetCursorPosCallback(window_, cursor_position_callback);
   }
 
   ~GlfwPlatform() { glfwTerminate(); }
 
-  bool NewFrame(int *width, int *height) {
+  bool NewFrame(int *x, int *y, int *width, int *height) {
     if (glfwWindowShouldClose(window_)) {
       return false;
     }
     glfwPollEvents();
+    for (auto key : m_isDown) {
+      auto found = m_onKeyIsDown.find(key);
+      if (found != m_onKeyIsDown.end()) {
+        found->second(x_, y_, width_, height_);
+      }
+    }
     glfwGetFramebufferSize(window_, width, height);
+    width_ = *width;
+    height_ = *height;
+    *x = x_;
+    *y = y_;
     return true;
   }
 
   void EndFrame() { glfwSwapBuffers(window_); }
+
+  void OnKeyIsDown(uint32_t key, const KeyCallback &callback) {
+    m_onKeyIsDown[key] = callback;
+  }
+  void OnKeyPress(uint32_t key, const KeyCallback &callback) {
+    m_onKeyPress[key] = callback;
+  }
+
+  void Bind(Gl1Renderer &renderer) {
+    // keybind: view
+    OnKeyIsDown(GLFW_KEY_UP, [&renderer](int x, int y, int width, int height) {
+      auto [angX, angY, r] = renderer.GetViewAngle();
+      angX -= 0.05f;
+      if (angX < -1.4f)
+        angX = -1.4f;
+      if (angX > -0.01f)
+        angX = -0.01f;
+      renderer.SetViewAngle(angX, angY, r);
+    });
+    OnKeyIsDown(GLFW_KEY_DOWN,
+                [&renderer](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = renderer.GetViewAngle();
+                  angX += 0.05f;
+                  if (angX < -1.4f)
+                    angX = -1.4f;
+                  if (angX > -0.01f)
+                    angX = -0.01f;
+                  renderer.SetViewAngle(angX, angY, r);
+                });
+    OnKeyIsDown(GLFW_KEY_LEFT,
+                [&renderer](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = renderer.GetViewAngle();
+                  angY -= 0.05f;
+                  renderer.SetViewAngle(angX, angY, r);
+                });
+    OnKeyIsDown(GLFW_KEY_RIGHT,
+                [&renderer](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = renderer.GetViewAngle();
+                  angY += 0.05f;
+                  renderer.SetViewAngle(angX, angY, r);
+                });
+    OnKeyIsDown(GLFW_KEY_PAGE_DOWN,
+                [&renderer](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = renderer.GetViewAngle();
+                  r *= 1.1f;
+                  if (r > 500.0f)
+                    r = 500.0f;
+                  renderer.SetViewAngle(angX, angY, r);
+                });
+    OnKeyIsDown(GLFW_KEY_PAGE_UP,
+                [&renderer](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = renderer.GetViewAngle();
+                  r *= 0.9f;
+                  if (r < 1.0f)
+                    r = 1.0f;
+                  renderer.SetViewAngle(angX, angY, r);
+                });
+
+    OnKeyPress(GLFW_KEY_F1, [&renderer](int x, int y, int width, int height) {
+      renderer.ReleaseMeshAll();
+      physicsCreateScene(g_sceneId, &renderer);
+      g_state.Clear();
+    });
+    OnKeyPress(GLFW_KEY_F2, [&renderer](int x, int y, int width, int height) {
+      renderer.ReleaseMeshAll();
+      g_scene = physicsCreateScene(++g_sceneId, &renderer);
+      g_state.Clear();
+    });
+    OnKeyPress(GLFW_KEY_F3, [](int x, int y, int width, int height) {
+      g_simulating = !g_simulating;
+    });
+    OnKeyPress(GLFW_KEY_F4, [](int x, int y, int width, int height) {
+      g_simulating = true;
+    });
+    OnKeyPress(GLFW_KEY_SPACE,
+               [&renderer](int x, int y, int width, int height) {
+                 // int sx, sy;
+                 // ctrl->GetCursorPosition(sx, sy);
+                 EasyPhysics::EpxVector3 wp1((float)x, (float)y, 0.0f);
+                 EasyPhysics::EpxVector3 wp2((float)x, (float)y, 1.0f);
+                 wp1 = renderer.GetWorldPosition(wp1, width, height);
+                 wp2 = renderer.GetWorldPosition(wp2, width, height);
+                 g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
+               });
+  }
 };
 
 // int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
@@ -153,9 +176,9 @@ public:
 int main(int argc, char **argv) {
 
   GlfwPlatform platform;
-
-  Control ctrl;
   Gl1Renderer renderer;
+  platform.Bind(renderer);
+
   FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
@@ -164,19 +187,19 @@ int main(int argc, char **argv) {
   g_scene = physicsCreateScene(g_sceneId, &renderer);
   g_state.Clear();
 
-  int width, height;
-  while (platform.NewFrame(&width, &height)) {
-
-    update(&renderer, &ctrl, width, height);
+  int x, y, width, height;
+  while (platform.NewFrame(&x, &y, &width, &height)) {
+    // update
     if (g_simulating) {
       g_scene->Simulate(g_state);
     }
 
+    // render
     renderer.Begin(width, height);
     PhysicsRender(*g_scene, g_state, &renderer, nullptr);
 
     renderer.Debug2dBegin(width, height);
-    stash.Draw(width, height, g_scene->title_);
+    stash.Draw(x, y, width, height, g_scene->title_);
     renderer.Debug2dEnd();
 
     platform.EndFrame();

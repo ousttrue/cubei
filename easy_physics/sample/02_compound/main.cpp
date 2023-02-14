@@ -83,8 +83,7 @@ static void render(Gl1Renderer *renderer) {
 
 static void update(Gl1Renderer *renderer, Control *ctrl, int width,
                    int height) {
-  float angX, angY, r;
-  renderer->GetViewAngle(angX, angY, r);
+  auto [angX, angY, r] = renderer->GetViewAngle();
 
   ctrl->Update();
 
@@ -194,8 +193,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       renderer.Begin(width, height);
       render(&renderer);
 
+      int sx, sy;
+      ctrl.GetCursorPosition(sx, sy);
       renderer.Debug2dBegin(width, height);
-      stash.Draw(width, height, physicsGetSceneTitle(g_sceneId));
+      stash.Draw(sx, sy, width, height, physicsGetSceneTitle(g_sceneId));
       renderer.Debug2dEnd();
 
       window.SwapBuffers();

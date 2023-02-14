@@ -8,5 +8,5 @@ class FontStashRenderer {
 public:
   FontStashRenderer(const char *name, const char *path);
   ~FontStashRenderer();
-  void Draw(int width, int height, std::string_view title);
+  void Draw(int x, int y, int width, int height, std::string_view title);
 };

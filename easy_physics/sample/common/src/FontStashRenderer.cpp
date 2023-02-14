@@ -1,6 +1,6 @@
 #include <Windows.h>
-#include <common/common.h>
 #include <common/FontStashRenderer.h>
+#include <common/common.h>
 #include <format>
 #include <stdexcept>
 
@@ -16,7 +16,8 @@ static unsigned int glfonsFloatRGBA(float r, float g, float b, float a) {
                     (uint8_t)(a * 255));
 }
 
-FontStashRenderer::FontStashRenderer(const char *name, const char *path) : fontNormal(FONS_INVALID) {
+FontStashRenderer::FontStashRenderer(const char *name, const char *path)
+    : fontNormal(FONS_INVALID) {
   fs = glfonsCreate(512, 512, FONS_ZERO_TOPLEFT);
   if (fs == NULL) {
     throw std::runtime_error("Could not create stash.");
@@ -29,7 +30,8 @@ FontStashRenderer::FontStashRenderer(const char *name, const char *path) : fontN
 }
 FontStashRenderer::~FontStashRenderer() { glfonsDelete(fs); }
 
-void FontStashRenderer::Draw(int width, int height, std::string_view title) {
+void FontStashRenderer::Draw(int x, int y, int width, int height,
+                             std::string_view title) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_TEXTURE_2D);
@@ -63,6 +65,12 @@ void FontStashRenderer::Draw(int width, int height, std::string_view title) {
   fonsSetColor(fs, green);
   fonsDrawText(fs, 0, (sy += dh),
                std::format("Easy Physics : {}", title).c_str(), nullptr);
+
+  fonsSetColor(fs, white);
+  fonsDrawText(fs, sx, (sy += dh),
+               std::format("{}, {}: {} x {}", x, y, width, height).c_str(),
+               nullptr);
+
   // 0.5f, 0.5f, 1.0f,
   fonsSetColor(fs, blue);
   fonsDrawText(fs, sx, (sy += dh), "F1:Reset", nullptr);

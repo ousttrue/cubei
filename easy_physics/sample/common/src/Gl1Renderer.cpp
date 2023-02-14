@@ -68,10 +68,10 @@ Gl1Renderer::Gl1Renderer() {
 
 Gl1Renderer::~Gl1Renderer() {
   for (EpxUInt32 c = 0; c < s_meshBuff->size(); ++c) {
-    delete[](*s_meshBuff)[c].vtx;
-    delete[](*s_meshBuff)[c].nml;
-    delete[](*s_meshBuff)[c].idx;
-    delete[](*s_meshBuff)[c].wireIdx;
+    delete[] (*s_meshBuff)[c].vtx;
+    delete[] (*s_meshBuff)[c].nml;
+    delete[] (*s_meshBuff)[c].idx;
+    delete[] (*s_meshBuff)[c].wireIdx;
   }
   s_meshBuff->clear();
   delete s_meshBuff;
@@ -143,10 +143,8 @@ void Gl1Renderer::DebugEnd() {
   glEnable(GL_DEPTH_TEST);
 }
 
-void Gl1Renderer::GetViewAngle(float &angleX, float &angleY, float &radius) {
-  angleX = s_viewRadX;
-  angleY = s_viewRadY;
-  radius = s_viewRadius;
+std::tuple<float, float, float> Gl1Renderer::GetViewAngle() const {
+  return {s_viewRadX, s_viewRadY, s_viewRadius};
 }
 
 void Gl1Renderer::SetViewAngle(float angleX, float angleY, float radius) {
@@ -199,10 +197,10 @@ int Gl1Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
 }
 void Gl1Renderer::ReleaseMeshAll() {
   for (EpxUInt32 c = 0; c < s_meshBuff->size(); ++c) {
-    delete[](*s_meshBuff)[c].vtx;
-    delete[](*s_meshBuff)[c].nml;
-    delete[](*s_meshBuff)[c].idx;
-    delete[](*s_meshBuff)[c].wireIdx;
+    delete[] (*s_meshBuff)[c].vtx;
+    delete[] (*s_meshBuff)[c].nml;
+    delete[] (*s_meshBuff)[c].idx;
+    delete[] (*s_meshBuff)[c].wireIdx;
   }
   s_meshBuff->clear();
 }
