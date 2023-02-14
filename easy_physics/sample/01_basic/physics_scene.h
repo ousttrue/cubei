@@ -37,17 +37,17 @@ struct PhysicsState {
   PhysicsPair &CurrentPair() { return g_pairs[g_pairSwap]; }
   PhysicsPair &OtherPair() { return g_pairs[1 - g_pairSwap]; }
 
-  int physicsGetNumContacts() { return g_pairs[g_pairSwap].numPairs; }
+  int physicsGetNumContacts() const { return g_pairs[g_pairSwap].numPairs; }
 
-  const EasyPhysics::EpxContact &physicsGetContact(int i) {
+  const EasyPhysics::EpxContact &physicsGetContact(int i) const {
     return *g_pairs[g_pairSwap].pairs[i].contact;
   }
 
-  uint32_t physicsGetRigidBodyAInContact(int i) {
+  uint32_t physicsGetRigidBodyAInContact(int i) const {
     return g_pairs[g_pairSwap].pairs[i].rigidBodyA;
   }
 
-  uint32_t physicsGetRigidBodyBInContact(int i) {
+  uint32_t physicsGetRigidBodyBInContact(int i) const {
     return g_pairs[g_pairSwap].pairs[i].rigidBodyB;
   }
 };
@@ -89,6 +89,7 @@ struct PhysicsScene {
                            const EasyPhysics::EpxVector3 &scale);
 
   // simulation
+  void Simulate(PhysicsState &state);
   void ApplyForce(Perf &perf);
   void BroadPhase(Perf &perf, PhysicsState &state);
   void Collision(Perf &perf, PhysicsState &g_state);
@@ -101,3 +102,7 @@ struct PhysicsScene {
   void PhysicsFire(const EasyPhysics::EpxVector3 &position,
                    const EasyPhysics::EpxVector3 &velocity);
 };
+
+// render
+void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
+                   class Renderer *renderer, class FontRenderer *font);

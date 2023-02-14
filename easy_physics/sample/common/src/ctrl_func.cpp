@@ -21,8 +21,8 @@
    distribution.
 */
 
-#include "ctrl_func.h"
-#include "common.h"
+#include <common/ctrl_func.h>
+#include <common/common.h>
 
 Control::Control() { s_keySw = 0; }
 

@@ -22,36 +22,10 @@
 */
 
 #include "physics_func.h"
-#include "../common/common.h"
+#include <common/common.h>
 #include <stdexcept>
-#include <stdlib.h>
-#include <tuple>
 
 using namespace EasyPhysics;
-
-PhysicsState g_state = {};
-int g_sceneId = 0;
-std::shared_ptr<PhysicsScene> g_scene;
-static const int maxScenes = 4;
-
-void physicsSimulate() {
-  auto perf = g_state.NewFrame();
-  g_scene->ApplyForce(perf);
-  g_scene->BroadPhase(perf, g_state);
-  g_scene->Collision(perf, g_state);
-  g_scene->Solver(perf, g_state);
-  g_scene->Integrate(perf);
-  // epxPrintf("--- frame %d -------------\n",frame);
-  // for(int i=0;i<numPairs[pairSwap];i++) {
-  //	EpxPair &p = pairs[pairSwap][i];
-  //	epxPrintf("RB %u,%u CP
-  //%u\n",p.rigidBodyA,p.rigidBodyB,p.contact->m_numContacts);
-  // }
-  g_state.EndFrame();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// シーンの作成
 
 static std::shared_ptr<PhysicsScene> createSceneTwoBox(Renderer *renderer) {
   auto scene = std::make_shared<PhysicsScene>("basic rigid bodies");
@@ -203,15 +177,11 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(Renderer *renderer) {
   return scene;
 }
 
-void physicsNextScene() { ++g_sceneId; }
-const char *physicsGetSceneTitle() { return g_scene->title_.c_str(); }
-
-void physicsCreateScene(Renderer *renderer) {
-
-  g_state.Clear();
-
+static const int maxScenes = 4;
+std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,
+                                                 Renderer *renderer) {
   std::shared_ptr<PhysicsScene> scene;
-  switch (g_sceneId % maxScenes) {
+  switch (sceneId % maxScenes) {
   case 0:
     scene = createSceneTwoBox(renderer);
     break;
@@ -233,44 +203,5 @@ void physicsCreateScene(Renderer *renderer) {
   }
 
   scene->CreateFireBody(renderer);
-  g_scene = scene;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// 初期化、解放
-
-bool physicsInit() { return true; }
-
-void physicsRelease() {}
-
-///////////////////////////////////////////////////////////////////////////////
-// 外部から物理データへのアクセス
-
-int physicsGetNumRigidbodies() { return g_scene->g_numRigidBodies; }
-
-const EpxState &physicsGetState(int i) { return g_scene->states[i]; }
-
-const EpxRigidBody &physicsGetRigidBody(int i) { return g_scene->bodies[i]; }
-
-const EpxCollidable &physicsGetCollidable(int i) {
-  return g_scene->collidables[i];
-}
-
-int physicsGetNumContacts() { return g_state.physicsGetNumContacts(); }
-
-const EasyPhysics::EpxContact &physicsGetContact(int i) {
-  return g_state.physicsGetContact(i);
-}
-
-EpxUInt32 physicsGetRigidBodyAInContact(int i) {
-  return g_state.physicsGetRigidBodyAInContact(i);
-}
-
-EpxUInt32 physicsGetRigidBodyBInContact(int i) {
-  return g_state.physicsGetRigidBodyBInContact(i);
-}
-
-void physicsFire(const EasyPhysics::EpxVector3 &position,
-                 const EasyPhysics::EpxVector3 &velocity) {
-  g_scene->PhysicsFire(position, velocity);
+  return scene;
 }

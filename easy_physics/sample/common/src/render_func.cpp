@@ -21,7 +21,7 @@
    distribution.
 */
 
-#include "render_func.h"
+#include <common/render_func.h>
 
 #include <gl/gl.h>
 #include <vector>

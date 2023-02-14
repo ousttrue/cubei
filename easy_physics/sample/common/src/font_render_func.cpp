@@ -21,10 +21,11 @@
    distribution.
 */
 
-#include "font_render_func.h"
+#include <common/font_render_func.h>
+#include <common/render_func.h>
 #include <gl/gl.h>
-#include <render_func.h>
 #include <tchar.h>
+
 
 FontRenderer::FontRenderer(Renderer *renderer) {
 

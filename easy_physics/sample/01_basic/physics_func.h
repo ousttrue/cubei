@@ -21,37 +21,9 @@
    distribution.
 */
 
-#ifndef PHYSICS_FUNC_H
-#define PHYSICS_FUNC_H
-
+#pragma once
 #include "physics_scene.h"
 #include <memory>
 
-
-// シミュレーション関数
-bool physicsInit();
-void physicsRelease();
-void physicsSimulate();
-
-void physicsCreateScene(class Renderer *renderer);
-void physicsNextScene();
-// シーンのタイトル名を取得する
-const char *physicsGetSceneTitle();
-
-// 剛体に関連するデータを取得する関数
-int physicsGetNumRigidbodies();
-const EasyPhysics::EpxState &physicsGetState(int i);
-const EasyPhysics::EpxRigidBody &physicsGetRigidBody(int i);
-const EasyPhysics::EpxCollidable &physicsGetCollidable(int i);
-
-// 衝突情報を取得する関数
-int physicsGetNumContacts();
-const EasyPhysics::EpxContact &physicsGetContact(int i);
-EasyPhysics::EpxUInt32 physicsGetRigidBodyAInContact(int i);
-EasyPhysics::EpxUInt32 physicsGetRigidBodyBInContact(int i);
-
-// ワールドへの干渉
-void physicsFire(const EasyPhysics::EpxVector3 &position,
-                 const EasyPhysics::EpxVector3 &velocity);
-
-#endif // PHYSICS_FUNC_H
+std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,
+                                                 class Renderer *renderer);

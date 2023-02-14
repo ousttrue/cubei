@@ -21,20 +21,21 @@
    distribution.
 */
 
-#include "../common/common.h"
-#include "../common/ctrl_func.h"
-#include "../common/font_render_func.h"
-#include "../common/render_func.h"
 #include "physics_func.h"
+#include <common/common.h>
+#include <common/ctrl_func.h>
+#include <common/font_render_func.h>
+#include <common/render_func.h>
+
 
 using namespace EasyPhysics;
 
 #define SAMPLE_NAME "02_joint"
 
-static bool s_isRunning = true;
+static bool g_isRunning = true;
 
 int sceneId = 0;
-bool simulating = false;
+bool g_simulating = false;
 
 static void render(Renderer *renderer, FontRenderer *font) {
   renderer->Begin();
@@ -161,14 +162,14 @@ static void update(Renderer *renderer, Control *ctrl) {
   }
 
   if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
-    simulating = !simulating;
+    g_simulating = !g_simulating;
   }
 
   if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_DOWN) {
-    simulating = true;
+    g_simulating = true;
   } else if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_UP ||
              ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_KEEP) {
-    simulating = false;
+    g_simulating = false;
   }
 
   if (ctrl->ButtonPressed(BTN_PICK) == BTN_STAT_DOWN) {
@@ -197,17 +198,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   Control ctrl;
 
   MSG msg;
-  while (s_isRunning) {
+  while (g_isRunning) {
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       if (msg.message == WM_QUIT) {
-        s_isRunning = false;
+        g_isRunning = false;
       } else {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
       }
     } else {
       update(&renderer, &ctrl);
-      if (simulating)
+      if (g_simulating)
         physicsSimulate();
       render(&renderer, &font);
     }

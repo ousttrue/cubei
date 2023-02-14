@@ -21,8 +21,8 @@
    distribution.
 */
 
-#include "common.h"
-#include "render_func.h"
+#include <common/common.h>
+#include <common/render_func.h>
 
 using namespace EasyPhysics;
 

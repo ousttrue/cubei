@@ -22,8 +22,8 @@
 */
 
 #include "physics_func.h"
-#include "../common/common.h"
-#include "../common/geometry_data.h"
+#include <common/common.h>
+#include <common/geometry_data.h>
 #include <stdlib.h>
 
 using namespace EasyPhysics;

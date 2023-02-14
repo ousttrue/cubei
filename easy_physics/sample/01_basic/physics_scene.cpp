@@ -1,6 +1,8 @@
 #include "physics_scene.h"
-#include <common.h>
-#include <geometry_data.h>
+#include <common/common.h>
+#include <common/font_render_func.h>
+#include <common/geometry_data.h>
+#include <common/render_func.h>
 
 using namespace EasyPhysics;
 
@@ -111,6 +113,22 @@ void PhysicsScene::AddTetrahedronShape(Renderer *renderer, int id,
   collidables[id].finish();
 }
 
+void PhysicsScene::Simulate(PhysicsState &state) {
+  auto perf = state.NewFrame();
+  ApplyForce(perf);
+  BroadPhase(perf, state);
+  Collision(perf, state);
+  Solver(perf, state);
+  Integrate(perf);
+  // epxPrintf("--- frame %d -------------\n",frame);
+  // for(int i=0;i<numPairs[pairSwap];i++) {
+  //	EpxPair &p = pairs[pairSwap][i];
+  //	epxPrintf("RB %u,%u CP
+  //%u\n",p.rigidBodyA,p.rigidBodyB,p.contact->m_numContacts);
+  // }
+  state.EndFrame();
+}
+
 void PhysicsScene::ApplyForce(Perf &perf) {
   perf.begin();
   for (EpxUInt32 i = 0; i < g_numRigidBodies; i++) {
@@ -177,9 +195,83 @@ void PhysicsScene::CreateFireBody(Renderer *renderer) {
 }
 
 void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
-                 const EasyPhysics::EpxVector3 &velocity) {
+                               const EasyPhysics::EpxVector3 &velocity) {
   states[fireRigidBodyId].m_motionType = EpxMotionTypeActive;
   states[fireRigidBodyId].m_position = position;
   states[fireRigidBodyId].m_linearVelocity = velocity;
   states[fireRigidBodyId].m_angularVelocity = EpxVector3(0.0f);
+}
+
+void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
+                   Renderer *renderer, FontRenderer *font) {
+  renderer->Begin();
+
+  for (int i = 0; i < scene.g_numRigidBodies; i++) {
+    auto &state = scene.states[i];
+    auto &collidable = scene.collidables[i];
+
+    EasyPhysics::EpxTransform3 rigidBodyTransform(state.m_orientation,
+                                                  state.m_position);
+
+    for (int j = 0; j < collidable.m_numShapes; j++) {
+      auto shape = collidable.m_shapes[j];
+      EasyPhysics::EpxTransform3 shapeTransform(shape.m_offsetOrientation,
+                                                shape.m_offsetPosition);
+      EasyPhysics::EpxTransform3 worldTransform =
+          rigidBodyTransform * shapeTransform;
+
+      renderer->Mesh(worldTransform, EasyPhysics::EpxVector3(1, 1, 1),
+                     (int)shape.userData);
+    }
+  }
+
+  renderer->DebugBegin();
+
+  // 衝突点の表示
+  const EasyPhysics::EpxVector3 colorA(1, 0, 0);
+  const EasyPhysics::EpxVector3 colorB(0, 0, 1);
+  const EasyPhysics::EpxVector3 colorLine(0, 1, 1);
+
+  for (int i = 0; i < state.physicsGetNumContacts(); i++) {
+    auto &contact = state.physicsGetContact(i);
+    auto &stateA = scene.states[state.physicsGetRigidBodyAInContact(i)];
+    auto &stateB = scene.states[state.physicsGetRigidBodyBInContact(i)];
+    for (unsigned int j = 0; j < contact.m_numContacts; j++) {
+      auto &contactPoint = contact.m_contactPoints[j];
+      auto pointA =
+          stateA.m_position + rotate(stateA.m_orientation, contactPoint.pointA);
+      auto pointB =
+          stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
+      auto normal = contactPoint.normal;
+      renderer->DebugPoint(pointA, colorA);
+      renderer->DebugPoint(pointB, colorB);
+      renderer->DebugLine(pointA, pointA + 0.1f * normal, colorLine);
+      renderer->DebugLine(pointB, pointB - 0.1f * normal, colorLine);
+    }
+  }
+
+  renderer->DebugEnd();
+
+  renderer->Debug2dBegin();
+
+  int width, height;
+  renderer->GetScreenSize(width, height);
+
+  EasyPhysics::EpxFloat dh = 20.0f;
+  EasyPhysics::EpxFloat sx = -width * 0.5f + 20.0f;
+  EasyPhysics::EpxFloat sy = height * 0.5f - 10.0f;
+
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
+              scene.title_.c_str());
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F4:Step");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Cursor:Rotate view");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Ins/Del:Move view");
+  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
+
+  renderer->Debug2dEnd();
+
+  renderer->End();
 }

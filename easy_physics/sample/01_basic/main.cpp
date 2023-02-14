@@ -21,90 +21,19 @@
    distribution.
 */
 
-#include "../common/common.h"
-#include "../common/ctrl_func.h"
-#include "../common/font_render_func.h"
-#include "../common/render_func.h"
 #include "physics_func.h"
+#include <common/common.h>
+#include <common/ctrl_func.h>
+#include <common/font_render_func.h>
+#include <common/render_func.h>
 
 #define SAMPLE_NAME "01_basic"
 
-static bool s_isRunning = true;
-
-bool simulating = false;
-
-static void render(Renderer *renderer, FontRenderer *font) {
-  renderer->Begin();
-
-  for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
-    auto &state = physicsGetState(i);
-    auto &collidable = physicsGetCollidable(i);
-
-    EasyPhysics::EpxTransform3 rigidBodyTransform(state.m_orientation,
-                                                  state.m_position);
-
-    for (int j = 0; j < collidable.m_numShapes; j++) {
-      auto shape = collidable.m_shapes[j];
-      EasyPhysics::EpxTransform3 shapeTransform(shape.m_offsetOrientation,
-                                                shape.m_offsetPosition);
-      EasyPhysics::EpxTransform3 worldTransform =
-          rigidBodyTransform * shapeTransform;
-
-      renderer->Mesh(worldTransform, EasyPhysics::EpxVector3(1, 1, 1),
-                     (int)shape.userData);
-    }
-  }
-
-  renderer->DebugBegin();
-
-  // 衝突点の表示
-  const EasyPhysics::EpxVector3 colorA(1, 0, 0);
-  const EasyPhysics::EpxVector3 colorB(0, 0, 1);
-  const EasyPhysics::EpxVector3 colorLine(0, 1, 1);
-
-  for (int i = 0; i < physicsGetNumContacts(); i++) {
-    auto &contact = physicsGetContact(i);
-    auto &stateA = physicsGetState(physicsGetRigidBodyAInContact(i));
-    auto &stateB = physicsGetState(physicsGetRigidBodyBInContact(i));
-    for (unsigned int j = 0; j < contact.m_numContacts; j++) {
-      auto &contactPoint = contact.m_contactPoints[j];
-      auto pointA =
-          stateA.m_position + rotate(stateA.m_orientation, contactPoint.pointA);
-      auto pointB =
-          stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
-      auto normal = contactPoint.normal;
-      renderer->DebugPoint(pointA, colorA);
-      renderer->DebugPoint(pointB, colorB);
-      renderer->DebugLine(pointA, pointA + 0.1f * normal, colorLine);
-      renderer->DebugLine(pointB, pointB - 0.1f * normal, colorLine);
-    }
-  }
-
-  renderer->DebugEnd();
-
-  renderer->Debug2dBegin();
-
-  int width, height;
-  renderer->GetScreenSize(width, height);
-
-  EasyPhysics::EpxFloat dh = 20.0f;
-  EasyPhysics::EpxFloat sx = -width * 0.5f + 20.0f;
-  EasyPhysics::EpxFloat sy = height * 0.5f - 10.0f;
-
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
-              physicsGetSceneTitle());
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F4:Step");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Cursor:Rotate view");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Ins/Del:Move view");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
-
-  renderer->Debug2dEnd();
-
-  renderer->End();
-}
+static bool g_isRunning = true;
+static bool g_simulating = false;
+static int g_sceneId = 0;
+PhysicsState g_state = {};
+static std::shared_ptr<PhysicsScene> g_scene;
 
 static void update(Renderer *renderer, Control *ctrl) {
   float angX, angY, r;
@@ -151,25 +80,26 @@ static void update(Renderer *renderer, Control *ctrl) {
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
     renderer->Wait();
     renderer->ReleaseMeshAll();
-    physicsCreateScene(renderer);
+    physicsCreateScene(g_sceneId, renderer);
+    g_state.Clear();
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
     renderer->Wait();
     renderer->ReleaseMeshAll();
-    physicsNextScene();
-    physicsCreateScene(renderer);
+    g_scene = physicsCreateScene(++g_sceneId, renderer);
+    g_state.Clear();
   }
 
   if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
-    simulating = !simulating;
+    g_simulating = !g_simulating;
   }
 
   if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_DOWN) {
-    simulating = true;
+    g_simulating = true;
   } else if (ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_UP ||
              ctrl->ButtonPressed(BTN_STEP) == BTN_STAT_KEEP) {
-    simulating = false;
+    g_simulating = false;
   }
 
   if (ctrl->ButtonPressed(BTN_PICK) == BTN_STAT_DOWN) {
@@ -179,7 +109,7 @@ static void update(Renderer *renderer, Control *ctrl) {
     EasyPhysics::EpxVector3 wp2((float)sx, (float)sy, 1.0f);
     wp1 = renderer->GetWorldPosition(wp1);
     wp2 = renderer->GetWorldPosition(wp2);
-    physicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
+    g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
   }
 
   renderer->SetViewAngle(angX, angY, r);
@@ -191,30 +121,30 @@ static void update(Renderer *renderer, Control *ctrl) {
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
 
-  physicsInit();
   Control ctrl;
   Renderer renderer(SAMPLE_NAME);
   FontRenderer font(&renderer);
-  physicsCreateScene(&renderer);
+
+  g_scene = physicsCreateScene(g_sceneId, &renderer);
+  g_state.Clear();
 
   MSG msg;
-  while (s_isRunning) {
+  while (g_isRunning) {
     if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       if (msg.message == WM_QUIT) {
-        s_isRunning = false;
+        g_isRunning = false;
       } else {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
       }
     } else {
       update(&renderer, &ctrl);
-      if (simulating)
-        physicsSimulate();
-      render(&renderer, &font);
+      if (g_simulating) {
+        g_scene->Simulate(g_state);
+      }
+      PhysicsRender(*g_scene, g_state, &renderer, &font);
     }
   }
-
-  physicsRelease();
 
   return (msg.wParam);
 }
