@@ -123,7 +123,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   Control ctrl;
   Renderer renderer(SAMPLE_NAME);
-  FontRenderer font(&renderer);
+  FontRenderer font(renderer.GetDC());
 
   g_scene = physicsCreateScene(g_sceneId, &renderer);
   g_state.Clear();

@@ -35,15 +35,14 @@ public:
   void Begin();
   void End();
 
-  int InitMesh(const float *vtx, unsigned int vtxStrideBytes,
-                     const float *nml, unsigned int nmlStrideBytes,
-                     const unsigned short *tri, unsigned int triStrideBytes,
-                     int numVtx, int numTri);
+  int InitMesh(const float *vtx, unsigned int vtxStrideBytes, const float *nml,
+               unsigned int nmlStrideBytes, const unsigned short *tri,
+               unsigned int triStrideBytes, int numVtx, int numTri);
 
   void ReleaseMeshAll();
 
   void Mesh(const EasyPhysics::EpxTransform3 &transform,
-                  const EasyPhysics::EpxVector3 &color, int meshId);
+            const EasyPhysics::EpxVector3 &color, int meshId);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Debug Drawing
@@ -52,15 +51,15 @@ public:
   void DebugEnd();
 
   void DebugPoint(const EasyPhysics::EpxVector3 &position,
-                        const EasyPhysics::EpxVector3 &color);
+                  const EasyPhysics::EpxVector3 &color);
 
   void DebugLine(const EasyPhysics::EpxVector3 &position1,
-                       const EasyPhysics::EpxVector3 &position2,
-                       const EasyPhysics::EpxVector3 &color);
+                 const EasyPhysics::EpxVector3 &position2,
+                 const EasyPhysics::EpxVector3 &color);
 
   void DebugAabb(const EasyPhysics::EpxVector3 &center,
-                       const EasyPhysics::EpxVector3 &extent,
-                       const EasyPhysics::EpxVector3 &color);
+                 const EasyPhysics::EpxVector3 &extent,
+                 const EasyPhysics::EpxVector3 &color);
 
   ///////////////////////////////////////////////////////////////////////////////
   // 2D
@@ -80,7 +79,7 @@ public:
   void GetViewRadius(float &radius);
   void SetViewRadius(float radius);
   void LookAtTarget(const EasyPhysics::EpxVector3 &viewPos,
-                          const EasyPhysics::EpxVector3 &viewTarget);
+                    const EasyPhysics::EpxVector3 &viewTarget);
 
   void GetScreenSize(int &width, int &height);
 
@@ -90,5 +89,5 @@ public:
   GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos);
 
   void Wait();
-  void GetContext(HDC &hDC, HGLRC &hRC);
+  HDC GetDC();
 };

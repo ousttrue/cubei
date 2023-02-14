@@ -537,18 +537,6 @@ void Renderer::GetViewRadius(float &radius) { radius = s_viewRadius; }
 
 void Renderer::SetViewRadius(float radius) { s_viewRadius = radius; }
 
-// void Renderer::SetContext(HDC hDC, HGLRC hRC) {
-//   s_hDC = hDC;
-//   s_hRC = hRC;
-// }
-
-void Renderer::GetContext(HDC &hDC, HGLRC &hRC) {
-  hDC = s_hDC;
-  hRC = s_hRC;
-}
-
-// void Renderer::EnableDepthTest() { glEnable(GL_DEPTH_TEST); }
-
-// void Renderer::DisableDepthTest() { glDisable(GL_DEPTH_TEST); }
+HDC Renderer::GetDC() { return s_hDC; }
 
 void Renderer::Wait() { glFinish(); }

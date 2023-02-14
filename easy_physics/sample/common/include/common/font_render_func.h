@@ -27,13 +27,11 @@
 
 class FontRenderer {
   uint32_t base_ = 0;
-  HDC hDC_ = {};
-  HGLRC hRC_ = {};
 
 public:
   FontRenderer(const FontRenderer &) = delete;
   FontRenderer &operator=(const FontRenderer &) = delete;
-  FontRenderer(class Renderer *renderer);
+  FontRenderer(HDC hdc);
   ~FontRenderer();
   void Print(int sx, int sy, float r, float g, float b, const char *fmt, ...);
 };

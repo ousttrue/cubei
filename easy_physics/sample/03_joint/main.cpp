@@ -194,7 +194,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   physicsInit();
   Renderer renderer(SAMPLE_NAME);
   physicsCreateScene(sceneId, &renderer);
-  FontRenderer font(&renderer);
+  FontRenderer font(renderer.GetDC());
   Control ctrl;
 
   MSG msg;

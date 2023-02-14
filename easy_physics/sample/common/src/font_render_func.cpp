@@ -26,20 +26,17 @@
 #include <gl/gl.h>
 #include <tchar.h>
 
-
-FontRenderer::FontRenderer(Renderer *renderer) {
+FontRenderer::FontRenderer(HDC hDC) {
 
   base_ = glGenLists(96);
-
-  renderer->GetContext(hDC_, hRC_);
 
   auto font = CreateFont(16, 0, 0, 0, 0, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                          OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                          DEFAULT_QUALITY, FF_DONTCARE | FIXED_PITCH, NULL);
 
-  auto oldfont = (HFONT)SelectObject(hDC_, font);
-  wglUseFontBitmaps(hDC_, 32, 96, base_);
-  SelectObject(hDC_, oldfont);
+  auto oldfont = (HFONT)SelectObject(hDC, font);
+  wglUseFontBitmaps(hDC, 32, 96, base_);
+  SelectObject(hDC, oldfont);
   DeleteObject(font);
 }
 
