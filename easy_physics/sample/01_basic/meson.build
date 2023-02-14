@@ -7,7 +7,6 @@ executable(
     dependencies: [
         easy_physics_dep,
         easy_physics_common_dep,
-        fontstash_dep,
         glfw_dep,
         glew_dep,
     ],
