@@ -24,7 +24,6 @@
 #include "physics_func.h"
 #include <common/common.h>
 #include <common/ctrl_func.h>
-// #include <common/font_render_func.h>
 #include <common/render_func.h>
 #include <format>
 #include <gl/GL.h>

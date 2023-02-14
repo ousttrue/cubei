@@ -1,4 +1,8 @@
 project('cubei', ['c', 'cpp'], default_options: ['cpp_std=c++20'])
 remotery_dep = dependency('remotery')
+plog_dep = dependency('plog')
+glfw_dep = dependency('glfw3', default_options: ['install=true'])
+gl_dep = dependency('opengl')
+glew_dep = dependency('glew', default_options: ['default_library=static'])
 subdir('easy_physics')
 subdir('qu3e')

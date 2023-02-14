@@ -1,8 +1,4 @@
-plog_dep = dependency('plog')
 directxmath_dep = dependency('directxmath')
-glfw_dep = dependency('glfw3', default_options: ['install=true'])
-gl_dep = dependency('opengl')
-glew_dep = dependency('glew')
 imgui_dep = dependency('imgui', default_options: ['default_library=static'])
 cuber_gl3_dep = dependency('cuber_gl3')
 executable('demo', [
