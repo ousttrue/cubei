@@ -22,7 +22,7 @@
 */
 
 #pragma once
-#include "physics_scene.h"
+#include <common/physics_scene.h>
 #include <memory>
 
 std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,

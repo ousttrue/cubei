@@ -9,6 +9,7 @@ easy_physics_common_lib = static_library(
         'src/ctrl_func.cpp',
         'src/font_render_func.cpp',
         'src/render_func.cpp',
+        'src/physics_scene.cpp',
     ],
     include_directories: easy_physics_common_inc,
     dependencies: [gl_dep, easy_physics_dep],

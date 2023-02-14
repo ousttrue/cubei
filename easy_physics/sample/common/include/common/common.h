@@ -21,10 +21,8 @@
    distribution.
 */
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
-
-#include "../../easy_physics/EpxInclude.h"
+#pragma once
+#include <EpxInclude.h>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -32,12 +30,9 @@
 #include <string.h>
 #include <windows.h>
 
-
 uint64_t createRenderMesh(class Renderer *renderer,
                           EasyPhysics::EpxConvexMesh *convexMesh);
 
 unsigned long long perfGetCount();
 float perfGetTimeMillisecond(unsigned long long time1,
                              unsigned long long time2);
-
-#endif /* __COMMON_H__ */
