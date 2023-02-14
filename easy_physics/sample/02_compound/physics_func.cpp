@@ -24,6 +24,7 @@
 #include "physics_func.h"
 #include <common/common.h>
 #include <common/geometry_data.h>
+#include <common/Gl1Renderer.h>
 #include <stdlib.h>
 
 using namespace EasyPhysics;
@@ -143,7 +144,7 @@ void physicsSimulate() {
 
 static int fireRigidBodyId;
 
-static void createFireBody(Renderer *renderer) {
+static void createFireBody(Gl1Renderer *renderer) {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -167,7 +168,7 @@ static void createFireBody(Renderer *renderer) {
   collidables[fireRigidBodyId].finish();
 }
 
-static void createSceneCompound(Renderer *renderer) {
+static void createSceneCompound(Gl1Renderer *renderer) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -243,7 +244,7 @@ static void createSceneCompound(Renderer *renderer) {
   }
 }
 
-static void createSceneDaruma(Renderer *renderer) {
+static void createSceneDaruma(Gl1Renderer *renderer) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -309,7 +310,7 @@ static void createSceneDaruma(Renderer *renderer) {
   }
 }
 
-static void createSceneStackingPole(Renderer *renderer) {
+static void createSceneStackingPole(Gl1Renderer *renderer) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -360,7 +361,7 @@ static void createSceneStackingPole(Renderer *renderer) {
   }
 }
 
-static void createSceneStackingWall(Renderer *renderer) {
+static void createSceneStackingWall(Gl1Renderer *renderer) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -434,7 +435,7 @@ static const char titles[][32] = {
 
 const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
 
-void physicsCreateScene(int sceneId, Renderer *renderer) {
+void physicsCreateScene(int sceneId, Gl1Renderer *renderer) {
   g_frame = 0;
 
   g_numRigidBodies = 0;

@@ -26,4 +26,4 @@
 #include <memory>
 
 std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,
-                                                 class Renderer *renderer);
+                                                 class Gl1Renderer *renderer);

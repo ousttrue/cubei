@@ -24,17 +24,12 @@
 #pragma once
 #include "common.h"
 
-#define DISPLAY_WIDTH 640
-#define DISPLAY_HEIGHT 480
-
-class Renderer {
-  struct RendererImpl *impl_ = nullptr;
+class Gl1Renderer {
 
 public:
-  Renderer(const char *title = NULL, HINSTANCE hInstance = NULL);
-  ~Renderer();
+  Gl1Renderer();
+  ~Gl1Renderer();
   void Begin(int width, int height);
-  void End();
 
   int InitMesh(const float *vtx, unsigned int vtxStrideBytes, const float *nml,
                unsigned int nmlStrideBytes, const unsigned short *tri,
@@ -73,7 +68,6 @@ public:
 
   void GetViewAngle(float &angleX, float &angleY, float &radius);
   void SetViewAngle(float angleX, float angleY, float radius);
-  
 
   void GetViewTarget(EasyPhysics::EpxVector3 &targetPos);
   void SetViewTarget(const EasyPhysics::EpxVector3 &targetPos);
@@ -82,12 +76,11 @@ public:
   void LookAtTarget(const EasyPhysics::EpxVector3 &viewPos,
                     const EasyPhysics::EpxVector3 &viewTarget);
 
-  std::tuple<int, int> GetScreenSize();
-
   EasyPhysics::EpxVector3
-  GetWorldPosition(const EasyPhysics::EpxVector3 &screenPos);
+  GetWorldPosition(const EasyPhysics::EpxVector3 &screenPos, int width, int height);
   EasyPhysics::EpxVector3
-  GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos);
-
-  void Wait();
+  GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos, int width, int height);
 };
+
+uint64_t createRenderMesh(class Gl1Renderer *renderer,
+                          EasyPhysics::EpxConvexMesh *convexMesh);

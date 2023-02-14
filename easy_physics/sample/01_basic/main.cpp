@@ -23,13 +23,13 @@
 
 #include "physics_func.h"
 #include <common/FontStashRenderer.h>
+#include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
-#include <common/render_func.h>
+#include <common/win32window.h>
 #include <format>
 #include <gl/GL.h>
 #include <stdexcept>
-
 
 #define SAMPLE_NAME "01_basic"
 
@@ -39,7 +39,8 @@ static int g_sceneId = 0;
 PhysicsState g_state = {};
 static std::shared_ptr<PhysicsScene> g_scene;
 
-static void update(Renderer *renderer, Control *ctrl) {
+static void update(Gl1Renderer *renderer, Control *ctrl, int width,
+                   int height) {
   float angX, angY, r;
   renderer->GetViewAngle(angX, angY, r);
 
@@ -82,14 +83,14 @@ static void update(Renderer *renderer, Control *ctrl) {
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
-    renderer->Wait();
+    // renderer->Wait();
     renderer->ReleaseMeshAll();
     physicsCreateScene(g_sceneId, renderer);
     g_state.Clear();
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
-    renderer->Wait();
+    // renderer->Wait();
     renderer->ReleaseMeshAll();
     g_scene = physicsCreateScene(++g_sceneId, renderer);
     g_state.Clear();
@@ -111,8 +112,8 @@ static void update(Renderer *renderer, Control *ctrl) {
     ctrl->GetCursorPosition(sx, sy);
     EasyPhysics::EpxVector3 wp1((float)sx, (float)sy, 0.0f);
     EasyPhysics::EpxVector3 wp2((float)sx, (float)sy, 1.0f);
-    wp1 = renderer->GetWorldPosition(wp1);
-    wp2 = renderer->GetWorldPosition(wp2);
+    wp1 = renderer->GetWorldPosition(wp1, width, height);
+    wp2 = renderer->GetWorldPosition(wp2, width, height);
     g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
   }
 
@@ -126,8 +127,9 @@ static void update(Renderer *renderer, Control *ctrl) {
 // lpCmdLine, int nCmdShow)
 int main(int argc, char **argv) {
 
+  Win32Window window(NULL, SAMPLE_NAME, 640, 480);
   Control ctrl;
-  Renderer renderer(SAMPLE_NAME);
+  Gl1Renderer renderer;
   FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
@@ -146,12 +148,13 @@ int main(int argc, char **argv) {
         DispatchMessage(&msg);
       }
     } else {
-      update(&renderer, &ctrl);
+      auto [width, height] = window.GetSize();
+
+      update(&renderer, &ctrl, width, height);
       if (g_simulating) {
         g_scene->Simulate(g_state);
       }
 
-      auto [width, height] = renderer.GetScreenSize();
       renderer.Begin(width, height);
       PhysicsRender(*g_scene, g_state, &renderer, nullptr);
 
@@ -159,7 +162,7 @@ int main(int argc, char **argv) {
       stash.Draw(width, height, g_scene->title_);
       renderer.Debug2dEnd();
 
-      renderer.End();
+      window.SwapBuffers();
     }
   }
 

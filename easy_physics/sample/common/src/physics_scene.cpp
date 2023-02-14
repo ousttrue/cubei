@@ -2,7 +2,7 @@
 #include <common/font_render_func.h>
 #include <common/geometry_data.h>
 #include <common/physics_scene.h>
-#include <common/render_func.h>
+#include <common/Gl1Renderer.h>
 #include <stdexcept>
 
 using namespace EasyPhysics;
@@ -44,7 +44,7 @@ PhysicsBody PhysicsScene::AddBody() {
   };
 }
 
-EpxShape *PhysicsScene::AddShape(Renderer *renderer, int id, ShapeType type,
+EpxShape *PhysicsScene::AddShape(Gl1Renderer *renderer, int id, ShapeType type,
                                  const EpxVector3 &scale, bool finish) {
   // 凸メッシュを作成
   EpxShape shape;
@@ -146,7 +146,7 @@ void PhysicsScene::Integrate(Perf &perf) {
   perf.end("integrate");
 }
 
-void PhysicsScene::CreateFireBody(Renderer *renderer) {
+void PhysicsScene::CreateFireBody(Gl1Renderer *renderer) {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -179,7 +179,7 @@ void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
 }
 
 void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
-                   Renderer *renderer, FontRenderer *font) {
+                   Gl1Renderer *renderer, FontRenderer *font) {
   for (int i = 0; i < scene.g_numRigidBodies; i++) {
     auto &state = scene.states[i];
     auto &collidable = scene.collidables[i];

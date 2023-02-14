@@ -21,8 +21,7 @@
    distribution.
 */
 
-#include "win32window.h"
-#include <common/render_func.h>
+#include <common/Gl1Renderer.h>
 #include <gl/gl.h>
 #include <stdexcept>
 #include <vector>
@@ -49,38 +48,9 @@ struct MeshBuff {
   MeshBuff() : vtx(0), nml(0), numVtx(0), idx(0), wireIdx(0), numIdx(0) {}
 };
 
-// Renderer *g_renderer = nullptr;
-
 static std::vector<MeshBuff> *s_meshBuff;
 
-// strncpy_s(s_title, title, sizeof(s_title));
-// s_title[255] = 0;
-// s_hInstance = GetModuleHandle(NULL);
-
-// g_renderer->Resize(width, height);
-
-// glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-// glClearDepth(1.0f);
-
-// return TRUE;
-// }
-
-struct RendererImpl {
-  Win32Window window_;
-
-  RendererImpl(HINSTANCE hInstance, const char *title, int width, int height)
-      : window_(hInstance, title, width, height) {}
-};
-
-Renderer::Renderer(const char *title, HINSTANCE hInstance)
-    : impl_(new RendererImpl(hInstance, title, DISPLAY_WIDTH, DISPLAY_HEIGHT)) {
-
-  auto [width, height] = impl_->window_.GetSize();
-
-  // initalize matrix
-  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
-                                   0.1f, 1000.0f);
-
+Gl1Renderer::Gl1Renderer() {
   // initalize parameters
   s_lightRadius = 40.0f;
   s_lightRadX = -0.6f;
@@ -89,13 +59,14 @@ Renderer::Renderer(const char *title, HINSTANCE hInstance)
   s_viewRadX = -0.01f;
   s_viewRadY = 0.0f;
   s_viewHeight = 1.0f;
-
   s_viewTgt = EpxVector3(0.0f, s_viewHeight, 0.0f);
-
   s_meshBuff = new std::vector<MeshBuff>();
+
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClearDepth(1.0f);
 }
 
-Renderer::~Renderer() {
+Gl1Renderer::~Gl1Renderer() {
   for (EpxUInt32 c = 0; c < s_meshBuff->size(); ++c) {
     delete[](*s_meshBuff)[c].vtx;
     delete[](*s_meshBuff)[c].nml;
@@ -104,12 +75,15 @@ Renderer::~Renderer() {
   }
   s_meshBuff->clear();
   delete s_meshBuff;
-
-  delete impl_;
 }
 
-void Renderer::Begin(int width, int height) {
-  impl_->window_.MakeCurrent();
+void Gl1Renderer::Begin(int width, int height) {
+
+  // impl_->window_.MakeCurrent();
+
+  // initalize matrix
+  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
+                                   0.1f, 1000.0f);
 
   glViewport(0, 0, width, height);
   s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
@@ -148,8 +122,8 @@ void Renderer::Begin(int width, int height) {
   glMultMatrixf((GLfloat *)&viewMtx);
 }
 
-void Renderer::LookAtTarget(const EpxVector3 &viewPos,
-                            const EpxVector3 &viewTarget) {
+void Gl1Renderer::LookAtTarget(const EpxVector3 &viewPos,
+                               const EpxVector3 &viewTarget) {
   s_viewPos = viewPos;
   EpxMatrix4 viewMtx = EpxMatrix4::lookAt(
       EpxPoint3(viewPos), EpxPoint3(viewTarget), EpxVector3(0.0f, 1.0f, 0.0f));
@@ -159,34 +133,32 @@ void Renderer::LookAtTarget(const EpxVector3 &viewPos,
   glMultMatrixf((GLfloat *)&viewMtx);
 }
 
-void Renderer::End() { impl_->window_.SwapBuffers(); }
-
-void Renderer::DebugBegin() {
+void Gl1Renderer::DebugBegin() {
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
 }
 
-void Renderer::DebugEnd() {
+void Gl1Renderer::DebugEnd() {
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::GetViewAngle(float &angleX, float &angleY, float &radius) {
+void Gl1Renderer::GetViewAngle(float &angleX, float &angleY, float &radius) {
   angleX = s_viewRadX;
   angleY = s_viewRadY;
   radius = s_viewRadius;
 }
 
-void Renderer::SetViewAngle(float angleX, float angleY, float radius) {
+void Gl1Renderer::SetViewAngle(float angleX, float angleY, float radius) {
   s_viewRadX = angleX;
   s_viewRadY = angleY;
   s_viewRadius = radius;
 }
 
-int Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
-                       const float *nml, unsigned int nmlStrideBytes,
-                       const unsigned short *tri, unsigned int triStrideBytes,
-                       int numVtx, int numTri) {
+int Gl1Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
+                          const float *nml, unsigned int nmlStrideBytes,
+                          const unsigned short *tri,
+                          unsigned int triStrideBytes, int numVtx, int numTri) {
   //	assert(numMesh<MAX_MESH);
 
   MeshBuff buff;
@@ -225,7 +197,7 @@ int Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
   s_meshBuff->push_back(buff);
   return s_meshBuff->size() - 1;
 }
-void Renderer::ReleaseMeshAll() {
+void Gl1Renderer::ReleaseMeshAll() {
   for (EpxUInt32 c = 0; c < s_meshBuff->size(); ++c) {
     delete[](*s_meshBuff)[c].vtx;
     delete[](*s_meshBuff)[c].nml;
@@ -235,8 +207,8 @@ void Renderer::ReleaseMeshAll() {
   s_meshBuff->clear();
 }
 
-void Renderer::Mesh(const EpxTransform3 &transform, const EpxVector3 &color,
-                    int meshId) {
+void Gl1Renderer::Mesh(const EpxTransform3 &transform, const EpxVector3 &color,
+                       int meshId) {
   assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff->size());
 
   MeshBuff &buff = (*s_meshBuff)[meshId];
@@ -264,7 +236,8 @@ void Renderer::Mesh(const EpxTransform3 &transform, const EpxVector3 &color,
   glPopMatrix();
 }
 
-void Renderer::DebugPoint(const EpxVector3 &position, const EpxVector3 &color) {
+void Gl1Renderer::DebugPoint(const EpxVector3 &position,
+                             const EpxVector3 &color) {
   glColor4f(color[0], color[1], color[2], 1.0f);
 
   glPointSize(5.0f);
@@ -275,8 +248,9 @@ void Renderer::DebugPoint(const EpxVector3 &position, const EpxVector3 &color) {
   glPointSize(1.0f);
 }
 
-void Renderer::DebugLine(const EpxVector3 &position1,
-                         const EpxVector3 &position2, const EpxVector3 &color) {
+void Gl1Renderer::DebugLine(const EpxVector3 &position1,
+                            const EpxVector3 &position2,
+                            const EpxVector3 &color) {
   glColor4f(color[0], color[1], color[2], 1.0f);
 
   const EpxVector3 points[2] = {
@@ -290,8 +264,8 @@ void Renderer::DebugLine(const EpxVector3 &position1,
   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void Renderer::DebugAabb(const EpxVector3 &center, const EpxVector3 &extent,
-                         const EpxVector3 &color) {
+void Gl1Renderer::DebugAabb(const EpxVector3 &center, const EpxVector3 &extent,
+                            const EpxVector3 &color) {
   const EpxVector3 points[8] = {
       center + mulPerElem(EpxVector3(-1, -1, -1), extent),
       center + mulPerElem(EpxVector3(-1, -1, 1), extent),
@@ -314,7 +288,7 @@ void Renderer::DebugAabb(const EpxVector3 &center, const EpxVector3 &extent,
   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void Renderer::Debug2dBegin(int width, int height) {
+void Gl1Renderer::Debug2dBegin(int width, int height) {
   glPushMatrix();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -333,19 +307,19 @@ void Renderer::Debug2dBegin(int width, int height) {
   glDisable(GL_DEPTH_TEST);
 }
 
-void Renderer::Debug2dEnd() {
+void Gl1Renderer::Debug2dEnd() {
   glEnable(GL_DEPTH_TEST);
   glPopMatrix();
 }
 
-EpxVector3 Renderer::GetWorldPosition(const EpxVector3 &screenPos) {
+EpxVector3 Gl1Renderer::GetWorldPosition(const EpxVector3 &screenPos, int width,
+                                         int height) {
   EpxMatrix4 mvp, mvpInv;
   mvp = s_vMat;
   mvpInv = inverse(mvp);
 
   EpxVector4 wp(screenPos, 1.0f);
 
-  auto [width, height] = impl_->window_.GetSize();
   wp[0] /= (0.5f * (float)width);
   wp[1] /= (0.5f * (float)height);
 
@@ -358,7 +332,8 @@ EpxVector3 Renderer::GetWorldPosition(const EpxVector3 &screenPos) {
   return wp.getXYZ();
 }
 
-EpxVector3 Renderer::GetScreenPosition(const EpxVector3 &worldPos) {
+EpxVector3 Gl1Renderer::GetScreenPosition(const EpxVector3 &worldPos, int width,
+                                          int height) {
   EpxVector4 sp(worldPos, 1.0f);
 
   EpxMatrix4 mvp;
@@ -366,27 +341,72 @@ EpxVector3 Renderer::GetScreenPosition(const EpxVector3 &worldPos) {
 
   sp = mvp * sp;
   sp /= (float)sp[3];
-  auto [width, height] = impl_->window_.GetSize();
   sp[0] *= (0.5f * (float)width);
   sp[1] *= (0.5f * (float)height);
 
   return sp.getXYZ();
 }
 
-std::tuple<int, int> Renderer::GetScreenSize() {
-  return impl_->window_.GetSize();
+void Gl1Renderer::GetViewTarget(EpxVector3 &targetPos) {
+  targetPos = s_viewTgt;
 }
 
-void Renderer::GetViewTarget(EpxVector3 &targetPos) { targetPos = s_viewTgt; }
-
-void Renderer::SetViewTarget(const EpxVector3 &targetPos) {
+void Gl1Renderer::SetViewTarget(const EpxVector3 &targetPos) {
   s_viewTgt = targetPos;
 }
 
-void Renderer::GetViewRadius(float &radius) { radius = s_viewRadius; }
+void Gl1Renderer::GetViewRadius(float &radius) { radius = s_viewRadius; }
 
-void Renderer::SetViewRadius(float radius) { s_viewRadius = radius; }
+void Gl1Renderer::SetViewRadius(float radius) { s_viewRadius = radius; }
 
+uint64_t createRenderMesh(Gl1Renderer *renderer, EpxConvexMesh *convexMesh) {
+  assert(convexMesh);
 
+  EpxFloat *verts = new EpxFloat[convexMesh->m_numVertices * 3];
+  EpxFloat *nmls = new EpxFloat[convexMesh->m_numVertices * 3];
+  EpxUInt16 *idxs = new EpxUInt16[convexMesh->m_numFacets * 3];
 
-void Renderer::Wait() { glFinish(); }
+  for (EpxUInt32 c = 0; c < convexMesh->m_numVertices; c++) {
+    verts[c * 3 + 0] = convexMesh->m_vertices[c][0];
+    verts[c * 3 + 1] = convexMesh->m_vertices[c][1];
+    verts[c * 3 + 2] = convexMesh->m_vertices[c][2];
+  }
+
+  for (EpxUInt32 c = 0; c < convexMesh->m_numVertices; c++) {
+    EpxVector3 normal(0.0f);
+    int facetCount = 0;
+    for (EpxUInt32 f = 0; f < convexMesh->m_numFacets; f++) {
+      EpxFacet &facet = convexMesh->m_facets[f];
+      if (facet.vertId[0] == c || facet.vertId[1] == c ||
+          facet.vertId[2] == c) {
+        const EpxVector3 &v0 = convexMesh->m_vertices[facet.vertId[0]];
+        const EpxVector3 &v1 = convexMesh->m_vertices[facet.vertId[1]];
+        const EpxVector3 &v2 = convexMesh->m_vertices[facet.vertId[2]];
+        normal += cross(v1 - v0, v2 - v0);
+        facetCount++;
+      }
+    }
+    normal = normalize(normal / (EpxFloat)facetCount);
+
+    nmls[c * 3 + 0] = normal[0];
+    nmls[c * 3 + 1] = normal[1];
+    nmls[c * 3 + 2] = normal[2];
+  }
+
+  for (EpxUInt32 c = 0; c < convexMesh->m_numFacets; c++) {
+    idxs[c * 3 + 0] = convexMesh->m_facets[c].vertId[0];
+    idxs[c * 3 + 1] = convexMesh->m_facets[c].vertId[1];
+    idxs[c * 3 + 2] = convexMesh->m_facets[c].vertId[2];
+  }
+
+  int renderMeshId =
+      renderer->InitMesh(verts, sizeof(EpxFloat) * 3, nmls,
+                         sizeof(EpxFloat) * 3, idxs, sizeof(EpxUInt16) * 3,
+                         convexMesh->m_numVertices, convexMesh->m_numFacets);
+
+  delete[] idxs;
+  delete[] nmls;
+  delete[] verts;
+
+  return renderMeshId;
+}

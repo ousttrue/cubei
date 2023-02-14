@@ -14,7 +14,7 @@ easy_physics_common_lib = static_library(
         'src/common.cpp',
         'src/ctrl_func.cpp',
         'src/font_render_func.cpp',
-        'src/render_func.cpp',
+        'src/GL1Renderer.cpp',
         'src/physics_scene.cpp',
         'src/FontStashRenderer.cpp',
     ],

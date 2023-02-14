@@ -22,7 +22,7 @@
 */
 
 #include <common/font_render_func.h>
-#include <common/render_func.h>
+#include <common/Gl1Renderer.h>
 #include <gl/gl.h>
 #include <tchar.h>
 

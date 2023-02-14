@@ -30,9 +30,6 @@
 #include <string.h>
 #include <windows.h>
 
-uint64_t createRenderMesh(class Renderer *renderer,
-                          EasyPhysics::EpxConvexMesh *convexMesh);
-
 unsigned long long perfGetCount();
 float perfGetTimeMillisecond(unsigned long long time1,
                              unsigned long long time2);

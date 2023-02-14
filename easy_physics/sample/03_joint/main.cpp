@@ -23,9 +23,10 @@
 
 #include "physics_func.h"
 #include <common/FontStashRenderer.h>
+#include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
-#include <common/render_func.h>
+#include <common/win32window.h>
 
 using namespace EasyPhysics;
 
@@ -36,7 +37,7 @@ static bool g_isRunning = true;
 int g_sceneId = 0;
 bool g_simulating = false;
 
-static void render(Renderer *renderer) {
+static void render(Gl1Renderer *renderer) {
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
     const EpxState &state = physicsGetState(i);
     const EpxCollidable &collidable = physicsGetCollidable(i);
@@ -81,7 +82,8 @@ static void render(Renderer *renderer) {
   renderer->DebugEnd();
 }
 
-static void update(Renderer *renderer, Control *ctrl) {
+static void update(Gl1Renderer *renderer, Control *ctrl, int width,
+                   int height) {
   float angX, angY, r;
   renderer->GetViewAngle(angX, angY, r);
 
@@ -124,13 +126,13 @@ static void update(Renderer *renderer, Control *ctrl) {
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
-    renderer->Wait();
+    // renderer->Wait();
     renderer->ReleaseMeshAll();
     physicsCreateScene(g_sceneId, renderer);
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
-    renderer->Wait();
+    // renderer->Wait();
     renderer->ReleaseMeshAll();
     physicsCreateScene(++g_sceneId, renderer);
   }
@@ -151,8 +153,8 @@ static void update(Renderer *renderer, Control *ctrl) {
     ctrl->GetCursorPosition(sx, sy);
     EpxVector3 wp1((float)sx, (float)sy, 0.0f);
     EpxVector3 wp2((float)sx, (float)sy, 1.0f);
-    wp1 = renderer->GetWorldPosition(wp1);
-    wp2 = renderer->GetWorldPosition(wp2);
+    wp1 = renderer->GetWorldPosition(wp1, width, height);
+    wp2 = renderer->GetWorldPosition(wp2, width, height);
     physicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
   }
 
@@ -165,8 +167,9 @@ static void update(Renderer *renderer, Control *ctrl) {
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
 
+  Win32Window window(hInstance, SAMPLE_NAME, 640, 480);
   physicsInit();
-  Renderer renderer(SAMPLE_NAME);
+  Gl1Renderer renderer;
   physicsCreateScene(g_sceneId, &renderer);
   Control ctrl;
 
@@ -183,12 +186,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         DispatchMessage(&msg);
       }
     } else {
-      update(&renderer, &ctrl);
+      auto [width, height] = window.GetSize();
+
+      update(&renderer, &ctrl, width, height);
       if (g_simulating) {
         physicsSimulate();
       }
-
-      auto [width, height] = renderer.GetScreenSize();
 
       renderer.Begin(width, height);
       render(&renderer);
@@ -197,7 +200,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       stash.Draw(width, height, physicsGetSceneTitle(g_sceneId));
       renderer.Debug2dEnd();
 
-      renderer.End();
+      window.SwapBuffers();
     }
   }
 

@@ -22,61 +22,8 @@
 */
 
 #include <common/common.h>
-#include <common/render_func.h>
 
 using namespace EasyPhysics;
-
-uint64_t createRenderMesh(Renderer *renderer, EpxConvexMesh *convexMesh) {
-  assert(convexMesh);
-
-  EpxFloat *verts = new EpxFloat[convexMesh->m_numVertices * 3];
-  EpxFloat *nmls = new EpxFloat[convexMesh->m_numVertices * 3];
-  EpxUInt16 *idxs = new EpxUInt16[convexMesh->m_numFacets * 3];
-
-  for (EpxUInt32 c = 0; c < convexMesh->m_numVertices; c++) {
-    verts[c * 3 + 0] = convexMesh->m_vertices[c][0];
-    verts[c * 3 + 1] = convexMesh->m_vertices[c][1];
-    verts[c * 3 + 2] = convexMesh->m_vertices[c][2];
-  }
-
-  for (EpxUInt32 c = 0; c < convexMesh->m_numVertices; c++) {
-    EpxVector3 normal(0.0f);
-    int facetCount = 0;
-    for (EpxUInt32 f = 0; f < convexMesh->m_numFacets; f++) {
-      EpxFacet &facet = convexMesh->m_facets[f];
-      if (facet.vertId[0] == c || facet.vertId[1] == c ||
-          facet.vertId[2] == c) {
-        const EpxVector3 &v0 = convexMesh->m_vertices[facet.vertId[0]];
-        const EpxVector3 &v1 = convexMesh->m_vertices[facet.vertId[1]];
-        const EpxVector3 &v2 = convexMesh->m_vertices[facet.vertId[2]];
-        normal += cross(v1 - v0, v2 - v0);
-        facetCount++;
-      }
-    }
-    normal = normalize(normal / (EpxFloat)facetCount);
-
-    nmls[c * 3 + 0] = normal[0];
-    nmls[c * 3 + 1] = normal[1];
-    nmls[c * 3 + 2] = normal[2];
-  }
-
-  for (EpxUInt32 c = 0; c < convexMesh->m_numFacets; c++) {
-    idxs[c * 3 + 0] = convexMesh->m_facets[c].vertId[0];
-    idxs[c * 3 + 1] = convexMesh->m_facets[c].vertId[1];
-    idxs[c * 3 + 2] = convexMesh->m_facets[c].vertId[2];
-  }
-
-  int renderMeshId =
-      renderer->InitMesh(verts, sizeof(EpxFloat) * 3, nmls,
-                         sizeof(EpxFloat) * 3, idxs, sizeof(EpxUInt16) * 3,
-                         convexMesh->m_numVertices, convexMesh->m_numFacets);
-
-  delete[] idxs;
-  delete[] nmls;
-  delete[] verts;
-
-  return renderMeshId;
-}
 
 unsigned long long perfGetCount() {
   LARGE_INTEGER cnt;

@@ -80,27 +80,27 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(class Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddShape(class Gl1Renderer *renderer, int id,
                                   ShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish);
-  EasyPhysics::EpxShape *AddBoxShape(class Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddBoxShape(class Gl1Renderer *renderer, int id,
                                      const EasyPhysics::EpxVector3 &scale,
                                      bool finish = true) {
     return AddShape(renderer, id, ShapeType::Box, scale, finish);
   }
-  EasyPhysics::EpxShape *AddSphereShape(Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddSphereShape(Gl1Renderer *renderer, int id,
                                         const EasyPhysics::EpxVector3 &scale,
                                         bool finish = true) {
     return AddShape(renderer, id, ShapeType::Sphere, scale, finish);
   }
-  EasyPhysics::EpxShape *AddCylinderShape(Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddCylinderShape(Gl1Renderer *renderer, int id,
                                           const EasyPhysics::EpxVector3 &scale,
                                           bool finish = true) {
     return AddShape(renderer, id, ShapeType::Cylinder, scale, finish);
   }
   EasyPhysics::EpxShape *
-  AddTetrahedronShape(Renderer *renderer, int id,
+  AddTetrahedronShape(Gl1Renderer *renderer, int id,
                       const EasyPhysics::EpxVector3 &scale,
                       bool finish = true) {
     return AddShape(renderer, id, ShapeType::Tetrahedron, scale, finish);
@@ -116,11 +116,11 @@ struct PhysicsScene {
 
   // fire
   int fireRigidBodyId;
-  void CreateFireBody(Renderer *renderer);
+  void CreateFireBody(Gl1Renderer *renderer);
   void PhysicsFire(const EasyPhysics::EpxVector3 &position,
                    const EasyPhysics::EpxVector3 &velocity);
 };
 
 // render
 void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
-                   class Renderer *renderer, class FontRenderer *font);
+                   class Gl1Renderer *renderer, class FontRenderer *font);

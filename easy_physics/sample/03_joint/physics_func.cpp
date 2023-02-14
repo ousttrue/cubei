@@ -22,9 +22,11 @@
 */
 
 #include "physics_func.h"
+#include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/geometry_data.h>
 #include <stdlib.h>
+
 
 using namespace EasyPhysics;
 
@@ -153,7 +155,7 @@ void physicsSimulate() {
 
 static int fireRigidBodyId;
 
-static void createFireBody(Renderer *renderer) {
+static void createFireBody(Gl1Renderer *renderer) {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -177,7 +179,7 @@ static void createFireBody(Renderer *renderer) {
   collidables[fireRigidBodyId].finish();
 }
 
-static void createSceneBallJoint(Renderer *renderer) {
+static void createSceneBallJoint(Gl1Renderer *renderer) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -284,7 +286,7 @@ static void createSceneBallJoint(Renderer *renderer) {
   }
 }
 
-static void createSceneHingeJoint(Renderer *renderer) {
+static void createSceneHingeJoint(Gl1Renderer *renderer) {
   // ボールジョイントx2でヒンジジョイントを再現
   EpxBallJoint &joint0 = joints[g_numJoints++];
   EpxBallJoint &joint1 = joints[g_numJoints++];
@@ -351,7 +353,7 @@ static void createSceneHingeJoint(Renderer *renderer) {
   }
 }
 
-static void createSceneFixedJoint(Renderer *renderer) {
+static void createSceneFixedJoint(Gl1Renderer *renderer) {
   // ボールジョイントx3で固定ジョイントを再現
   EpxBallJoint &joint0 = joints[g_numJoints++];
   EpxBallJoint &joint1 = joints[g_numJoints++];
@@ -421,7 +423,7 @@ static void createSceneFixedJoint(Renderer *renderer) {
   }
 }
 
-static int createGear(Renderer *renderer, const EpxVector3 &offsetPosition,
+static int createGear(Gl1Renderer *renderer, const EpxVector3 &offsetPosition,
                       const EpxQuat &offsetOrientation) {
   int gearId;
 
@@ -513,7 +515,7 @@ static int createGear(Renderer *renderer, const EpxVector3 &offsetPosition,
   return gearId;
 }
 
-static void createSceneGearJoint(Renderer *renderer) {
+static void createSceneGearJoint(Gl1Renderer *renderer) {
   // ギア大
   createGear(renderer, EpxVector3(2.0f, 1.0f, 0.0f), EpxQuat::identity());
 
@@ -523,7 +525,7 @@ static void createSceneGearJoint(Renderer *renderer) {
   states[gearId].m_angularVelocity = EpxVector3(0.0f, 0.0f, -10.0f);
 }
 
-static void createSceneChain(Renderer *renderer) {
+static void createSceneChain(Gl1Renderer *renderer) {
   const EpxVector3 chainScale(0.125f, 0.5f, 0.125f);
   const EpxVector3 ballScale(1.5f);
 
@@ -694,7 +696,7 @@ static const char titles[][32] = {
 
 const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
 
-void physicsCreateScene(int sceneId, Renderer *renderer) {
+void physicsCreateScene(int sceneId, Gl1Renderer *renderer) {
   g_frame = 0;
 
   g_numRigidBodies = 0;
