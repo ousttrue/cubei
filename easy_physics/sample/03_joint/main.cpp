@@ -22,11 +22,10 @@
 */
 
 #include "physics_func.h"
+#include <common/FontStashRenderer.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
-#include <common/font_render_func.h>
 #include <common/render_func.h>
-
 
 using namespace EasyPhysics;
 
@@ -37,9 +36,7 @@ static bool g_isRunning = true;
 int g_sceneId = 0;
 bool g_simulating = false;
 
-static void render(Renderer *renderer, FontRenderer *font) {
-  renderer->Begin();
-
+static void render(Renderer *renderer) {
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
     const EpxState &state = physicsGetState(i);
     const EpxCollidable &collidable = physicsGetCollidable(i);
@@ -82,29 +79,6 @@ static void render(Renderer *renderer, FontRenderer *font) {
   }
 
   renderer->DebugEnd();
-
-  renderer->Debug2dBegin();
-
-  int width, height;
-  renderer->GetScreenSize(width, height);
-
-  EpxFloat dh = 20.0f;
-  EpxFloat sx = -width * 0.5f + 20.0f;
-  EpxFloat sy = height * 0.5f - 10.0f;
-
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 1.0f, 0.5f, "Easy Physics : %s",
-              physicsGetSceneTitle(g_sceneId));
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F1:Reset");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F2:Next");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F3:Play/Stop");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "F4:Step");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Cursor:Rotate view");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "Ins/Del:Move view");
-  font->Print((int)sx, (int)(sy -= dh), 0.5f, 0.5f, 1.0f, "L-Click:Fire");
-
-  renderer->Debug2dEnd();
-
-  renderer->End();
 }
 
 static void update(Renderer *renderer, Control *ctrl) {
@@ -194,8 +168,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   physicsInit();
   Renderer renderer(SAMPLE_NAME);
   physicsCreateScene(g_sceneId, &renderer);
-  FontRenderer font(renderer.GetDC());
   Control ctrl;
+
+  FontStashRenderer stash(
+      "sans", "subprojects/fontstash/example/DroidSerif-Regular.ttf");
 
   MSG msg;
   while (g_isRunning) {
@@ -208,9 +184,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       }
     } else {
       update(&renderer, &ctrl);
-      if (g_simulating)
+      if (g_simulating) {
         physicsSimulate();
-      render(&renderer, &font);
+      }
+
+      renderer.Begin();
+      render(&renderer);
+
+      renderer.Debug2dBegin();
+      int width, height;
+      renderer.GetScreenSize(width, height);
+      stash.Draw(width, height, physicsGetSceneTitle(g_sceneId));
+      renderer.Debug2dEnd();
+
+      renderer.End();
     }
   }
 
