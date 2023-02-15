@@ -24,6 +24,7 @@
 #include "physics_func.h"
 #include <common/FontStashRenderer.h>
 #include <common/Gl1Renderer.h>
+#include <common/GraphicsScene.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
 #include <common/win32window.h>
@@ -82,9 +83,9 @@ static void render(Gl1Renderer *renderer) {
   renderer->DebugEnd();
 }
 
-static void update(Gl1Renderer *renderer, Control *ctrl, int width,
-                   int height) {
-  auto [angX, angY, r] = renderer->GetViewAngle();
+static void update(Gl1Renderer *renderer, GraphicsScene &scene, Control *ctrl,
+                   int width, int height) {
+  auto [angX, angY, r] = scene.GetViewAngle();
 
   ctrl->Update();
 
@@ -152,12 +153,12 @@ static void update(Gl1Renderer *renderer, Control *ctrl, int width,
     ctrl->GetCursorPosition(sx, sy);
     EpxVector3 wp1((float)sx, (float)sy, 0.0f);
     EpxVector3 wp2((float)sx, (float)sy, 1.0f);
-    wp1 = renderer->GetWorldPosition(wp1, width, height);
-    wp2 = renderer->GetWorldPosition(wp2, width, height);
+    wp1 = scene.GetWorldPosition(wp1, width, height);
+    wp2 = scene.GetWorldPosition(wp2, width, height);
     physicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
   }
 
-  renderer->SetViewAngle(angX, angY, r);
+  scene.SetViewAngle(angX, angY, r);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,6 +170,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   Win32Window window(hInstance, SAMPLE_NAME, 640, 480);
   physicsInit();
   Gl1Renderer renderer;
+  GraphicsScene scene;
   physicsCreateScene(g_sceneId, &renderer);
   Control ctrl;
 
@@ -187,14 +189,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     } else {
       auto [width, height] = window.GetSize();
 
-      update(&renderer, &ctrl, width, height);
+      update(&renderer, scene, &ctrl, width, height);
       if (g_simulating) {
         physicsSimulate();
       }
+      auto [projection, view] = scene.UpdateProjectionView(width, height);
 
       int sx, sy;
       ctrl.GetCursorPosition(sx, sy);
-      renderer.Begin(width, height);
+      renderer.Begin(width, height, projection, view);
       render(&renderer);
 
       renderer.Debug2dBegin(width, height);

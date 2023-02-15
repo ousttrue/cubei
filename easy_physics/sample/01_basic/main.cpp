@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <common/FontStashRenderer.h>
 #include <common/Gl1Renderer.h>
+#include <common/GraphicsScene.h>
 #include <common/common.h>
 #include <format>
 #include <functional>
@@ -92,54 +93,51 @@ public:
     m_onKeyPress[key] = callback;
   }
 
-  void Bind(Gl1Renderer &renderer) {
+  void Bind(Gl1Renderer &renderer, GraphicsScene &scene) {
     // keybind: view
-    OnKeyIsDown(GLFW_KEY_UP, [&renderer](int x, int y, int width, int height) {
-      auto [angX, angY, r] = renderer.GetViewAngle();
+    OnKeyIsDown(GLFW_KEY_UP, [&scene](int x, int y, int width, int height) {
+      auto [angX, angY, r] = scene.GetViewAngle();
       angX -= 0.05f;
       if (angX < -1.4f)
         angX = -1.4f;
       if (angX > -0.01f)
         angX = -0.01f;
-      renderer.SetViewAngle(angX, angY, r);
+      scene.SetViewAngle(angX, angY, r);
     });
-    OnKeyIsDown(GLFW_KEY_DOWN,
-                [&renderer](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = renderer.GetViewAngle();
-                  angX += 0.05f;
-                  if (angX < -1.4f)
-                    angX = -1.4f;
-                  if (angX > -0.01f)
-                    angX = -0.01f;
-                  renderer.SetViewAngle(angX, angY, r);
-                });
-    OnKeyIsDown(GLFW_KEY_LEFT,
-                [&renderer](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = renderer.GetViewAngle();
-                  angY -= 0.05f;
-                  renderer.SetViewAngle(angX, angY, r);
-                });
-    OnKeyIsDown(GLFW_KEY_RIGHT,
-                [&renderer](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = renderer.GetViewAngle();
-                  angY += 0.05f;
-                  renderer.SetViewAngle(angX, angY, r);
-                });
+    OnKeyIsDown(GLFW_KEY_DOWN, [&scene](int x, int y, int width, int height) {
+      auto [angX, angY, r] = scene.GetViewAngle();
+      angX += 0.05f;
+      if (angX < -1.4f)
+        angX = -1.4f;
+      if (angX > -0.01f)
+        angX = -0.01f;
+      scene.SetViewAngle(angX, angY, r);
+    });
+    OnKeyIsDown(GLFW_KEY_LEFT, [&scene](int x, int y, int width, int height) {
+      auto [angX, angY, r] = scene.GetViewAngle();
+      angY -= 0.05f;
+      scene.SetViewAngle(angX, angY, r);
+    });
+    OnKeyIsDown(GLFW_KEY_RIGHT, [&scene](int x, int y, int width, int height) {
+      auto [angX, angY, r] = scene.GetViewAngle();
+      angY += 0.05f;
+      scene.SetViewAngle(angX, angY, r);
+    });
     OnKeyIsDown(GLFW_KEY_PAGE_DOWN,
-                [&renderer](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = renderer.GetViewAngle();
+                [&scene](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = scene.GetViewAngle();
                   r *= 1.1f;
                   if (r > 500.0f)
                     r = 500.0f;
-                  renderer.SetViewAngle(angX, angY, r);
+                  scene.SetViewAngle(angX, angY, r);
                 });
     OnKeyIsDown(GLFW_KEY_PAGE_UP,
-                [&renderer](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = renderer.GetViewAngle();
+                [&scene](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = scene.GetViewAngle();
                   r *= 0.9f;
                   if (r < 1.0f)
                     r = 1.0f;
-                  renderer.SetViewAngle(angX, angY, r);
+                  scene.SetViewAngle(angX, angY, r);
                 });
 
     OnKeyPress(GLFW_KEY_F1, [&renderer](int x, int y, int width, int height) {
@@ -158,16 +156,13 @@ public:
     OnKeyPress(GLFW_KEY_F4, [](int x, int y, int width, int height) {
       g_simulating = true;
     });
-    OnKeyPress(GLFW_KEY_SPACE,
-               [&renderer](int x, int y, int width, int height) {
-                 // int sx, sy;
-                 // ctrl->GetCursorPosition(sx, sy);
-                 EasyPhysics::EpxVector3 wp1((float)x, (float)y, 0.0f);
-                 EasyPhysics::EpxVector3 wp2((float)x, (float)y, 1.0f);
-                 wp1 = renderer.GetWorldPosition(wp1, width, height);
-                 wp2 = renderer.GetWorldPosition(wp2, width, height);
-                 g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
-               });
+    OnKeyPress(GLFW_KEY_SPACE, [&scene](int x, int y, int width, int height) {
+      auto wp1 =
+          scene.GetWorldPosition({(float)x, (float)y, 0.0f}, width, height);
+      auto wp2 =
+          scene.GetWorldPosition({(float)x, (float)y, 1.0f}, width, height);
+      g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
+    });
   }
 };
 
@@ -177,7 +172,8 @@ int main(int argc, char **argv) {
 
   GlfwPlatform platform;
   Gl1Renderer renderer;
-  platform.Bind(renderer);
+  GraphicsScene scene;
+  platform.Bind(renderer, scene);
 
   FontStashRenderer stash(
       "sans", argc > 1
@@ -193,9 +189,10 @@ int main(int argc, char **argv) {
     if (g_simulating) {
       g_scene->Simulate(g_state);
     }
+    auto [projection, view] = scene.UpdateProjectionView(width, height);
 
     // render
-    renderer.Begin(width, height);
+    renderer.Begin(width, height, projection, view);
     PhysicsRender(*g_scene, g_state, &renderer, nullptr);
 
     renderer.Debug2dBegin(width, height);

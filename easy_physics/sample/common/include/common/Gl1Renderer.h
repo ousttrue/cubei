@@ -23,13 +23,27 @@
 
 #pragma once
 #include "common.h"
+#include <vector>
 
+struct MeshBuff {
+  float *vtx;
+  float *nml;
+  int numVtx;
+  unsigned short *idx;
+  unsigned short *wireIdx;
+  int numIdx;
+
+  MeshBuff() : vtx(0), nml(0), numVtx(0), idx(0), wireIdx(0), numIdx(0) {}
+};
 class Gl1Renderer {
+
+  std::vector<MeshBuff> s_meshBuff;
 
 public:
   Gl1Renderer();
   ~Gl1Renderer();
-  void Begin(int width, int height);
+  void Begin(int width, int height, const float projection[16],
+             const float view[16]);
 
   int InitMesh(const float *vtx, unsigned int vtxStrideBytes, const float *nml,
                unsigned int nmlStrideBytes, const unsigned short *tri,
@@ -62,26 +76,6 @@ public:
 
   void Debug2dBegin(int width, int height);
   void Debug2dEnd();
-
-  ///////////////////////////////////////////////////////////////////////////////
-  // Render Parameter
-
-  std::tuple<float, float, float> GetViewAngle() const;
-  void SetViewAngle(float angleX, float angleY, float radius);
-
-  void GetViewTarget(EasyPhysics::EpxVector3 &targetPos);
-  void SetViewTarget(const EasyPhysics::EpxVector3 &targetPos);
-  void GetViewRadius(float &radius);
-  void SetViewRadius(float radius);
-  void LookAtTarget(const EasyPhysics::EpxVector3 &viewPos,
-                    const EasyPhysics::EpxVector3 &viewTarget);
-
-  EasyPhysics::EpxVector3
-  GetWorldPosition(const EasyPhysics::EpxVector3 &screenPos, int width,
-                   int height);
-  EasyPhysics::EpxVector3
-  GetScreenPosition(const EasyPhysics::EpxVector3 &worldPos, int width,
-                    int height);
 };
 
 uint64_t createRenderMesh(class Gl1Renderer *renderer,

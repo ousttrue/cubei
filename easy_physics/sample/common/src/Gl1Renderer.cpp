@@ -29,66 +29,16 @@
 // using namespace std;
 using namespace EasyPhysics;
 
-// local variables
-static char s_title[256];
-
-static EpxMatrix4 s_pMat, s_vMat;
-static EpxVector3 s_viewPos, s_lightPos, s_viewTgt;
-static float s_lightRadius, s_lightRadX, s_lightRadY;
-static float s_viewRadius, s_viewRadX, s_viewRadY, s_viewHeight;
-
-struct MeshBuff {
-  float *vtx;
-  float *nml;
-  int numVtx;
-  unsigned short *idx;
-  unsigned short *wireIdx;
-  int numIdx;
-
-  MeshBuff() : vtx(0), nml(0), numVtx(0), idx(0), wireIdx(0), numIdx(0) {}
-};
-
-static std::vector<MeshBuff> *s_meshBuff;
-
 Gl1Renderer::Gl1Renderer() {
-  // initalize parameters
-  s_lightRadius = 40.0f;
-  s_lightRadX = -0.6f;
-  s_lightRadY = 0.6f;
-  s_viewRadius = 20.0f;
-  s_viewRadX = -0.01f;
-  s_viewRadY = 0.0f;
-  s_viewHeight = 1.0f;
-  s_viewTgt = EpxVector3(0.0f, s_viewHeight, 0.0f);
-  s_meshBuff = new std::vector<MeshBuff>();
-
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClearDepth(1.0f);
 }
 
-Gl1Renderer::~Gl1Renderer() {
-  for (EpxUInt32 c = 0; c < s_meshBuff->size(); ++c) {
-    delete[] (*s_meshBuff)[c].vtx;
-    delete[] (*s_meshBuff)[c].nml;
-    delete[] (*s_meshBuff)[c].idx;
-    delete[] (*s_meshBuff)[c].wireIdx;
-  }
-  s_meshBuff->clear();
-  delete s_meshBuff;
-}
+Gl1Renderer::~Gl1Renderer() { ReleaseMeshAll(); }
 
-void Gl1Renderer::Begin(int width, int height) {
-
-  // impl_->window_.MakeCurrent();
-
-  // initalize matrix
-  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
-                                   0.1f, 1000.0f);
-
+void Gl1Renderer::Begin(int width, int height, const float projection[16],
+                        const float view[16]) {
   glViewport(0, 0, width, height);
-  s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
-                                   0.1f, 1000.0f);
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glFrontFace(GL_CCW);
@@ -100,37 +50,11 @@ void Gl1Renderer::Begin(int width, int height) {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glMultMatrixf((GLfloat *)&s_pMat);
-
-  // create view matrix
-  s_viewPos = EpxMatrix3::rotationY(s_viewRadY) *
-              EpxMatrix3::rotationX(s_viewRadX) *
-              EpxVector3(0, 0, s_viewRadius);
-
-  s_lightPos = EpxMatrix3::rotationY(s_lightRadY) *
-               EpxMatrix3::rotationX(s_lightRadX) *
-               EpxVector3(0, 0, s_lightRadius);
-
-  EpxMatrix4 viewMtx =
-      EpxMatrix4::lookAt(EpxPoint3(s_viewTgt + s_viewPos), EpxPoint3(s_viewTgt),
-                         EpxVector3(0.0f, 1.0f, 0.0f));
-
-  s_vMat = s_pMat * viewMtx;
+  glMultMatrixf(projection);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glMultMatrixf((GLfloat *)&viewMtx);
-}
-
-void Gl1Renderer::LookAtTarget(const EpxVector3 &viewPos,
-                               const EpxVector3 &viewTarget) {
-  s_viewPos = viewPos;
-  EpxMatrix4 viewMtx = EpxMatrix4::lookAt(
-      EpxPoint3(viewPos), EpxPoint3(viewTarget), EpxVector3(0.0f, 1.0f, 0.0f));
-  s_vMat = s_pMat * viewMtx;
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glMultMatrixf((GLfloat *)&viewMtx);
+  glMultMatrixf(view);
 }
 
 void Gl1Renderer::DebugBegin() {
@@ -141,16 +65,6 @@ void Gl1Renderer::DebugBegin() {
 void Gl1Renderer::DebugEnd() {
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
-}
-
-std::tuple<float, float, float> Gl1Renderer::GetViewAngle() const {
-  return {s_viewRadX, s_viewRadY, s_viewRadius};
-}
-
-void Gl1Renderer::SetViewAngle(float angleX, float angleY, float radius) {
-  s_viewRadX = angleX;
-  s_viewRadY = angleY;
-  s_viewRadius = radius;
 }
 
 int Gl1Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
@@ -192,25 +106,24 @@ int Gl1Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
     buff.wireIdx[i * 6 + 5] = buff.idx[i * 3];
   }
 
-  s_meshBuff->push_back(buff);
-  return s_meshBuff->size() - 1;
+  s_meshBuff.push_back(buff);
+  return s_meshBuff.size() - 1;
 }
 void Gl1Renderer::ReleaseMeshAll() {
-  for (EpxUInt32 c = 0; c < s_meshBuff->size(); ++c) {
-    delete[] (*s_meshBuff)[c].vtx;
-    delete[] (*s_meshBuff)[c].nml;
-    delete[] (*s_meshBuff)[c].idx;
-    delete[] (*s_meshBuff)[c].wireIdx;
+  for (EpxUInt32 c = 0; c < s_meshBuff.size(); ++c) {
+    delete[] s_meshBuff[c].vtx;
+    delete[] s_meshBuff[c].nml;
+    delete[] s_meshBuff[c].idx;
+    delete[] s_meshBuff[c].wireIdx;
   }
-  s_meshBuff->clear();
+  s_meshBuff.clear();
 }
 
 void Gl1Renderer::Mesh(const EpxTransform3 &transform, const EpxVector3 &color,
                        int meshId) {
-  assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff->size());
+  assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff.size());
 
-  MeshBuff &buff = (*s_meshBuff)[meshId];
-
+  MeshBuff &buff = s_meshBuff[meshId];
   EpxMatrix4 wMtx = EpxMatrix4(transform);
 
   glPushMatrix();
@@ -310,52 +223,6 @@ void Gl1Renderer::Debug2dEnd() {
   glPopMatrix();
 }
 
-EpxVector3 Gl1Renderer::GetWorldPosition(const EpxVector3 &screenPos, int width,
-                                         int height) {
-  EpxMatrix4 mvp, mvpInv;
-  mvp = s_vMat;
-  mvpInv = inverse(mvp);
-
-  EpxVector4 wp(screenPos, 1.0f);
-
-  wp[0] /= (0.5f * (float)width);
-  wp[1] /= (0.5f * (float)height);
-
-  float w = mvpInv[0][3] * wp[0] + mvpInv[1][3] * wp[1] + mvpInv[2][3] * wp[2] +
-            mvpInv[3][3];
-
-  wp = mvpInv * wp;
-  wp /= w;
-
-  return wp.getXYZ();
-}
-
-EpxVector3 Gl1Renderer::GetScreenPosition(const EpxVector3 &worldPos, int width,
-                                          int height) {
-  EpxVector4 sp(worldPos, 1.0f);
-
-  EpxMatrix4 mvp;
-  mvp = s_vMat;
-
-  sp = mvp * sp;
-  sp /= (float)sp[3];
-  sp[0] *= (0.5f * (float)width);
-  sp[1] *= (0.5f * (float)height);
-
-  return sp.getXYZ();
-}
-
-void Gl1Renderer::GetViewTarget(EpxVector3 &targetPos) {
-  targetPos = s_viewTgt;
-}
-
-void Gl1Renderer::SetViewTarget(const EpxVector3 &targetPos) {
-  s_viewTgt = targetPos;
-}
-
-void Gl1Renderer::GetViewRadius(float &radius) { radius = s_viewRadius; }
-
-void Gl1Renderer::SetViewRadius(float radius) { s_viewRadius = radius; }
 
 uint64_t createRenderMesh(Gl1Renderer *renderer, EpxConvexMesh *convexMesh) {
   assert(convexMesh);
