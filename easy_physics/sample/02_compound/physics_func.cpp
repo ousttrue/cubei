@@ -159,7 +159,6 @@ static void createFireBody(Geometry &scene) {
   collidables[fireRigidBodyId].reset();
 
   EpxShape shape;
-  shape.reset();
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
@@ -184,7 +183,6 @@ static void createSceneCompound(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -212,7 +210,6 @@ static void createSceneCompound(Geometry &scene) {
     {
       EpxVector3 scale(1.0f, 0.125f, 0.125f);
       EpxShape shape;
-      shape.reset();
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, scale);
       shape.userData = (void *)scene.meshes.size();
@@ -224,7 +221,7 @@ static void createSceneCompound(Geometry &scene) {
     {
       EpxVector3 scale(0.5f);
       EpxShape shape;
-      shape.reset();
+
       shape.m_offsetPosition = EpxVector3(-1.0f, 0.0f, 0.0f);
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
@@ -238,7 +235,7 @@ static void createSceneCompound(Geometry &scene) {
     {
       EpxVector3 scale(1.0f, 0.25f, 0.25f);
       EpxShape shape;
-      shape.reset();
+
       shape.m_offsetPosition = EpxVector3(1.0f, 0.0f, 0.0f);
       shape.m_offsetOrientation = EpxQuat::rotationZ(0.5f * EPX_PI);
       epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
@@ -267,7 +264,6 @@ static void createSceneDaruma(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -295,7 +291,7 @@ static void createSceneDaruma(Geometry &scene) {
     {
       EpxVector3 scale(1.0f);
       EpxShape shape;
-      shape.reset();
+
       shape.m_offsetPosition = EpxVector3(0.0f, 1.0f, 0.0f);
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
@@ -309,7 +305,7 @@ static void createSceneDaruma(Geometry &scene) {
     {
       EpxVector3 scale(0.5f);
       EpxShape shape;
-      shape.reset();
+
       shape.m_offsetPosition = EpxVector3(0.0f, 2.0f, 0.0f);
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
@@ -338,7 +334,6 @@ static void createSceneStackingPole(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -365,7 +360,6 @@ static void createSceneStackingPole(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, brickScale);
@@ -391,7 +385,6 @@ static void createSceneStackingWall(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -427,7 +420,6 @@ static void createSceneStackingWall(Geometry &scene) {
       collidables[id].reset();
 
       EpxShape shape;
-      shape.reset();
 
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, brickScale);

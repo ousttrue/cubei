@@ -49,7 +49,6 @@ EpxShape *PhysicsScene::AddShape(Geometry &scene, int id, ShapeType type,
                                  const EpxVector3 &scale, bool finish) {
   // 凸メッシュを作成
   EpxShape shape;
-  shape.reset();
 
   switch (type) {
   case ShapeType::Sphere:
@@ -162,7 +161,6 @@ void PhysicsScene::CreateFireBody(Geometry &scene) {
   collidables[fireRigidBodyId].reset();
 
   EpxShape shape;
-  shape.reset();
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);

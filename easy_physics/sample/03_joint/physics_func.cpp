@@ -169,7 +169,6 @@ static void createFireBody(Geometry &scene) {
   collidables[fireRigidBodyId].reset();
 
   EpxShape shape;
-  shape.reset();
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
@@ -194,7 +193,6 @@ static void createSceneBallJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -219,7 +217,6 @@ static void createSceneBallJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -247,7 +244,6 @@ static void createSceneBallJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
@@ -275,7 +271,6 @@ static void createSceneBallJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
@@ -310,7 +305,7 @@ static void createSceneHingeJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
+
     shape.m_offsetOrientation = EpxQuat::rotationZ(0.5f * EPX_PI);
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
@@ -343,7 +338,6 @@ static void createSceneHingeJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -381,7 +375,7 @@ static void createSceneFixedJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
+
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
     shape.userData = (void *)scene.meshes.size();
@@ -412,7 +406,6 @@ static void createSceneFixedJoint(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -457,7 +450,7 @@ static int createGear(Geometry &scene, const EpxVector3 &offsetPosition,
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
+
     shape.m_offsetOrientation = EpxQuat::rotationY(0.5f * EPX_PI);
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
@@ -491,7 +484,7 @@ static int createGear(Geometry &scene, const EpxVector3 &offsetPosition,
 
     {
       EpxShape shape;
-      shape.reset();
+
       shape.m_offsetOrientation = EpxQuat::rotationY(0.5f * EPX_PI);
       epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                           cylinder_numVertices, cylinder_indices,
@@ -505,7 +498,7 @@ static int createGear(Geometry &scene, const EpxVector3 &offsetPosition,
     for (int i = 0; i < 4; i++) {
       const EpxVector3 cogsScale(2.5f, cogsWidth, 0.25f);
       EpxShape shape;
-      shape.reset();
+
       shape.m_offsetOrientation = EpxQuat::rotationZ(i * 0.25f * EPX_PI);
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, cogsScale);
@@ -557,7 +550,6 @@ static void createSceneChain(Geometry &scene) {
     collidables[dummyId].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
@@ -583,7 +575,6 @@ static void createSceneChain(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, chainScale);
@@ -620,7 +611,6 @@ static void createSceneChain(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                         sphere_indices, sphere_numIndices, ballScale);
@@ -652,7 +642,6 @@ static void createSceneChain(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, chainScale);
@@ -689,7 +678,6 @@ static void createSceneChain(Geometry &scene) {
     collidables[id].reset();
 
     EpxShape shape;
-    shape.reset();
 
     epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                         sphere_indices, sphere_numIndices, ballScale);
