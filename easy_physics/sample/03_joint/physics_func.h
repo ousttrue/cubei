@@ -23,12 +23,12 @@
 #ifndef PHYSICS_FUNC_H
 #define PHYSICS_FUNC_H
 
-#include "../../easy_physics/EpxInclude.h"
+#include <EpxInclude.h>
 
 // シミュレーション関数
 bool physicsInit();
 void physicsRelease();
-void physicsCreateScene(int sceneId, class Geometry &scene);
+void physicsCreateScene(int sceneId);
 void physicsSimulate();
 
 // シーンのタイトル名を取得する

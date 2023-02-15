@@ -23,7 +23,6 @@
 
 #include "physics_func.h"
 #include <common/FontStashRenderer.h>
-#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/ScreenCamera.h>
 #include <common/common.h>
@@ -39,7 +38,7 @@ static bool g_isRunning = true;
 int g_sceneId = 0;
 bool g_simulating = false;
 
-static void render(Gl1Renderer *renderer, Geometry &scene) {
+static void render(Gl1Renderer *renderer) {
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
     const EpxState &state = physicsGetState(i);
     const EpxCollidable &collidable = physicsGetCollidable(i);
@@ -47,14 +46,12 @@ static void render(Gl1Renderer *renderer, Geometry &scene) {
     EpxTransform3 rigidBodyTransform(state.m_orientation, state.m_position);
 
     for (int j = 0; j < collidable.m_numShapes; j++) {
-      const EpxShape &shape = collidable.m_shapes[j];
-      EpxTransform3 shapeTransform(shape.m_offsetOrientation,
-                                   shape.m_offsetPosition);
+      auto shape = &collidable.m_shapes[j];
+      EpxTransform3 shapeTransform(shape->m_offsetOrientation,
+                                   shape->m_offsetPosition);
       EpxTransform3 worldTransform = rigidBodyTransform * shapeTransform;
-      EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
 
-      renderer->RenderMesh((const float *)&wMtx, EpxVector3(1, 1, 1),
-                           scene.meshes[(size_t)shape.userData].get());
+      renderer->RenderMesh(worldTransform, EpxVector3(1, 1, 1), shape);
     }
   }
 
@@ -86,7 +83,7 @@ static void render(Gl1Renderer *renderer, Geometry &scene) {
   renderer->DebugEnd();
 }
 
-static void update(Geometry &scene, ScreenCamera &camera, Control *ctrl,
+static void update(ScreenCamera &camera, Control *ctrl,
                    int width, int height) {
   auto [angX, angY, r] = camera.GetViewAngle();
 
@@ -129,13 +126,11 @@ static void update(Geometry &scene, ScreenCamera &camera, Control *ctrl,
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
-    scene.meshes.clear();
-    physicsCreateScene(g_sceneId, scene);
+    physicsCreateScene(g_sceneId);
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
-    scene.meshes.clear();
-    physicsCreateScene(++g_sceneId, scene);
+    physicsCreateScene(++g_sceneId);
   }
 
   if (ctrl->ButtonPressed(BTN_SIMULATION) == BTN_STAT_DOWN) {
@@ -172,8 +167,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   physicsInit();
   Gl1Renderer renderer;
   ScreenCamera camera;
-  Geometry scene;
-  physicsCreateScene(g_sceneId, scene);
+  physicsCreateScene(g_sceneId);
   Control ctrl;
 
   FontStashRenderer stash(
@@ -191,7 +185,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     } else {
       auto [width, height] = window.GetSize();
 
-      update(scene, camera, &ctrl, width, height);
+      update(camera, &ctrl, width, height);
       if (g_simulating) {
         physicsSimulate();
       }
@@ -200,7 +194,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       int sx, sy;
       ctrl.GetCursorPosition(sx, sy);
       renderer.Begin(width, height, projection, view);
-      render(&renderer, scene);
+      render(&renderer);
 
       renderer.Debug2dBegin(width, height);
       stash.Draw(sx, sy, width, height, physicsGetSceneTitle(g_sceneId));
