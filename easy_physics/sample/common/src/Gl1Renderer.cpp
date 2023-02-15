@@ -27,7 +27,6 @@
 #include <stdexcept>
 #include <vector>
 
-
 // using namespace std;
 using namespace EasyPhysics;
 
@@ -70,7 +69,7 @@ void Gl1Renderer::DebugEnd() {
 }
 
 void Gl1Renderer::RenderMesh(const float transform[16], const EpxVector3 &color,
-                             const MeshBuff &buff) {
+                             const MeshBuff *buff) {
   // assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff.size());
   // MeshBuff &buff = s_meshBuff[meshId];
 
@@ -79,16 +78,18 @@ void Gl1Renderer::RenderMesh(const float transform[16], const EpxVector3 &color,
 
   glEnableClientState(GL_VERTEX_ARRAY);
 
-  glVertexPointer(3, GL_FLOAT, 0, buff.vtx);
+  glVertexPointer(3, GL_FLOAT, 0, buff->vtx.data());
 
   glColor4f(color[0], color[1], color[2], 1.0f);
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(1.0f, 1.0f);
-  glDrawElements(GL_TRIANGLES, buff.numIdx, GL_UNSIGNED_SHORT, buff.idx);
+  glDrawElements(GL_TRIANGLES, buff->idx.size(), GL_UNSIGNED_SHORT,
+                 buff->idx.data());
   glDisable(GL_POLYGON_OFFSET_FILL);
 
   glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-  glDrawElements(GL_LINES, buff.numIdx * 2, GL_UNSIGNED_SHORT, buff.wireIdx);
+  glDrawElements(GL_LINES, buff->wireIdx.size(), GL_UNSIGNED_SHORT,
+                 buff->wireIdx.data());
 
   glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -169,56 +170,4 @@ void Gl1Renderer::Debug2dBegin(int width, int height) {
 void Gl1Renderer::Debug2dEnd() {
   glEnable(GL_DEPTH_TEST);
   glPopMatrix();
-}
-
-uint64_t Geometry::CreateRenderMesh(EpxConvexMesh *convexMesh) {
-  assert(convexMesh);
-
-  EpxFloat *verts = new EpxFloat[convexMesh->m_numVertices * 3];
-  EpxFloat *nmls = new EpxFloat[convexMesh->m_numVertices * 3];
-  EpxUInt16 *idxs = new EpxUInt16[convexMesh->m_numFacets * 3];
-
-  for (EpxUInt32 c = 0; c < convexMesh->m_numVertices; c++) {
-    verts[c * 3 + 0] = convexMesh->m_vertices[c][0];
-    verts[c * 3 + 1] = convexMesh->m_vertices[c][1];
-    verts[c * 3 + 2] = convexMesh->m_vertices[c][2];
-  }
-
-  for (EpxUInt32 c = 0; c < convexMesh->m_numVertices; c++) {
-    EpxVector3 normal(0.0f);
-    int facetCount = 0;
-    for (EpxUInt32 f = 0; f < convexMesh->m_numFacets; f++) {
-      EpxFacet &facet = convexMesh->m_facets[f];
-      if (facet.vertId[0] == c || facet.vertId[1] == c ||
-          facet.vertId[2] == c) {
-        const EpxVector3 &v0 = convexMesh->m_vertices[facet.vertId[0]];
-        const EpxVector3 &v1 = convexMesh->m_vertices[facet.vertId[1]];
-        const EpxVector3 &v2 = convexMesh->m_vertices[facet.vertId[2]];
-        normal += cross(v1 - v0, v2 - v0);
-        facetCount++;
-      }
-    }
-    normal = normalize(normal / (EpxFloat)facetCount);
-
-    nmls[c * 3 + 0] = normal[0];
-    nmls[c * 3 + 1] = normal[1];
-    nmls[c * 3 + 2] = normal[2];
-  }
-
-  for (EpxUInt32 c = 0; c < convexMesh->m_numFacets; c++) {
-    idxs[c * 3 + 0] = convexMesh->m_facets[c].vertId[0];
-    idxs[c * 3 + 1] = convexMesh->m_facets[c].vertId[1];
-    idxs[c * 3 + 2] = convexMesh->m_facets[c].vertId[2];
-  }
-
-  int renderMeshId =
-      InitMesh(verts, sizeof(EpxFloat) * 3, nmls, sizeof(EpxFloat) * 3, idxs,
-               sizeof(EpxUInt16) * 3, convexMesh->m_numVertices,
-               convexMesh->m_numFacets);
-
-  delete[] idxs;
-  delete[] nmls;
-  delete[] verts;
-
-  return renderMeshId;
 }

@@ -163,7 +163,8 @@ static void createFireBody(Geometry &scene) {
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
-  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+  shape.userData = (void *)scene.meshes.size();
+  scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
@@ -188,7 +189,8 @@ static void createSceneCompound(Geometry &scene) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+    shape.userData = (void *)scene.meshes.size();
+    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -213,7 +215,9 @@ static void createSceneCompound(Geometry &scene) {
       shape.reset();
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, scale);
-      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+      shape.userData = (void *)scene.meshes.size();
+      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
+
       collidables[id].addShape(shape);
     }
 
@@ -225,7 +229,9 @@ static void createSceneCompound(Geometry &scene) {
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
                           scale);
-      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+      shape.userData = (void *)scene.meshes.size();
+      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
+
       collidables[id].addShape(shape);
     }
 
@@ -238,7 +244,9 @@ static void createSceneCompound(Geometry &scene) {
       epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                           cylinder_numVertices, cylinder_indices,
                           cylinder_numIndices, scale);
-      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+      shape.userData = (void *)scene.meshes.size();
+      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
+
       collidables[id].addShape(shape);
     }
     collidables[id].finish();
@@ -264,7 +272,8 @@ static void createSceneDaruma(Geometry &scene) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+    shape.userData = (void *)scene.meshes.size();
+    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -291,7 +300,9 @@ static void createSceneDaruma(Geometry &scene) {
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
                           scale);
-      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+      shape.userData = (void *)scene.meshes.size();
+      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
+
       collidables[id].addShape(shape);
     }
 
@@ -303,7 +314,9 @@ static void createSceneDaruma(Geometry &scene) {
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
                           scale);
-      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+      shape.userData = (void *)scene.meshes.size();
+      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
+
       collidables[id].addShape(shape);
     }
 
@@ -330,7 +343,8 @@ static void createSceneStackingPole(Geometry &scene) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+    shape.userData = (void *)scene.meshes.size();
+    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -355,7 +369,8 @@ static void createSceneStackingPole(Geometry &scene) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, brickScale);
-    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+    shape.userData = (void *)scene.meshes.size();
+    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -381,7 +396,8 @@ static void createSceneStackingWall(Geometry &scene) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+    shape.userData = (void *)scene.meshes.size();
+    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -415,7 +431,8 @@ static void createSceneStackingWall(Geometry &scene) {
 
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, brickScale);
-      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+      shape.userData = (void *)scene.meshes.size();
+      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
       collidables[id].finish();

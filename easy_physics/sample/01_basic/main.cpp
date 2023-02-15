@@ -143,12 +143,12 @@ public:
                 });
 
     OnKeyPress(GLFW_KEY_F1, [&scene](int x, int y, int width, int height) {
-      scene.ReleaseMeshAll();
+      scene.meshes.clear();
       physicsCreateScene(g_sceneId, scene);
       g_state.Clear();
     });
     OnKeyPress(GLFW_KEY_F2, [&scene](int x, int y, int width, int height) {
-      scene.ReleaseMeshAll();
+      scene.meshes.clear();
       g_scene = physicsCreateScene(++g_sceneId, scene);
       g_state.Clear();
     });

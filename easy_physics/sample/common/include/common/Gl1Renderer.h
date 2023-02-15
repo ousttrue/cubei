@@ -33,7 +33,8 @@ public:
              const float view[16]);
 
   void RenderMesh(const float transform[16],
-                  const EasyPhysics::EpxVector3 &color, const struct MeshBuff &buff);
+                  const EasyPhysics::EpxVector3 &color,
+                  const struct MeshBuff *buff);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Debug Drawing

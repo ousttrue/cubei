@@ -80,7 +80,8 @@ EpxShape *PhysicsScene::AddShape(Geometry &scene, int id, ShapeType type,
 
   // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
   // 描画用メッシュは、終了時に自動的に破棄される
-  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+  shape.userData = (void *)scene.meshes.size();
+  scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
   // 凸メッシュ形状を登録
   auto added = collidables[id].addShape(shape);
@@ -165,7 +166,8 @@ void PhysicsScene::CreateFireBody(Geometry &scene) {
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
-  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
+  shape.userData = (void *)scene.meshes.size();
+  scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
@@ -196,9 +198,9 @@ void PhysicsRender(const PhysicsScene &physicsScene,
       EasyPhysics::EpxTransform3 worldTransform =
           rigidBodyTransform * shapeTransform;
       EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
-      auto &mesh = scene.Get((int)shape.userData);
+      auto mesh = scene.meshes[(size_t)shape.userData];
       renderer->RenderMesh((const float *)&wMtx,
-                           EasyPhysics::EpxVector3(1, 1, 1), mesh);
+                           EasyPhysics::EpxVector3(1, 1, 1), mesh.get());
     }
   }
 

@@ -30,7 +30,6 @@
 #include <common/ctrl_func.h>
 #include <common/win32window.h>
 
-
 using namespace EasyPhysics;
 
 #define SAMPLE_NAME "02_joint"
@@ -55,7 +54,7 @@ static void render(Gl1Renderer *renderer, Geometry &scene) {
       EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
 
       renderer->RenderMesh((const float *)&wMtx, EpxVector3(1, 1, 1),
-                           scene.Get((int)shape.userData));
+                           scene.meshes[(size_t)shape.userData].get());
     }
   }
 
@@ -130,14 +129,12 @@ static void update(Geometry &scene, ScreenCamera &camera, Control *ctrl,
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_RESET) == BTN_STAT_DOWN) {
-    // renderer->Wait();
-    scene.ReleaseMeshAll();
+    scene.meshes.clear();
     physicsCreateScene(g_sceneId, scene);
   }
 
   if (ctrl->ButtonPressed(BTN_SCENE_NEXT) == BTN_STAT_DOWN) {
-    // renderer->Wait();
-    scene.ReleaseMeshAll();
+    scene.meshes.clear();
     physicsCreateScene(++g_sceneId, scene);
   }
 
