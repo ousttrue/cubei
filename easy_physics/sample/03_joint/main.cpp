@@ -50,8 +50,10 @@ static void render(Gl1Renderer *renderer) {
       EpxTransform3 shapeTransform(shape.m_offsetOrientation,
                                    shape.m_offsetPosition);
       EpxTransform3 worldTransform = rigidBodyTransform * shapeTransform;
+      EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
 
-      renderer->Mesh(worldTransform, EpxVector3(1, 1, 1), (int)shape.userData);
+      renderer->RenderMesh((const float *)&wMtx, EpxVector3(1, 1, 1),
+                           (int)shape.userData);
     }
   }
 

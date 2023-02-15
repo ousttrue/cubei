@@ -51,7 +51,7 @@ public:
 
   void ReleaseMeshAll();
 
-  void Mesh(const EasyPhysics::EpxTransform3 &transform,
+  void RenderMesh(const float transform[16],
             const EasyPhysics::EpxVector3 &color, int meshId);
 
   ///////////////////////////////////////////////////////////////////////////////

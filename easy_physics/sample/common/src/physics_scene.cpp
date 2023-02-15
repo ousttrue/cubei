@@ -1,8 +1,8 @@
+#include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/font_render_func.h>
 #include <common/geometry_data.h>
 #include <common/physics_scene.h>
-#include <common/Gl1Renderer.h>
 #include <stdexcept>
 
 using namespace EasyPhysics;
@@ -193,9 +193,10 @@ void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
                                                 shape.m_offsetPosition);
       EasyPhysics::EpxTransform3 worldTransform =
           rigidBodyTransform * shapeTransform;
-
-      renderer->Mesh(worldTransform, EasyPhysics::EpxVector3(1, 1, 1),
-                     (int)shape.userData);
+      EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
+      renderer->RenderMesh((const float *)&wMtx,
+                           EasyPhysics::EpxVector3(1, 1, 1),
+                           (int)shape.userData);
     }
   }
 

@@ -119,15 +119,14 @@ void Gl1Renderer::ReleaseMeshAll() {
   s_meshBuff.clear();
 }
 
-void Gl1Renderer::Mesh(const EpxTransform3 &transform, const EpxVector3 &color,
+void Gl1Renderer::RenderMesh(const float transform[16], const EpxVector3 &color,
                        int meshId) {
   assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff.size());
 
   MeshBuff &buff = s_meshBuff[meshId];
-  EpxMatrix4 wMtx = EpxMatrix4(transform);
 
   glPushMatrix();
-  glMultMatrixf((GLfloat *)&wMtx);
+  glMultMatrixf(transform);
 
   glEnableClientState(GL_VERTEX_ARRAY);
 
