@@ -22,7 +22,6 @@
 */
 
 #include "physics_func.h"
-#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <stdlib.h>
@@ -144,7 +143,7 @@ void physicsSimulate() {
 
 static int fireRigidBodyId;
 
-static void createFireBody(Geometry &scene) {
+static void createFireBody() {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -160,14 +159,12 @@ static void createFireBody(Geometry &scene) {
   EpxShape shape;
 
   epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-  shape.userData = (void *)scene.meshes.size();
-  scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
 }
 
-static void createSceneCompound(Geometry &scene) {
+static void createSceneCompound() {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -183,9 +180,6 @@ static void createSceneCompound(Geometry &scene) {
     EpxShape shape;
 
     epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    shape.userData = (void *)scene.meshes.size();
-    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -208,8 +202,6 @@ static void createSceneCompound(Geometry &scene) {
       EpxVector3 scale(1.0f, 0.125f, 0.125f);
       EpxShape shape;
       epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-      shape.userData = (void *)scene.meshes.size();
-      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
     }
@@ -220,8 +212,6 @@ static void createSceneCompound(Geometry &scene) {
 
       shape.m_offsetPosition = EpxVector3(-1.0f, 0.0f, 0.0f);
       epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-      shape.userData = (void *)scene.meshes.size();
-      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
     }
@@ -233,8 +223,6 @@ static void createSceneCompound(Geometry &scene) {
       shape.m_offsetPosition = EpxVector3(1.0f, 0.0f, 0.0f);
       shape.m_offsetOrientation = EpxQuat::rotationZ(0.5f * EPX_PI);
       epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Cylinder, scale);
-      shape.userData = (void *)scene.meshes.size();
-      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
     }
@@ -242,7 +230,7 @@ static void createSceneCompound(Geometry &scene) {
   }
 }
 
-static void createSceneDaruma(Geometry &scene) {
+static void createSceneDaruma() {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -258,9 +246,6 @@ static void createSceneDaruma(Geometry &scene) {
     EpxShape shape;
 
     epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    shape.userData = (void *)scene.meshes.size();
-    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -285,8 +270,6 @@ static void createSceneDaruma(Geometry &scene) {
 
       shape.m_offsetPosition = EpxVector3(0.0f, 1.0f, 0.0f);
       epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-      shape.userData = (void *)scene.meshes.size();
-      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
     }
@@ -297,8 +280,6 @@ static void createSceneDaruma(Geometry &scene) {
 
       shape.m_offsetPosition = EpxVector3(0.0f, 2.0f, 0.0f);
       epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-      shape.userData = (void *)scene.meshes.size();
-      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
     }
@@ -307,7 +288,7 @@ static void createSceneDaruma(Geometry &scene) {
   }
 }
 
-static void createSceneStackingPole(Geometry &scene) {
+static void createSceneStackingPole() {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -323,9 +304,6 @@ static void createSceneStackingPole(Geometry &scene) {
     EpxShape shape;
 
     epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    shape.userData = (void *)scene.meshes.size();
-    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -348,15 +326,13 @@ static void createSceneStackingPole(Geometry &scene) {
     EpxShape shape;
 
     epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, brickScale);
-    shape.userData = (void *)scene.meshes.size();
-    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
   }
 }
 
-static void createSceneStackingWall(Geometry &scene) {
+static void createSceneStackingWall() {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -372,9 +348,6 @@ static void createSceneStackingWall(Geometry &scene) {
     EpxShape shape;
 
     epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    shape.userData = (void *)scene.meshes.size();
-    scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -406,8 +379,6 @@ static void createSceneStackingWall(Geometry &scene) {
       EpxShape shape;
 
       epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, brickScale);
-      shape.userData = (void *)scene.meshes.size();
-      scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
       collidables[id].addShape(shape);
       collidables[id].finish();
@@ -438,23 +409,23 @@ void physicsCreateScene(int sceneId) {
 
   switch (sceneId % maxScenes) {
   case 0:
-    createSceneCompound(scene);
+    createSceneCompound();
     break;
 
   case 1:
-    createSceneDaruma(scene);
+    createSceneDaruma();
     break;
 
   case 2:
-    createSceneStackingPole(scene);
+    createSceneStackingPole();
     break;
 
   case 3:
-    createSceneStackingWall(scene);
+    createSceneStackingWall();
     break;
   }
 
-  createFireBody(scene);
+  createFireBody();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
