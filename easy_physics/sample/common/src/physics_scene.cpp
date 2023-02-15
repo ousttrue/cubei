@@ -91,12 +91,12 @@ EpxShape *PhysicsScene::AddShape(Geometry &scene, int id, ShapeType type,
   return added;
 }
 
-void PhysicsScene::Simulate(PhysicsState &state) {
-  auto perf = state.NewFrame();
+void PhysicsScene::Simulate() {
+  auto perf = state_.NewFrame();
   ApplyForce(perf);
-  BroadPhase(perf, state);
-  Collision(perf, state);
-  Solver(perf, state);
+  BroadPhase(perf);
+  Collision(perf);
+  Solver(perf);
   Integrate(perf);
   // epxPrintf("--- frame %d -------------\n",frame);
   // for(int i=0;i<numPairs[pairSwap];i++) {
@@ -104,7 +104,7 @@ void PhysicsScene::Simulate(PhysicsState &state) {
   //	epxPrintf("RB %u,%u CP
   //%u\n",p.rigidBodyA,p.rigidBodyB,p.contact->m_numContacts);
   // }
-  state.EndFrame();
+  state_.EndFrame();
 }
 
 void PhysicsScene::ApplyForce(Perf &perf) {
@@ -118,26 +118,26 @@ void PhysicsScene::ApplyForce(Perf &perf) {
   perf.end("apply force");
 }
 
-void PhysicsScene::BroadPhase(Perf &perf, PhysicsState &g_state) {
+void PhysicsScene::BroadPhase(Perf &perf) {
   perf.begin();
-  g_state.CurrentPair().numPairs =
+  state_.CurrentPair().numPairs =
       epxBroadPhase({states, g_numRigidBodies}, {collidables, g_numRigidBodies},
-                    g_state.OtherPair().Span(), g_state.CurrentPair().MaxSpan(),
+                    state_.OtherPair().Span(), state_.CurrentPair().MaxSpan(),
                     &allocator, NULL, NULL);
   perf.end("broadphase");
 }
 
-void PhysicsScene::Collision(Perf &perf, PhysicsState &g_state) {
+void PhysicsScene::Collision(Perf &perf) {
   perf.begin();
   epxDetectCollision(states, collidables, g_numRigidBodies,
-                     g_state.CurrentPair().Span());
+                     state_.CurrentPair().Span());
   perf.end("collision");
 }
 
-void PhysicsScene::Solver(Perf &perf, PhysicsState &g_state) {
+void PhysicsScene::Solver(Perf &perf) {
   perf.begin();
   epxSolveConstraints(
-      states, bodies, g_numRigidBodies, g_state.CurrentPair().Span(), joints,
+      states, bodies, g_numRigidBodies, state_.CurrentPair().Span(), joints,
       g_numJoints, iteration, contactBias, contactSlop, timeStep, &allocator);
   perf.end("solver");
 }
@@ -181,14 +181,13 @@ void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
   states[fireRigidBodyId].m_angularVelocity = EpxVector3(0.0f);
 }
 
-DrawData PhysicsRender(const PhysicsScene &physicsScene,
-                       const PhysicsState &physicsState) {
+const DrawData &PhysicsScene::GetDrawData() {
 
-  DrawData data;
+  data_.Clear();
 
-  for (int i = 0; i < physicsScene.g_numRigidBodies; i++) {
-    auto &state = physicsScene.states[i];
-    auto &collidable = physicsScene.collidables[i];
+  for (int i = 0; i < g_numRigidBodies; i++) {
+    auto &state = states[i];
+    auto &collidable = collidables[i];
 
     EasyPhysics::EpxTransform3 rigidBodyTransform(state.m_orientation,
                                                   state.m_position);
@@ -201,7 +200,7 @@ DrawData PhysicsRender(const PhysicsScene &physicsScene,
           rigidBodyTransform * shapeTransform;
       EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
 
-      data.shapes.push_back({wMtx, shape});
+      data_.shapes.push_back({wMtx, shape});
     }
   }
 
@@ -210,12 +209,10 @@ DrawData PhysicsRender(const PhysicsScene &physicsScene,
   const EasyPhysics::EpxVector3 colorB(0, 0, 1);
   const EasyPhysics::EpxVector3 colorLine(0, 1, 1);
 
-  for (int i = 0; i < physicsState.physicsGetNumContacts(); i++) {
-    auto &contact = physicsState.physicsGetContact(i);
-    auto &stateA =
-        physicsScene.states[physicsState.physicsGetRigidBodyAInContact(i)];
-    auto &stateB =
-        physicsScene.states[physicsState.physicsGetRigidBodyBInContact(i)];
+  for (int i = 0; i < state_.physicsGetNumContacts(); i++) {
+    auto &contact = state_.physicsGetContact(i);
+    auto &stateA = states[state_.physicsGetRigidBodyAInContact(i)];
+    auto &stateB = states[state_.physicsGetRigidBodyBInContact(i)];
     for (unsigned int j = 0; j < contact.m_numContacts; j++) {
       auto &contactPoint = contact.m_contactPoints[j];
       auto pointA =
@@ -224,12 +221,12 @@ DrawData PhysicsRender(const PhysicsScene &physicsScene,
           stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
       auto normal = contactPoint.normal;
 
-      data.points.push_back({pointA, colorA});
-      data.points.push_back({pointB, colorB});
-      data.lines.push_back({pointA, pointA + 0.1f * normal, colorLine});
-      data.lines.push_back({pointB, pointB - 0.1f * normal, colorLine});
+      data_.points.push_back({pointA, colorA});
+      data_.points.push_back({pointB, colorB});
+      data_.lines.push_back({pointA, pointA + 0.1f * normal, colorLine});
+      data_.lines.push_back({pointB, pointB - 0.1f * normal, colorLine});
     }
   }
 
-  return data;
+  return data_;
 }

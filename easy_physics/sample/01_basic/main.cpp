@@ -16,7 +16,6 @@
 
 static bool g_simulating = false;
 static int g_sceneId = 0;
-PhysicsState g_state = {};
 static std::shared_ptr<PhysicsScene> g_scene;
 
 class GlfwPlatform {
@@ -143,13 +142,11 @@ public:
 
     OnKeyPress(GLFW_KEY_F1, [&scene](int x, int y, int width, int height) {
       scene.meshes.clear();
-      physicsCreateScene(g_sceneId, scene);
-      g_state.Clear();
+      g_scene =physicsCreateScene(g_sceneId, scene);
     });
     OnKeyPress(GLFW_KEY_F2, [&scene](int x, int y, int width, int height) {
       scene.meshes.clear();
       g_scene = physicsCreateScene(++g_sceneId, scene);
-      g_state.Clear();
     });
     OnKeyPress(GLFW_KEY_F3, [](int x, int y, int width, int height) {
       g_simulating = !g_simulating;
@@ -183,20 +180,19 @@ int main(int argc, char **argv) {
                   : "subprojects/fontstash/example/DroidSerif-Regular.ttf");
 
   g_scene = physicsCreateScene(g_sceneId, scene);
-  g_state.Clear();
 
   int x, y, width, height;
   while (platform.NewFrame(&x, &y, &width, &height)) {
     // update
     if (g_simulating) {
-      g_scene->Simulate(g_state);
+      g_scene->Simulate();
     }
     auto [projection, view] = camera.UpdateProjectionView(width, height);
 
     // render
     renderer.Begin(width, height, projection, view);
 
-    auto data = PhysicsRender(*g_scene, g_state);
+    auto data = g_scene->GetDrawData();
     renderer.Render(data, scene);
 
     renderer.Debug2dBegin(width, height);

@@ -19,4 +19,10 @@ struct DrawData {
       shapes;
   std::vector<Point> points;
   std::vector<Line> lines;
+
+  void Clear() {
+    shapes.clear();
+    points.clear();
+    lines.clear();
+  }
 };

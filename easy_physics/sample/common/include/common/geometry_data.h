@@ -22,13 +22,6 @@
 */
 #pragma once
 
-enum class ShapeType {
-  Sphere,
-  Box,
-  Cylinder,
-  Tetrahedron,
-};
-
 // 半径1の球
 const int sphere_numVertices = 12;
 const int sphere_numIndices = 60;
