@@ -5,13 +5,6 @@
 #include <string>
 #include <vector>
 
-enum class ShapeType {
-  Sphere,
-  Box,
-  Cylinder,
-  Tetrahedron,
-};
-
 struct Perf {
   int frame;
   unsigned long long count;
@@ -90,30 +83,10 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(class Geometry &scene, int id, ShapeType type,
+  EasyPhysics::EpxShape *AddShape(class Geometry &scene, int id,
+                                  EasyPhysics::EpxShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
-                                  bool finish);
-  EasyPhysics::EpxShape *AddBoxShape(class Geometry &scene, int id,
-                                     const EasyPhysics::EpxVector3 &scale,
-                                     bool finish = true) {
-    return AddShape(scene, id, ShapeType::Box, scale, finish);
-  }
-  EasyPhysics::EpxShape *AddSphereShape(Geometry &scene, int id,
-                                        const EasyPhysics::EpxVector3 &scale,
-                                        bool finish = true) {
-    return AddShape(scene, id, ShapeType::Sphere, scale, finish);
-  }
-  EasyPhysics::EpxShape *AddCylinderShape(Geometry &scene, int id,
-                                          const EasyPhysics::EpxVector3 &scale,
-                                          bool finish = true) {
-    return AddShape(scene, id, ShapeType::Cylinder, scale, finish);
-  }
-  EasyPhysics::EpxShape *
-  AddTetrahedronShape(Geometry &scene, int id,
-                      const EasyPhysics::EpxVector3 &scale,
-                      bool finish = true) {
-    return AddShape(scene, id, ShapeType::Tetrahedron, scale, finish);
-  }
+                                  bool finish = true);
 
   // simulation
   void Simulate();

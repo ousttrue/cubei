@@ -25,7 +25,6 @@
 #include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
-#include <common/geometry_data.h>
 #include <stdlib.h>
 
 using namespace EasyPhysics;
@@ -160,8 +159,7 @@ static void createFireBody(Geometry &scene) {
 
   EpxShape shape;
 
-  epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
-                      sphere_indices, sphere_numIndices, scale);
+  epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
   shape.userData = (void *)scene.meshes.size();
   scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -184,8 +182,7 @@ static void createSceneCompound(Geometry &scene) {
 
     EpxShape shape;
 
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
+    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
 
     shape.userData = (void *)scene.meshes.size();
     scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
@@ -210,8 +207,7 @@ static void createSceneCompound(Geometry &scene) {
     {
       EpxVector3 scale(1.0f, 0.125f, 0.125f);
       EpxShape shape;
-      epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                          box_indices, box_numIndices, scale);
+      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
       shape.userData = (void *)scene.meshes.size();
       scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -223,9 +219,7 @@ static void createSceneCompound(Geometry &scene) {
       EpxShape shape;
 
       shape.m_offsetPosition = EpxVector3(-1.0f, 0.0f, 0.0f);
-      epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
-                          sphere_numVertices, sphere_indices, sphere_numIndices,
-                          scale);
+      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
       shape.userData = (void *)scene.meshes.size();
       scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -238,9 +232,7 @@ static void createSceneCompound(Geometry &scene) {
 
       shape.m_offsetPosition = EpxVector3(1.0f, 0.0f, 0.0f);
       shape.m_offsetOrientation = EpxQuat::rotationZ(0.5f * EPX_PI);
-      epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
-                          cylinder_numVertices, cylinder_indices,
-                          cylinder_numIndices, scale);
+      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Cylinder, scale);
       shape.userData = (void *)scene.meshes.size();
       scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -265,8 +257,7 @@ static void createSceneDaruma(Geometry &scene) {
 
     EpxShape shape;
 
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
+    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
 
     shape.userData = (void *)scene.meshes.size();
     scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
@@ -293,9 +284,7 @@ static void createSceneDaruma(Geometry &scene) {
       EpxShape shape;
 
       shape.m_offsetPosition = EpxVector3(0.0f, 1.0f, 0.0f);
-      epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
-                          sphere_numVertices, sphere_indices, sphere_numIndices,
-                          scale);
+      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
       shape.userData = (void *)scene.meshes.size();
       scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -307,9 +296,7 @@ static void createSceneDaruma(Geometry &scene) {
       EpxShape shape;
 
       shape.m_offsetPosition = EpxVector3(0.0f, 2.0f, 0.0f);
-      epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
-                          sphere_numVertices, sphere_indices, sphere_numIndices,
-                          scale);
+      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
       shape.userData = (void *)scene.meshes.size();
       scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -335,8 +322,7 @@ static void createSceneStackingPole(Geometry &scene) {
 
     EpxShape shape;
 
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
+    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
 
     shape.userData = (void *)scene.meshes.size();
     scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
@@ -361,8 +347,7 @@ static void createSceneStackingPole(Geometry &scene) {
 
     EpxShape shape;
 
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, brickScale);
+    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, brickScale);
     shape.userData = (void *)scene.meshes.size();
     scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
@@ -386,8 +371,7 @@ static void createSceneStackingWall(Geometry &scene) {
 
     EpxShape shape;
 
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
+    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
 
     shape.userData = (void *)scene.meshes.size();
     scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
@@ -421,8 +405,7 @@ static void createSceneStackingWall(Geometry &scene) {
 
       EpxShape shape;
 
-      epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                          box_indices, box_numIndices, brickScale);
+      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, brickScale);
       shape.userData = (void *)scene.meshes.size();
       scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 

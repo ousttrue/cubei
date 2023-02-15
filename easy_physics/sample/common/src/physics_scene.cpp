@@ -2,7 +2,6 @@
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/font_render_func.h>
-#include <common/geometry_data.h>
 #include <common/physics_scene.h>
 #include <stdexcept>
 
@@ -45,37 +44,11 @@ PhysicsBody PhysicsScene::AddBody() {
   };
 }
 
-EpxShape *PhysicsScene::AddShape(Geometry &scene, int id, ShapeType type,
+EpxShape *PhysicsScene::AddShape(Geometry &scene, int id, EpxShapeType type,
                                  const EpxVector3 &scale, bool finish) {
   // 凸メッシュを作成
   EpxShape shape;
-
-  switch (type) {
-  case ShapeType::Sphere:
-    epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
-                        sphere_indices, sphere_numIndices, scale);
-    break;
-
-  case ShapeType::Box:
-    epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
-                        box_indices, box_numIndices, scale);
-    break;
-
-  case ShapeType::Cylinder:
-    epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
-                        cylinder_numVertices, cylinder_indices,
-                        cylinder_numIndices, scale);
-    break;
-
-  case ShapeType::Tetrahedron:
-    epxCreateConvexMesh(&shape.m_geometry, tetrahedron_vertices,
-                        tetrahedron_numVertices, tetrahedron_indices,
-                        tetrahedron_numIndices, scale);
-    break;
-
-  default:
-    throw std::invalid_argument("unknown");
-  }
+  epxCreateConvexMesh(&shape.m_geometry, type, scale);
 
   // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
   // 描画用メッシュは、終了時に自動的に破棄される
@@ -161,9 +134,8 @@ void PhysicsScene::CreateFireBody(Geometry &scene) {
   collidables[fireRigidBodyId].reset();
 
   EpxShape shape;
+  epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
 
-  epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
-                      sphere_indices, sphere_numIndices, scale);
   shape.userData = (void *)scene.meshes.size();
   scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 

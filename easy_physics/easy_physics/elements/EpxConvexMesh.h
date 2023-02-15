@@ -32,6 +32,13 @@
 
 namespace EasyPhysics {
 
+enum class EpxShapeType {
+  Sphere,
+  Box,
+  Cylinder,
+  Tetrahedron,
+};
+
 /// エッジの種類
 enum EpxEdgeType {
   EpxEdgeTypeConvex,  ///< 凸エッジ
@@ -55,6 +62,7 @@ struct EpxFacet {
 
 /// 凸メッシュ
 struct EpxConvexMesh {
+  EpxShapeType m_shapeType;
   EpxUInt8 m_numVertices = 0;                          ///< 頂点数
   EpxUInt8 m_numFacets = 0;                            ///< 面数
   EpxUInt8 m_numEdges = 0;                             ///< エッジ数
@@ -82,9 +90,7 @@ void epxGetProjection(EpxFloat &pmin, EpxFloat &pmax,
 /// @param numIndices 面インデックス数
 /// @param scale スケール
 /// @return 凸メッシュの作成に成功した場合はtrueを返す。
-EpxBool epxCreateConvexMesh(EpxConvexMesh *convexMesh, const EpxFloat *vertices,
-                            EpxUInt32 numVertices, const EpxUInt16 *indices,
-                            EpxUInt32 numIndices,
+EpxBool epxCreateConvexMesh(EpxConvexMesh *convexMesh, EpxShapeType shapeType,
                             const EpxVector3 &scale = EpxVector3(1.0f));
 
 } // namespace EasyPhysics
