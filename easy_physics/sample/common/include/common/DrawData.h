@@ -15,7 +15,7 @@ struct Line {
 
 struct DrawData {
   std::vector<
-      std::tuple<EasyPhysics::EpxMatrix4, const EasyPhysics::EpxShape *>>
+      std::tuple<EasyPhysics::EpxTransform3, const EasyPhysics::EpxShape *>>
       shapes;
   std::vector<Point> points;
   std::vector<Line> lines;

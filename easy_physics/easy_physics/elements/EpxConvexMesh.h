@@ -63,6 +63,7 @@ struct EpxFacet {
 /// 凸メッシュ
 struct EpxConvexMesh {
   EpxShapeType m_shapeType;
+  EpxVector3 m_scale;
   EpxUInt8 m_numVertices = 0;                          ///< 頂点数
   EpxUInt8 m_numFacets = 0;                            ///< 面数
   EpxUInt8 m_numEdges = 0;                             ///< エッジ数

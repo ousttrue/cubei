@@ -83,7 +83,7 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(class Geometry &scene, int id,
+  EasyPhysics::EpxShape *AddShape(int id,
                                   EasyPhysics::EpxShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish = true);
@@ -98,7 +98,7 @@ struct PhysicsScene {
 
   // fire
   int fireRigidBodyId;
-  void CreateFireBody(class Geometry &scene);
+  void CreateFireBody();
   void PhysicsFire(const EasyPhysics::EpxVector3 &position,
                    const EasyPhysics::EpxVector3 &velocity);
 

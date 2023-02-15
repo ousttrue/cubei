@@ -1,12 +1,84 @@
 ﻿#include <common/DrawData.h>
-#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
+#include <common/common.h>
+#include <elements/geometry_data.h>
 #include <gl/gl.h>
+#include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 using namespace EasyPhysics;
 
+struct MeshBuff {
+
+  std::vector<float> vtx;
+  std::vector<unsigned short> idx;
+  std::vector<unsigned short> wireIdx;
+  static std::shared_ptr<MeshBuff> Create(const EpxFloat *vertices,
+                                          EpxUInt32 numVertices,
+                                          const EpxUInt16 *indices,
+                                          EpxUInt32 numIndices) {
+    std::shared_ptr<MeshBuff> ptr(new MeshBuff);
+    ptr->vtx.assign(vertices, vertices + numVertices * 3);
+    ptr->idx.assign(indices, indices + numIndices);
+    for (int i = 0; i < numIndices; i += 3) {
+      ptr->wireIdx.push_back(indices[i]);
+      ptr->wireIdx.push_back(indices[i + 1]);
+      ptr->wireIdx.push_back(indices[i + 1]);
+      ptr->wireIdx.push_back(indices[i + 2]);
+      ptr->wireIdx.push_back(indices[i + 2]);
+      ptr->wireIdx.push_back(indices[i]);
+    }
+    return ptr;
+  }
+};
+std::unordered_map<EpxShapeType, std::shared_ptr<MeshBuff>> m_meshMap;
+
+std::shared_ptr<MeshBuff> GetOrCreateMesh(EpxShapeType shapeType) {
+  auto found = m_meshMap.find(shapeType);
+  if (found != m_meshMap.end()) {
+    return found->second;
+  }
+
+  const EpxFloat *vertices = nullptr;
+  EpxUInt32 numVertices = 0;
+  const EpxUInt16 *indices = nullptr;
+  EpxUInt32 numIndices = 0;
+  switch (shapeType) {
+  case EpxShapeType::Box:
+    vertices = box_vertices;
+    numVertices = box_numVertices;
+    indices = box_indices;
+    numIndices = box_numIndices;
+    break;
+  case EpxShapeType::Cylinder:
+    vertices = cylinder_vertices;
+    numVertices = cylinder_numVertices;
+    indices = cylinder_indices;
+    numIndices = cylinder_numIndices;
+    break;
+  case EpxShapeType::Sphere:
+    vertices = sphere_vertices;
+    numVertices = sphere_numVertices;
+    indices = sphere_indices;
+    numIndices = sphere_numIndices;
+    break;
+  case EpxShapeType::Tetrahedron:
+    vertices = tetrahedron_vertices;
+    numVertices = tetrahedron_numVertices;
+    indices = tetrahedron_indices;
+    numIndices = tetrahedron_numIndices;
+    break;
+  }
+  auto mesh = MeshBuff::Create(vertices, numVertices, indices, numIndices);
+  m_meshMap.insert({shapeType, mesh});
+  return mesh;
+}
+
+//
+// Gl1Renderer
+//
 Gl1Renderer::Gl1Renderer() {
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClearDepth(1.0f);
@@ -35,11 +107,10 @@ void Gl1Renderer::Begin(int width, int height, const float projection[16],
   glMultMatrixf(view);
 }
 
-void Gl1Renderer::Render(const DrawData &data, class Geometry &scene) {
-  for (auto [wMtx, shape] : data.shapes) {
-    auto mesh = scene.meshes[(size_t)shape->userData];
-    RenderMesh((const float *)&wMtx, EasyPhysics::EpxVector3(1, 1, 1),
-               mesh.get());
+void Gl1Renderer::Render(const DrawData &data) {
+  for (auto [transform, shape] : data.shapes) {
+    // auto mesh = scene.meshes[(size_t)shape->userData];
+    RenderMesh(transform, EasyPhysics::EpxVector3(1, 1, 1), shape);
   }
   DebugBegin();
   for (auto &point : data.points) {
@@ -51,26 +122,16 @@ void Gl1Renderer::Render(const DrawData &data, class Geometry &scene) {
   DebugEnd();
 }
 
-void Gl1Renderer::DebugBegin() {
-  glDepthMask(GL_FALSE);
-  glDisable(GL_DEPTH_TEST);
-}
+void Gl1Renderer::RenderMesh(const EpxTransform3 &transform,
+                             const EpxVector3 &color, const EpxShape *shape) {
+  auto buff = GetOrCreateMesh(shape->m_geometry.m_shapeType);
 
-void Gl1Renderer::DebugEnd() {
-  glDepthMask(GL_TRUE);
-  glEnable(GL_DEPTH_TEST);
-}
-
-void Gl1Renderer::RenderMesh(const float transform[16], const EpxVector3 &color,
-                             const MeshBuff *buff) {
-  // assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff.size());
-  // MeshBuff &buff = s_meshBuff[meshId];
-
+  EpxMatrix4 wMtx =
+      EpxMatrix4(transform) * EpxMatrix4::scale(shape->m_geometry.m_scale);
   glPushMatrix();
-  glMultMatrixf(transform);
+  glMultMatrixf((const float *)&wMtx);
 
   glEnableClientState(GL_VERTEX_ARRAY);
-
   glVertexPointer(3, GL_FLOAT, 0, buff->vtx.data());
 
   glColor4f(color[0], color[1], color[2], 1.0f);
@@ -87,6 +148,16 @@ void Gl1Renderer::RenderMesh(const float transform[16], const EpxVector3 &color,
   glDisableClientState(GL_VERTEX_ARRAY);
 
   glPopMatrix();
+}
+
+void Gl1Renderer::DebugBegin() {
+  glDepthMask(GL_FALSE);
+  glDisable(GL_DEPTH_TEST);
+}
+
+void Gl1Renderer::DebugEnd() {
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
 }
 
 void Gl1Renderer::DebugPoint(const EpxVector3 &position,

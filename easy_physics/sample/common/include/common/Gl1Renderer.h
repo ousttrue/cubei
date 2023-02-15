@@ -9,11 +9,11 @@ public:
   void Begin(int width, int height, const float projection[16],
              const float view[16]);
 
-  void Render(const struct DrawData &data, class Geometry &scene);
+  void Render(const struct DrawData &data);
 
-  void RenderMesh(const float transform[16],
+  void RenderMesh(const EasyPhysics::EpxTransform3 &transform,
                   const EasyPhysics::EpxVector3 &color,
-                  const struct MeshBuff *buff);
+                  const struct EasyPhysics::EpxShape *shape);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Debug Drawing

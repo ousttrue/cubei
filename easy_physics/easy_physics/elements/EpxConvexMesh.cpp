@@ -47,6 +47,7 @@ void epxGetProjection(EpxFloat &pmin, EpxFloat &pmax,
 EpxBool epxCreateConvexMesh(EpxConvexMesh *convexMesh, EpxShapeType shapeType,
                             const EpxVector3 &scale) {
   convexMesh->m_shapeType = shapeType;
+  convexMesh->m_scale = scale;
 
   const EpxFloat *vertices = nullptr;
   EpxUInt32 numVertices = 0;
@@ -88,8 +89,6 @@ EpxBool epxCreateConvexMesh(EpxConvexMesh *convexMesh, EpxShapeType shapeType,
       numIndices > EPX_CONVEX_MESH_MAX_FACETS * 3) {
     return false;
   }
-
-  memset(convexMesh, 0, sizeof(EpxConvexMesh));
 
   // 頂点バッファ作成
   for (EpxUInt32 i = 0; i < numVertices; i++) {

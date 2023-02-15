@@ -1,4 +1,3 @@
-#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/font_render_func.h>
@@ -44,16 +43,11 @@ PhysicsBody PhysicsScene::AddBody() {
   };
 }
 
-EpxShape *PhysicsScene::AddShape(Geometry &scene, int id, EpxShapeType type,
+EpxShape *PhysicsScene::AddShape(int id, EpxShapeType type,
                                  const EpxVector3 &scale, bool finish) {
   // 凸メッシュを作成
   EpxShape shape;
   epxCreateConvexMesh(&shape.m_geometry, type, scale);
-
-  // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
-  // 描画用メッシュは、終了時に自動的に破棄される
-  shape.userData = (void *)scene.meshes.size();
-  scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
   // 凸メッシュ形状を登録
   auto added = collidables[id].addShape(shape);
@@ -120,7 +114,7 @@ void PhysicsScene::Integrate(Perf &perf) {
   perf.end("integrate");
 }
 
-void PhysicsScene::CreateFireBody(Geometry &scene) {
+void PhysicsScene::CreateFireBody() {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -135,9 +129,6 @@ void PhysicsScene::CreateFireBody(Geometry &scene) {
 
   EpxShape shape;
   epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-
-  shape.userData = (void *)scene.meshes.size();
-  scene.meshes.push_back(MeshBuff::Create(shape.m_geometry));
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
@@ -168,9 +159,8 @@ const DrawData &PhysicsScene::GetDrawData() {
                                                 shape->m_offsetPosition);
       EasyPhysics::EpxTransform3 worldTransform =
           rigidBodyTransform * shapeTransform;
-      EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
 
-      data_.shapes.push_back({wMtx, shape});
+      data_.shapes.push_back({worldTransform, shape});
     }
   }
 

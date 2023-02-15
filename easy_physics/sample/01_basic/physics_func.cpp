@@ -27,7 +27,7 @@
 
 using namespace EasyPhysics;
 
-static std::shared_ptr<PhysicsScene> createSceneTwoBox(Geometry &scene) {
+static std::shared_ptr<PhysicsScene> createSceneTwoBox() {
   auto physics = std::make_shared<PhysicsScene>("basic rigid bodies");
 
   // 地面
@@ -37,7 +37,7 @@ static std::shared_ptr<PhysicsScene> createSceneTwoBox(Geometry &scene) {
     // 剛体を表現するための各種データを初期化
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   // ボックス
@@ -48,7 +48,7 @@ static std::shared_ptr<PhysicsScene> createSceneTwoBox(Geometry &scene) {
     body.state.m_position = EpxVector3(0.0f, scale[1], 0.0f);
     body.body.m_mass = 1.0f;
     body.body.m_inertia = epxCalcInertiaBox(scale, 1.0f);
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   {
@@ -60,13 +60,13 @@ static std::shared_ptr<PhysicsScene> createSceneTwoBox(Geometry &scene) {
         EpxQuat::rotationZ(2.0f) * EpxQuat::rotationY(0.7f);
     body.body.m_mass = 1.0f;
     body.body.m_inertia = epxCalcInertiaBox(scale, 1.0f);
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneFriction(Geometry &scene) {
+static std::shared_ptr<PhysicsScene> createSceneFriction() {
   auto physics = std::make_shared<PhysicsScene>("friction test");
 
   const EpxFloat angle = 0.4f;
@@ -79,7 +79,7 @@ static std::shared_ptr<PhysicsScene> createSceneFriction(Geometry &scene) {
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
     body.state.m_orientation = EpxQuat::rotationX(angle);
     body.body.m_friction = 0.4f;
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   const EpxVector3 brickScale(0.5f, 0.125f, 0.5f);
@@ -92,13 +92,13 @@ static std::shared_ptr<PhysicsScene> createSceneFriction(Geometry &scene) {
     body.body.m_mass = 2.0f;
     body.body.m_inertia = epxCalcInertiaBox(brickScale, 2.0f);
     body.body.m_friction = 0.25f * i;
-    physics->AddShape(scene, body.id, EpxShapeType::Box, brickScale);
+    physics->AddShape(body.id, EpxShapeType::Box, brickScale);
   }
 
   return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneRestitution(Geometry &scene) {
+static std::shared_ptr<PhysicsScene> createSceneRestitution() {
   auto physics = std::make_shared<PhysicsScene>("restitution test");
 
   // 地面
@@ -107,7 +107,7 @@ static std::shared_ptr<PhysicsScene> createSceneRestitution(Geometry &scene) {
     EpxVector3 scale(10.0f, 0.5f, 10.0f);
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   const EpxVector3 scale(0.5f);
@@ -119,13 +119,13 @@ static std::shared_ptr<PhysicsScene> createSceneRestitution(Geometry &scene) {
     body.body.m_mass = 2.0f;
     body.body.m_inertia = epxCalcInertiaSphere(1.0f, 2.0f);
     body.body.m_restitution = 0.25f * i;
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneGeometries(Geometry &scene) {
+static std::shared_ptr<PhysicsScene> createSceneGeometries() {
   auto physics = std::make_shared<PhysicsScene>("various convex shapes");
 
   // 地面
@@ -134,7 +134,7 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(Geometry &scene) {
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+    physics->AddShape(body.id, EpxShapeType::Box, scale);
   }
 
   srand(9999);
@@ -155,19 +155,19 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(Geometry &scene) {
 
       switch ((i * width + j) % 4) {
       case 0:
-        physics->AddShape(scene, body.id, EpxShapeType::Sphere, scale);
+        physics->AddShape(body.id, EpxShapeType::Sphere, scale);
         break;
 
       case 1:
-        physics->AddShape(scene, body.id, EpxShapeType::Box, scale);
+        physics->AddShape(body.id, EpxShapeType::Box, scale);
         break;
 
       case 2:
-        physics->AddShape(scene, body.id, EpxShapeType::Cylinder, scale);
+        physics->AddShape(body.id, EpxShapeType::Cylinder, scale);
         break;
 
       case 3:
-        physics->AddShape(scene, body.id, EpxShapeType::Tetrahedron, scale);
+        physics->AddShape(body.id, EpxShapeType::Tetrahedron, scale);
         break;
       }
     }
@@ -177,29 +177,29 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(Geometry &scene) {
 }
 
 static const int maxScenes = 4;
-std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId, Geometry &scene) {
+std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId) {
   std::shared_ptr<PhysicsScene> physics;
   switch (sceneId % maxScenes) {
   case 0:
-    physics = createSceneTwoBox(scene);
+    physics = createSceneTwoBox();
     break;
 
   case 1:
-    physics = createSceneFriction(scene);
+    physics = createSceneFriction();
     break;
 
   case 2:
-    physics = createSceneRestitution(scene);
+    physics = createSceneRestitution();
     break;
 
   case 3:
-    physics = createSceneGeometries(scene);
+    physics = createSceneGeometries();
     break;
 
   default:
     throw std::out_of_range("0-3");
   }
 
-  physics->CreateFireBody(scene);
+  physics->CreateFireBody();
   return physics;
 }

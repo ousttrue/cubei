@@ -1,7 +1,6 @@
 ﻿#include "physics_func.h"
 #include <GLFW/glfw3.h>
 #include <common/FontStashRenderer.h>
-#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/ScreenCamera.h>
 #include <common/common.h>
@@ -93,7 +92,7 @@ public:
     m_onKeyPress[key] = callback;
   }
 
-  void Bind(Geometry &scene, ScreenCamera &camera) {
+  void Bind(ScreenCamera &camera) {
     // keybind: view
     OnKeyIsDown(GLFW_KEY_UP, [&camera](int x, int y, int width, int height) {
       auto [angX, angY, r] = camera.GetViewAngle();
@@ -140,13 +139,11 @@ public:
                   camera.SetViewAngle(angX, angY, r);
                 });
 
-    OnKeyPress(GLFW_KEY_F1, [&scene](int x, int y, int width, int height) {
-      scene.meshes.clear();
-      g_scene =physicsCreateScene(g_sceneId, scene);
+    OnKeyPress(GLFW_KEY_F1, [](int x, int y, int width, int height) {
+      g_scene = physicsCreateScene(g_sceneId);
     });
-    OnKeyPress(GLFW_KEY_F2, [&scene](int x, int y, int width, int height) {
-      scene.meshes.clear();
-      g_scene = physicsCreateScene(++g_sceneId, scene);
+    OnKeyPress(GLFW_KEY_F2, [](int x, int y, int width, int height) {
+      g_scene = physicsCreateScene(++g_sceneId);
     });
     OnKeyPress(GLFW_KEY_F3, [](int x, int y, int width, int height) {
       g_simulating = !g_simulating;
@@ -171,15 +168,14 @@ int main(int argc, char **argv) {
   GlfwPlatform platform;
   Gl1Renderer renderer;
   ScreenCamera camera;
-  Geometry scene;
-  platform.Bind(scene, camera);
+  platform.Bind(camera);
 
   FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
                   : "subprojects/fontstash/example/DroidSerif-Regular.ttf");
 
-  g_scene = physicsCreateScene(g_sceneId, scene);
+  g_scene = physicsCreateScene(g_sceneId);
 
   int x, y, width, height;
   while (platform.NewFrame(&x, &y, &width, &height)) {
@@ -193,7 +189,7 @@ int main(int argc, char **argv) {
     renderer.Begin(width, height, projection, view);
 
     auto data = g_scene->GetDrawData();
-    renderer.Render(data, scene);
+    renderer.Render(data);
 
     renderer.Debug2dBegin(width, height);
     stash.Draw(x, y, width, height, g_scene->title_);

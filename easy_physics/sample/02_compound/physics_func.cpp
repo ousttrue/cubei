@@ -428,7 +428,7 @@ static const char titles[][32] = {
 
 const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
 
-void physicsCreateScene(int sceneId, Geometry &scene) {
+void physicsCreateScene(int sceneId) {
   g_frame = 0;
 
   g_numRigidBodies = 0;
