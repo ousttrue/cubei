@@ -1,6 +1,6 @@
-#include <common/GraphicsScene.h>
+#include <common/ScreenCamera.h>
 
-GraphicsScene::GraphicsScene() {
+ScreenCamera::ScreenCamera() {
   s_viewPos = EpxMatrix3::rotationY(s_viewRadY) *
               EpxMatrix3::rotationX(s_viewRadX) *
               EpxVector3(0, 0, s_viewRadius);
@@ -10,10 +10,10 @@ GraphicsScene::GraphicsScene() {
                EpxVector3(0, 0, s_lightRadius);
 }
 
-GraphicsScene::~GraphicsScene() {}
+ScreenCamera::~ScreenCamera() {}
 
 std::tuple<const float *, const float *>
-GraphicsScene::UpdateProjectionView(int width, int height) {
+ScreenCamera::UpdateProjectionView(int width, int height) {
   // update projection
   s_pMat = EpxMatrix4::perspective(3.1415f / 4.0f, (float)width / (float)height,
                                    0.1f, 1000.0f);
@@ -26,7 +26,7 @@ GraphicsScene::UpdateProjectionView(int width, int height) {
   return {(const float *)&s_pMat, (const float *)&s_vMat};
 }
 
-EpxVector3 GraphicsScene::GetWorldPosition(const EpxVector3 &screenPos,
+EpxVector3 ScreenCamera::GetWorldPosition(const EpxVector3 &screenPos,
                                            int width, int height) const {
   auto mvp = s_pMat * s_vMat;
   auto mvpInv = inverse(mvp);
@@ -45,7 +45,7 @@ EpxVector3 GraphicsScene::GetWorldPosition(const EpxVector3 &screenPos,
   return wp.getXYZ();
 }
 
-EpxVector3 GraphicsScene::GetScreenPosition(const EpxVector3 &worldPos,
+EpxVector3 ScreenCamera::GetScreenPosition(const EpxVector3 &worldPos,
                                             int width, int height) const {
   EpxVector4 sp(worldPos, 1.0f);
 

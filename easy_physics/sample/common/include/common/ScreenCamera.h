@@ -4,7 +4,7 @@
 
 using namespace EasyPhysics;
 
-class GraphicsScene {
+class ScreenCamera {
   EpxMatrix4 s_pMat, s_vMat;
   EpxVector3 s_viewPos, s_lightPos;
 
@@ -19,10 +19,10 @@ class GraphicsScene {
   EpxVector3 s_viewTgt{0.0f, 1.0f, 0.0f};
 
 public:
-  GraphicsScene(const GraphicsScene &) = delete;
-  GraphicsScene &operator=(const GraphicsScene &) = delete;
-  GraphicsScene();
-  ~GraphicsScene();
+  ScreenCamera(const ScreenCamera &) = delete;
+  ScreenCamera &operator=(const ScreenCamera &) = delete;
+  ScreenCamera();
+  ~ScreenCamera();
 
   std::tuple<const float *, const float *> UpdateProjectionView(int width,
                                                                 int height);

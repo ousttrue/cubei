@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <common/FontStashRenderer.h>
 #include <common/Gl1Renderer.h>
-#include <common/GraphicsScene.h>
+#include <common/ScreenCamera.h>
 #include <common/common.h>
 #include <format>
 #include <functional>
@@ -93,51 +93,51 @@ public:
     m_onKeyPress[key] = callback;
   }
 
-  void Bind(Gl1Renderer &renderer, GraphicsScene &scene) {
+  void Bind(Gl1Renderer &renderer, ScreenCamera &camera) {
     // keybind: view
-    OnKeyIsDown(GLFW_KEY_UP, [&scene](int x, int y, int width, int height) {
-      auto [angX, angY, r] = scene.GetViewAngle();
+    OnKeyIsDown(GLFW_KEY_UP, [&camera](int x, int y, int width, int height) {
+      auto [angX, angY, r] = camera.GetViewAngle();
       angX -= 0.05f;
       if (angX < -1.4f)
         angX = -1.4f;
       if (angX > -0.01f)
         angX = -0.01f;
-      scene.SetViewAngle(angX, angY, r);
+      camera.SetViewAngle(angX, angY, r);
     });
-    OnKeyIsDown(GLFW_KEY_DOWN, [&scene](int x, int y, int width, int height) {
-      auto [angX, angY, r] = scene.GetViewAngle();
+    OnKeyIsDown(GLFW_KEY_DOWN, [&camera](int x, int y, int width, int height) {
+      auto [angX, angY, r] = camera.GetViewAngle();
       angX += 0.05f;
       if (angX < -1.4f)
         angX = -1.4f;
       if (angX > -0.01f)
         angX = -0.01f;
-      scene.SetViewAngle(angX, angY, r);
+      camera.SetViewAngle(angX, angY, r);
     });
-    OnKeyIsDown(GLFW_KEY_LEFT, [&scene](int x, int y, int width, int height) {
-      auto [angX, angY, r] = scene.GetViewAngle();
+    OnKeyIsDown(GLFW_KEY_LEFT, [&camera](int x, int y, int width, int height) {
+      auto [angX, angY, r] = camera.GetViewAngle();
       angY -= 0.05f;
-      scene.SetViewAngle(angX, angY, r);
+      camera.SetViewAngle(angX, angY, r);
     });
-    OnKeyIsDown(GLFW_KEY_RIGHT, [&scene](int x, int y, int width, int height) {
-      auto [angX, angY, r] = scene.GetViewAngle();
+    OnKeyIsDown(GLFW_KEY_RIGHT, [&camera](int x, int y, int width, int height) {
+      auto [angX, angY, r] = camera.GetViewAngle();
       angY += 0.05f;
-      scene.SetViewAngle(angX, angY, r);
+      camera.SetViewAngle(angX, angY, r);
     });
     OnKeyIsDown(GLFW_KEY_PAGE_DOWN,
-                [&scene](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = scene.GetViewAngle();
+                [&camera](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = camera.GetViewAngle();
                   r *= 1.1f;
                   if (r > 500.0f)
                     r = 500.0f;
-                  scene.SetViewAngle(angX, angY, r);
+                  camera.SetViewAngle(angX, angY, r);
                 });
     OnKeyIsDown(GLFW_KEY_PAGE_UP,
-                [&scene](int x, int y, int width, int height) {
-                  auto [angX, angY, r] = scene.GetViewAngle();
+                [&camera](int x, int y, int width, int height) {
+                  auto [angX, angY, r] = camera.GetViewAngle();
                   r *= 0.9f;
                   if (r < 1.0f)
                     r = 1.0f;
-                  scene.SetViewAngle(angX, angY, r);
+                  camera.SetViewAngle(angX, angY, r);
                 });
 
     OnKeyPress(GLFW_KEY_F1, [&renderer](int x, int y, int width, int height) {
@@ -156,11 +156,11 @@ public:
     OnKeyPress(GLFW_KEY_F4, [](int x, int y, int width, int height) {
       g_simulating = true;
     });
-    OnKeyPress(GLFW_KEY_SPACE, [&scene](int x, int y, int width, int height) {
+    OnKeyPress(GLFW_KEY_SPACE, [&camera](int x, int y, int width, int height) {
       auto wp1 =
-          scene.GetWorldPosition({(float)x, (float)y, 0.0f}, width, height);
+          camera.GetWorldPosition({(float)x, (float)y, 0.0f}, width, height);
       auto wp2 =
-          scene.GetWorldPosition({(float)x, (float)y, 1.0f}, width, height);
+          camera.GetWorldPosition({(float)x, (float)y, 1.0f}, width, height);
       g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
     });
   }
@@ -172,8 +172,8 @@ int main(int argc, char **argv) {
 
   GlfwPlatform platform;
   Gl1Renderer renderer;
-  GraphicsScene scene;
-  platform.Bind(renderer, scene);
+  ScreenCamera camera;
+  platform.Bind(renderer, camera);
 
   FontStashRenderer stash(
       "sans", argc > 1
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
     if (g_simulating) {
       g_scene->Simulate(g_state);
     }
-    auto [projection, view] = scene.UpdateProjectionView(width, height);
+    auto [projection, view] = camera.UpdateProjectionView(width, height);
 
     // render
     renderer.Begin(width, height, projection, view);

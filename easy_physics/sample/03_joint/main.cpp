@@ -24,7 +24,7 @@
 #include "physics_func.h"
 #include <common/FontStashRenderer.h>
 #include <common/Gl1Renderer.h>
-#include <common/GraphicsScene.h>
+#include <common/ScreenCamera.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
 #include <common/win32window.h>
@@ -83,7 +83,7 @@ static void render(Gl1Renderer *renderer) {
   renderer->DebugEnd();
 }
 
-static void update(Gl1Renderer *renderer, GraphicsScene &scene, Control *ctrl,
+static void update(Gl1Renderer *renderer, ScreenCamera &scene, Control *ctrl,
                    int width, int height) {
   auto [angX, angY, r] = scene.GetViewAngle();
 
@@ -170,7 +170,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   Win32Window window(hInstance, SAMPLE_NAME, 640, 480);
   physicsInit();
   Gl1Renderer renderer;
-  GraphicsScene scene;
+  ScreenCamera scene;
   physicsCreateScene(g_sceneId, &renderer);
   Control ctrl;
 
