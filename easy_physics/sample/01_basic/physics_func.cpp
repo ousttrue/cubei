@@ -27,32 +27,32 @@
 
 using namespace EasyPhysics;
 
-static std::shared_ptr<PhysicsScene> createSceneTwoBox(Gl1Renderer *renderer) {
-  auto scene = std::make_shared<PhysicsScene>("basic rigid bodies");
+static std::shared_ptr<PhysicsScene> createSceneTwoBox(MeshScene &scene) {
+  auto physics = std::make_shared<PhysicsScene>("basic rigid bodies");
 
   // 地面
   {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
     // 剛体を表現するための各種データを初期化
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
   // ボックス
   {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     EpxVector3 scale(2.0f, 0.25f, 1.0f);
     // 剛体を表現するための各種データを初期化
     body.state.m_position = EpxVector3(0.0f, scale[1], 0.0f);
     body.body.m_mass = 1.0f;
     body.body.m_inertia = epxCalcInertiaBox(scale, 1.0f);
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
   {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     EpxVector3 scale(2.0f, 0.25f, 1.0f);
     // 剛体を表現するための各種データを初期化
     body.state.m_position = EpxVector3(0.0f, 3.0f, 0.0f);
@@ -60,82 +60,81 @@ static std::shared_ptr<PhysicsScene> createSceneTwoBox(Gl1Renderer *renderer) {
         EpxQuat::rotationZ(2.0f) * EpxQuat::rotationY(0.7f);
     body.body.m_mass = 1.0f;
     body.body.m_inertia = epxCalcInertiaBox(scale, 1.0f);
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
-  return scene;
+  return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneFriction(Gl1Renderer *renderer) {
-  auto scene = std::make_shared<PhysicsScene>("friction test");
+static std::shared_ptr<PhysicsScene> createSceneFriction(MeshScene &scene) {
+  auto physics = std::make_shared<PhysicsScene>("friction test");
 
   const EpxFloat angle = 0.4f;
 
   // 地面
   {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 0.5f, 10.0f);
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
     body.state.m_orientation = EpxQuat::rotationX(angle);
     body.body.m_friction = 0.4f;
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
   const EpxVector3 brickScale(0.5f, 0.125f, 0.5f);
 
   for (int i = 0; i < 5; i++) {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     // 剛体を表現するための各種データを初期化
     body.state.m_position = EpxVector3(2.0f * (i - 2), 3.0f, 0.0f);
     body.state.m_orientation = EpxQuat::rotationX(angle);
     body.body.m_mass = 2.0f;
     body.body.m_inertia = epxCalcInertiaBox(brickScale, 2.0f);
     body.body.m_friction = 0.25f * i;
-    scene->AddBoxShape(renderer, body.id, brickScale);
+    physics->AddBoxShape(scene, body.id, brickScale);
   }
 
-  return scene;
+  return physics;
 }
 
-static std::shared_ptr<PhysicsScene>
-createSceneRestitution(Gl1Renderer *renderer) {
-  auto scene = std::make_shared<PhysicsScene>("restitution test");
+static std::shared_ptr<PhysicsScene> createSceneRestitution(MeshScene &scene) {
+  auto physics = std::make_shared<PhysicsScene>("restitution test");
 
   // 地面
   {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 0.5f, 10.0f);
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
   const EpxVector3 scale(0.5f);
 
   for (int i = 0; i < 5; i++) {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     // 剛体を表現するための各種データを初期化
     body.state.m_position = EpxVector3(2.0f * (i - 2), 5.0f, 0.0f);
     body.body.m_mass = 2.0f;
     body.body.m_inertia = epxCalcInertiaSphere(1.0f, 2.0f);
     body.body.m_restitution = 0.25f * i;
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
-  return scene;
+  return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneGeometries(Gl1Renderer *renderer) {
-  auto scene = std::make_shared<PhysicsScene>("various convex shapes");
+static std::shared_ptr<PhysicsScene> createSceneGeometries(MeshScene &scene) {
+  auto physics = std::make_shared<PhysicsScene>("various convex shapes");
 
   // 地面
   {
-    auto body = scene->AddBody();
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
     body.state.m_motionType = EpxMotionTypeStatic;
     body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    scene->AddBoxShape(renderer, body.id, scale);
+    physics->AddBoxShape(scene, body.id, scale);
   }
 
   srand(9999);
@@ -143,7 +142,7 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(Gl1Renderer *renderer
   const int width = 5;
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < width; j++) {
-      auto body = scene->AddBody();
+      auto body = physics->AddBody();
 
       EpxVector3 scale(0.1f + (rand() % 90) / 100.0f,
                        0.1f + (rand() % 90) / 100.0f,
@@ -156,52 +155,52 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(Gl1Renderer *renderer
 
       switch ((i * width + j) % 4) {
       case 0:
-        scene->AddSphereShape(renderer, body.id, scale);
+        physics->AddSphereShape(scene, body.id, scale);
         break;
 
       case 1:
-        scene->AddBoxShape(renderer, body.id, scale);
+        physics->AddBoxShape(scene, body.id, scale);
         break;
 
       case 2:
-        scene->AddCylinderShape(renderer, body.id, scale);
+        physics->AddCylinderShape(scene, body.id, scale);
         break;
 
       case 3:
-        scene->AddTetrahedronShape(renderer, body.id, scale);
+        physics->AddTetrahedronShape(scene, body.id, scale);
         break;
       }
     }
   }
 
-  return scene;
+  return physics;
 }
 
 static const int maxScenes = 4;
 std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,
-                                                 Gl1Renderer *renderer) {
-  std::shared_ptr<PhysicsScene> scene;
+                                                 MeshScene &scene) {
+  std::shared_ptr<PhysicsScene> physics;
   switch (sceneId % maxScenes) {
   case 0:
-    scene = createSceneTwoBox(renderer);
+    physics = createSceneTwoBox(scene);
     break;
 
   case 1:
-    scene = createSceneFriction(renderer);
+    physics = createSceneFriction(scene);
     break;
 
   case 2:
-    scene = createSceneRestitution(renderer);
+    physics = createSceneRestitution(scene);
     break;
 
   case 3:
-    scene = createSceneGeometries(renderer);
+    physics = createSceneGeometries(scene);
     break;
 
   default:
     throw std::out_of_range("0-3");
   }
 
-  scene->CreateFireBody(renderer);
-  return scene;
+  physics->CreateFireBody(scene);
+  return physics;
 }

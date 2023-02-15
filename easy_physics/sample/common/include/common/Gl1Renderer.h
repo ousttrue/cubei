@@ -35,9 +35,27 @@ struct MeshBuff {
 
   MeshBuff() : vtx(0), nml(0), numVtx(0), idx(0), wireIdx(0), numIdx(0) {}
 };
-class Gl1Renderer {
 
+class MeshScene {
   std::vector<MeshBuff> s_meshBuff;
+
+public:
+  MeshScene(const MeshScene &) = delete;
+  MeshScene &operator=(const MeshScene &) = delete;
+  MeshScene(){}
+  ~MeshScene(){}
+
+  uint64_t CreateRenderMesh(EasyPhysics::EpxConvexMesh *convexMesh);
+  void ReleaseMeshAll();
+  const MeshBuff &Get(uint64_t index) const { return s_meshBuff[index]; }
+
+private:
+  int InitMesh(const float *vtx, unsigned int vtxStrideBytes, const float *nml,
+               unsigned int nmlStrideBytes, const unsigned short *tri,
+               unsigned int triStrideBytes, int numVtx, int numTri);
+};
+
+class Gl1Renderer {
 
 public:
   Gl1Renderer();
@@ -45,14 +63,8 @@ public:
   void Begin(int width, int height, const float projection[16],
              const float view[16]);
 
-  int InitMesh(const float *vtx, unsigned int vtxStrideBytes, const float *nml,
-               unsigned int nmlStrideBytes, const unsigned short *tri,
-               unsigned int triStrideBytes, int numVtx, int numTri);
-
-  void ReleaseMeshAll();
-
   void RenderMesh(const float transform[16],
-            const EasyPhysics::EpxVector3 &color, int meshId);
+                  const EasyPhysics::EpxVector3 &color, const MeshBuff &buff);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Debug Drawing
@@ -77,6 +89,3 @@ public:
   void Debug2dBegin(int width, int height);
   void Debug2dEnd();
 };
-
-uint64_t createRenderMesh(class Gl1Renderer *renderer,
-                          EasyPhysics::EpxConvexMesh *convexMesh);

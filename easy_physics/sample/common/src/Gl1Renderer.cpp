@@ -34,7 +34,7 @@ Gl1Renderer::Gl1Renderer() {
   glClearDepth(1.0f);
 }
 
-Gl1Renderer::~Gl1Renderer() { ReleaseMeshAll(); }
+Gl1Renderer::~Gl1Renderer() {}
 
 void Gl1Renderer::Begin(int width, int height, const float projection[16],
                         const float view[16]) {
@@ -67,10 +67,10 @@ void Gl1Renderer::DebugEnd() {
   glEnable(GL_DEPTH_TEST);
 }
 
-int Gl1Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
-                          const float *nml, unsigned int nmlStrideBytes,
-                          const unsigned short *tri,
-                          unsigned int triStrideBytes, int numVtx, int numTri) {
+int MeshScene::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
+                        const float *nml, unsigned int nmlStrideBytes,
+                        const unsigned short *tri, unsigned int triStrideBytes,
+                        int numVtx, int numTri) {
   //	assert(numMesh<MAX_MESH);
 
   MeshBuff buff;
@@ -109,7 +109,7 @@ int Gl1Renderer::InitMesh(const float *vtx, unsigned int vtxStrideBytes,
   s_meshBuff.push_back(buff);
   return s_meshBuff.size() - 1;
 }
-void Gl1Renderer::ReleaseMeshAll() {
+void MeshScene::ReleaseMeshAll() {
   for (EpxUInt32 c = 0; c < s_meshBuff.size(); ++c) {
     delete[] s_meshBuff[c].vtx;
     delete[] s_meshBuff[c].nml;
@@ -120,10 +120,9 @@ void Gl1Renderer::ReleaseMeshAll() {
 }
 
 void Gl1Renderer::RenderMesh(const float transform[16], const EpxVector3 &color,
-                       int meshId) {
-  assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff.size());
-
-  MeshBuff &buff = s_meshBuff[meshId];
+                             const MeshBuff &buff) {
+  // assert(meshId >= 0 && (EpxUInt32)meshId < s_meshBuff.size());
+  // MeshBuff &buff = s_meshBuff[meshId];
 
   glPushMatrix();
   glMultMatrixf(transform);
@@ -222,8 +221,7 @@ void Gl1Renderer::Debug2dEnd() {
   glPopMatrix();
 }
 
-
-uint64_t createRenderMesh(Gl1Renderer *renderer, EpxConvexMesh *convexMesh) {
+uint64_t MeshScene::CreateRenderMesh(EpxConvexMesh *convexMesh) {
   assert(convexMesh);
 
   EpxFloat *verts = new EpxFloat[convexMesh->m_numVertices * 3];
@@ -264,9 +262,9 @@ uint64_t createRenderMesh(Gl1Renderer *renderer, EpxConvexMesh *convexMesh) {
   }
 
   int renderMeshId =
-      renderer->InitMesh(verts, sizeof(EpxFloat) * 3, nmls,
-                         sizeof(EpxFloat) * 3, idxs, sizeof(EpxUInt16) * 3,
-                         convexMesh->m_numVertices, convexMesh->m_numFacets);
+      InitMesh(verts, sizeof(EpxFloat) * 3, nmls, sizeof(EpxFloat) * 3, idxs,
+               sizeof(EpxUInt16) * 3, convexMesh->m_numVertices,
+               convexMesh->m_numFacets);
 
   delete[] idxs;
   delete[] nmls;

@@ -27,7 +27,6 @@
 #include <common/geometry_data.h>
 #include <stdlib.h>
 
-
 using namespace EasyPhysics;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,7 +154,7 @@ void physicsSimulate() {
 
 static int fireRigidBodyId;
 
-static void createFireBody(Gl1Renderer *renderer) {
+static void createFireBody(MeshScene &scene) {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -173,13 +172,13 @@ static void createFireBody(Gl1Renderer *renderer) {
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
 }
 
-static void createSceneBallJoint(Gl1Renderer *renderer) {
+static void createSceneBallJoint(MeshScene &scene) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -198,7 +197,7 @@ static void createSceneBallJoint(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -221,7 +220,7 @@ static void createSceneBallJoint(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -249,7 +248,7 @@ static void createSceneBallJoint(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
                         cylinder_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -276,7 +275,7 @@ static void createSceneBallJoint(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
                         cylinder_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -286,7 +285,7 @@ static void createSceneBallJoint(Gl1Renderer *renderer) {
   }
 }
 
-static void createSceneHingeJoint(Gl1Renderer *renderer) {
+static void createSceneHingeJoint(MeshScene &scene) {
   // ボールジョイントx2でヒンジジョイントを再現
   EpxBallJoint &joint0 = joints[g_numJoints++];
   EpxBallJoint &joint1 = joints[g_numJoints++];
@@ -310,7 +309,7 @@ static void createSceneHingeJoint(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
                         cylinder_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -341,7 +340,7 @@ static void createSceneHingeJoint(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -353,7 +352,7 @@ static void createSceneHingeJoint(Gl1Renderer *renderer) {
   }
 }
 
-static void createSceneFixedJoint(Gl1Renderer *renderer) {
+static void createSceneFixedJoint(MeshScene &scene) {
   // ボールジョイントx3で固定ジョイントを再現
   EpxBallJoint &joint0 = joints[g_numJoints++];
   EpxBallJoint &joint1 = joints[g_numJoints++];
@@ -377,7 +376,7 @@ static void createSceneFixedJoint(Gl1Renderer *renderer) {
     shape.reset();
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -408,7 +407,7 @@ static void createSceneFixedJoint(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -423,7 +422,7 @@ static void createSceneFixedJoint(Gl1Renderer *renderer) {
   }
 }
 
-static int createGear(Gl1Renderer *renderer, const EpxVector3 &offsetPosition,
+static int createGear(MeshScene &scene, const EpxVector3 &offsetPosition,
                       const EpxQuat &offsetOrientation) {
   int gearId;
 
@@ -453,7 +452,7 @@ static int createGear(Gl1Renderer *renderer, const EpxVector3 &offsetPosition,
     epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                         cylinder_numVertices, cylinder_indices,
                         cylinder_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -486,7 +485,7 @@ static int createGear(Gl1Renderer *renderer, const EpxVector3 &offsetPosition,
       epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                           cylinder_numVertices, cylinder_indices,
                           cylinder_numIndices, scale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
 
@@ -497,7 +496,7 @@ static int createGear(Gl1Renderer *renderer, const EpxVector3 &offsetPosition,
       shape.m_offsetOrientation = EpxQuat::rotationZ(i * 0.25f * EPX_PI);
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, cogsScale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
 
@@ -515,17 +514,17 @@ static int createGear(Gl1Renderer *renderer, const EpxVector3 &offsetPosition,
   return gearId;
 }
 
-static void createSceneGearJoint(Gl1Renderer *renderer) {
+static void createSceneGearJoint(MeshScene &scene) {
   // ギア大
-  createGear(renderer, EpxVector3(2.0f, 1.0f, 0.0f), EpxQuat::identity());
+  createGear(scene, EpxVector3(2.0f, 1.0f, 0.0f), EpxQuat::identity());
 
   // ギア小
-  int gearId = createGear(renderer, EpxVector3(-2.5f, 1.0f, 0.0f),
+  int gearId = createGear(scene, EpxVector3(-2.5f, 1.0f, 0.0f),
                           EpxQuat::rotationZ(0.125f * EPX_PI));
   states[gearId].m_angularVelocity = EpxVector3(0.0f, 0.0f, -10.0f);
 }
 
-static void createSceneChain(Gl1Renderer *renderer) {
+static void createSceneChain(MeshScene &scene) {
   const EpxVector3 chainScale(0.125f, 0.5f, 0.125f);
   const EpxVector3 ballScale(1.5f);
 
@@ -547,7 +546,7 @@ static void createSceneChain(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[dummyId].addShape(shape);
     collidables[dummyId].finish();
@@ -572,7 +571,7 @@ static void createSceneChain(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, chainScale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -608,7 +607,7 @@ static void createSceneChain(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                         sphere_indices, sphere_numIndices, ballScale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -639,7 +638,7 @@ static void createSceneChain(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, chainScale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -675,7 +674,7 @@ static void createSceneChain(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                         sphere_indices, sphere_numIndices, ballScale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -696,7 +695,7 @@ static const char titles[][32] = {
 
 const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
 
-void physicsCreateScene(int sceneId, Gl1Renderer *renderer) {
+void physicsCreateScene(int sceneId, MeshScene &scene) {
   g_frame = 0;
 
   g_numRigidBodies = 0;
@@ -706,27 +705,27 @@ void physicsCreateScene(int sceneId, Gl1Renderer *renderer) {
 
   switch (sceneId % maxScenes) {
   case 0:
-    createSceneBallJoint(renderer);
+    createSceneBallJoint(scene);
     break;
 
   case 1:
-    createSceneHingeJoint(renderer);
+    createSceneHingeJoint(scene);
     break;
 
   case 2:
-    createSceneFixedJoint(renderer);
+    createSceneFixedJoint(scene);
     break;
 
   case 3:
-    createSceneGearJoint(renderer);
+    createSceneGearJoint(scene);
     break;
 
   case 4:
-    createSceneChain(renderer);
+    createSceneChain(scene);
     break;
   }
 
-  createFireBody(renderer);
+  createFireBody(scene);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -93,7 +93,7 @@ public:
     m_onKeyPress[key] = callback;
   }
 
-  void Bind(Gl1Renderer &renderer, ScreenCamera &camera) {
+  void Bind(MeshScene &scene, ScreenCamera &camera) {
     // keybind: view
     OnKeyIsDown(GLFW_KEY_UP, [&camera](int x, int y, int width, int height) {
       auto [angX, angY, r] = camera.GetViewAngle();
@@ -140,14 +140,14 @@ public:
                   camera.SetViewAngle(angX, angY, r);
                 });
 
-    OnKeyPress(GLFW_KEY_F1, [&renderer](int x, int y, int width, int height) {
-      renderer.ReleaseMeshAll();
-      physicsCreateScene(g_sceneId, &renderer);
+    OnKeyPress(GLFW_KEY_F1, [&scene](int x, int y, int width, int height) {
+      scene.ReleaseMeshAll();
+      physicsCreateScene(g_sceneId, scene);
       g_state.Clear();
     });
-    OnKeyPress(GLFW_KEY_F2, [&renderer](int x, int y, int width, int height) {
-      renderer.ReleaseMeshAll();
-      g_scene = physicsCreateScene(++g_sceneId, &renderer);
+    OnKeyPress(GLFW_KEY_F2, [&scene](int x, int y, int width, int height) {
+      scene.ReleaseMeshAll();
+      g_scene = physicsCreateScene(++g_sceneId, scene);
       g_state.Clear();
     });
     OnKeyPress(GLFW_KEY_F3, [](int x, int y, int width, int height) {
@@ -173,14 +173,15 @@ int main(int argc, char **argv) {
   GlfwPlatform platform;
   Gl1Renderer renderer;
   ScreenCamera camera;
-  platform.Bind(renderer, camera);
+  MeshScene scene;
+  platform.Bind(scene, camera);
 
   FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
                   : "subprojects/fontstash/example/DroidSerif-Regular.ttf");
 
-  g_scene = physicsCreateScene(g_sceneId, &renderer);
+  g_scene = physicsCreateScene(g_sceneId, scene);
   g_state.Clear();
 
   int x, y, width, height;
@@ -193,7 +194,7 @@ int main(int argc, char **argv) {
 
     // render
     renderer.Begin(width, height, projection, view);
-    PhysicsRender(*g_scene, g_state, &renderer, nullptr);
+    PhysicsRender(*g_scene, g_state, &renderer, scene);
 
     renderer.Debug2dBegin(width, height);
     stash.Draw(x, y, width, height, g_scene->title_);

@@ -80,30 +80,30 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(class Gl1Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddShape(class MeshScene &scene, int id,
                                   ShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish);
-  EasyPhysics::EpxShape *AddBoxShape(class Gl1Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddBoxShape(class MeshScene &scene, int id,
                                      const EasyPhysics::EpxVector3 &scale,
                                      bool finish = true) {
-    return AddShape(renderer, id, ShapeType::Box, scale, finish);
+    return AddShape(scene, id, ShapeType::Box, scale, finish);
   }
-  EasyPhysics::EpxShape *AddSphereShape(Gl1Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddSphereShape(MeshScene &scene, int id,
                                         const EasyPhysics::EpxVector3 &scale,
                                         bool finish = true) {
-    return AddShape(renderer, id, ShapeType::Sphere, scale, finish);
+    return AddShape(scene, id, ShapeType::Sphere, scale, finish);
   }
-  EasyPhysics::EpxShape *AddCylinderShape(Gl1Renderer *renderer, int id,
+  EasyPhysics::EpxShape *AddCylinderShape(MeshScene &scene, int id,
                                           const EasyPhysics::EpxVector3 &scale,
                                           bool finish = true) {
-    return AddShape(renderer, id, ShapeType::Cylinder, scale, finish);
+    return AddShape(scene, id, ShapeType::Cylinder, scale, finish);
   }
   EasyPhysics::EpxShape *
-  AddTetrahedronShape(Gl1Renderer *renderer, int id,
+  AddTetrahedronShape(MeshScene &scene, int id,
                       const EasyPhysics::EpxVector3 &scale,
                       bool finish = true) {
-    return AddShape(renderer, id, ShapeType::Tetrahedron, scale, finish);
+    return AddShape(scene, id, ShapeType::Tetrahedron, scale, finish);
   }
 
   // simulation
@@ -116,11 +116,11 @@ struct PhysicsScene {
 
   // fire
   int fireRigidBodyId;
-  void CreateFireBody(Gl1Renderer *renderer);
+  void CreateFireBody(class MeshScene &scene);
   void PhysicsFire(const EasyPhysics::EpxVector3 &position,
                    const EasyPhysics::EpxVector3 &velocity);
 };
 
 // render
-void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
-                   class Gl1Renderer *renderer, class FontRenderer *font);
+void PhysicsRender(const PhysicsScene &physics, const PhysicsState &physicsState,
+                   class Gl1Renderer *renderer, const class MeshScene &scene);

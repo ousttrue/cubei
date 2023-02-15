@@ -28,7 +28,7 @@
 // シミュレーション関数
 bool physicsInit();
 void physicsRelease();
-void physicsCreateScene(int sceneId, class Gl1Renderer *renderer);
+void physicsCreateScene(int sceneId, class MeshScene &scene);
 void physicsSimulate();
 
 // シーンのタイトル名を取得する

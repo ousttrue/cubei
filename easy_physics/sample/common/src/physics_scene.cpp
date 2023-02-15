@@ -44,7 +44,7 @@ PhysicsBody PhysicsScene::AddBody() {
   };
 }
 
-EpxShape *PhysicsScene::AddShape(Gl1Renderer *renderer, int id, ShapeType type,
+EpxShape *PhysicsScene::AddShape(MeshScene &scene, int id, ShapeType type,
                                  const EpxVector3 &scale, bool finish) {
   // 凸メッシュを作成
   EpxShape shape;
@@ -79,7 +79,7 @@ EpxShape *PhysicsScene::AddShape(Gl1Renderer *renderer, int id, ShapeType type,
 
   // 同時に描画用メッシュを作成、ポインタをユーザーデータに保持
   // 描画用メッシュは、終了時に自動的に破棄される
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
   // 凸メッシュ形状を登録
   auto added = collidables[id].addShape(shape);
@@ -146,7 +146,7 @@ void PhysicsScene::Integrate(Perf &perf) {
   perf.end("integrate");
 }
 
-void PhysicsScene::CreateFireBody(Gl1Renderer *renderer) {
+void PhysicsScene::CreateFireBody(MeshScene &scene) {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -164,7 +164,7 @@ void PhysicsScene::CreateFireBody(Gl1Renderer *renderer) {
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
@@ -178,11 +178,12 @@ void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
   states[fireRigidBodyId].m_angularVelocity = EpxVector3(0.0f);
 }
 
-void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
-                   Gl1Renderer *renderer, FontRenderer *font) {
-  for (int i = 0; i < scene.g_numRigidBodies; i++) {
-    auto &state = scene.states[i];
-    auto &collidable = scene.collidables[i];
+void PhysicsRender(const PhysicsScene &physicsScene,
+                   const PhysicsState &physicsState, Gl1Renderer *renderer,
+                   const MeshScene &scene) {
+  for (int i = 0; i < physicsScene.g_numRigidBodies; i++) {
+    auto &state = physicsScene.states[i];
+    auto &collidable = physicsScene.collidables[i];
 
     EasyPhysics::EpxTransform3 rigidBodyTransform(state.m_orientation,
                                                   state.m_position);
@@ -194,9 +195,9 @@ void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
       EasyPhysics::EpxTransform3 worldTransform =
           rigidBodyTransform * shapeTransform;
       EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
+      auto &mesh = scene.Get((int)shape.userData);
       renderer->RenderMesh((const float *)&wMtx,
-                           EasyPhysics::EpxVector3(1, 1, 1),
-                           (int)shape.userData);
+                           EasyPhysics::EpxVector3(1, 1, 1), mesh);
     }
   }
 
@@ -207,10 +208,12 @@ void PhysicsRender(const PhysicsScene &scene, const PhysicsState &state,
   const EasyPhysics::EpxVector3 colorB(0, 0, 1);
   const EasyPhysics::EpxVector3 colorLine(0, 1, 1);
 
-  for (int i = 0; i < state.physicsGetNumContacts(); i++) {
-    auto &contact = state.physicsGetContact(i);
-    auto &stateA = scene.states[state.physicsGetRigidBodyAInContact(i)];
-    auto &stateB = scene.states[state.physicsGetRigidBodyBInContact(i)];
+  for (int i = 0; i < physicsState.physicsGetNumContacts(); i++) {
+    auto &contact = physicsState.physicsGetContact(i);
+    auto &stateA =
+        physicsScene.states[physicsState.physicsGetRigidBodyAInContact(i)];
+    auto &stateB =
+        physicsScene.states[physicsState.physicsGetRigidBodyBInContact(i)];
     for (unsigned int j = 0; j < contact.m_numContacts; j++) {
       auto &contactPoint = contact.m_contactPoints[j];
       auto pointA =

@@ -22,10 +22,11 @@
 */
 
 #include "physics_func.h"
+#include <common/Gl1Renderer.h>
 #include <common/common.h>
 #include <common/geometry_data.h>
-#include <common/Gl1Renderer.h>
 #include <stdlib.h>
+
 
 using namespace EasyPhysics;
 
@@ -144,7 +145,7 @@ void physicsSimulate() {
 
 static int fireRigidBodyId;
 
-static void createFireBody(Gl1Renderer *renderer) {
+static void createFireBody(MeshScene &scene) {
   fireRigidBodyId = g_numRigidBodies++;
 
   EpxVector3 scale(0.5f);
@@ -162,13 +163,13 @@ static void createFireBody(Gl1Renderer *renderer) {
 
   epxCreateConvexMesh(&shape.m_geometry, sphere_vertices, sphere_numVertices,
                       sphere_indices, sphere_numIndices, scale);
-  shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+  shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
   collidables[fireRigidBodyId].addShape(shape);
   collidables[fireRigidBodyId].finish();
 }
 
-static void createSceneCompound(Gl1Renderer *renderer) {
+static void createSceneCompound(MeshScene &scene) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -187,7 +188,7 @@ static void createSceneCompound(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -212,7 +213,7 @@ static void createSceneCompound(Gl1Renderer *renderer) {
       shape.reset();
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, scale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
 
@@ -224,7 +225,7 @@ static void createSceneCompound(Gl1Renderer *renderer) {
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
                           scale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
 
@@ -237,14 +238,14 @@ static void createSceneCompound(Gl1Renderer *renderer) {
       epxCreateConvexMesh(&shape.m_geometry, cylinder_vertices,
                           cylinder_numVertices, cylinder_indices,
                           cylinder_numIndices, scale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
     collidables[id].finish();
   }
 }
 
-static void createSceneDaruma(Gl1Renderer *renderer) {
+static void createSceneDaruma(MeshScene &scene) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -263,7 +264,7 @@ static void createSceneDaruma(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -290,7 +291,7 @@ static void createSceneDaruma(Gl1Renderer *renderer) {
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
                           scale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
 
@@ -302,7 +303,7 @@ static void createSceneDaruma(Gl1Renderer *renderer) {
       epxCreateConvexMesh(&shape.m_geometry, sphere_vertices,
                           sphere_numVertices, sphere_indices, sphere_numIndices,
                           scale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
       collidables[id].addShape(shape);
     }
 
@@ -310,7 +311,7 @@ static void createSceneDaruma(Gl1Renderer *renderer) {
   }
 }
 
-static void createSceneStackingPole(Gl1Renderer *renderer) {
+static void createSceneStackingPole(MeshScene &scene) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -329,7 +330,7 @@ static void createSceneStackingPole(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -354,14 +355,14 @@ static void createSceneStackingPole(Gl1Renderer *renderer) {
 
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, brickScale);
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
   }
 }
 
-static void createSceneStackingWall(Gl1Renderer *renderer) {
+static void createSceneStackingWall(MeshScene &scene) {
   // 地面
   {
     int id = g_numRigidBodies++;
@@ -380,7 +381,7 @@ static void createSceneStackingWall(Gl1Renderer *renderer) {
     epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                         box_indices, box_numIndices, scale);
 
-    shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+    shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
     collidables[id].addShape(shape);
     collidables[id].finish();
@@ -414,7 +415,7 @@ static void createSceneStackingWall(Gl1Renderer *renderer) {
 
       epxCreateConvexMesh(&shape.m_geometry, box_vertices, box_numVertices,
                           box_indices, box_numIndices, brickScale);
-      shape.userData = (void *)createRenderMesh(renderer, &shape.m_geometry);
+      shape.userData = (void *)scene.CreateRenderMesh(&shape.m_geometry);
 
       collidables[id].addShape(shape);
       collidables[id].finish();
@@ -435,7 +436,7 @@ static const char titles[][32] = {
 
 const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
 
-void physicsCreateScene(int sceneId, Gl1Renderer *renderer) {
+void physicsCreateScene(int sceneId, MeshScene &scene) {
   g_frame = 0;
 
   g_numRigidBodies = 0;
@@ -445,23 +446,23 @@ void physicsCreateScene(int sceneId, Gl1Renderer *renderer) {
 
   switch (sceneId % maxScenes) {
   case 0:
-    createSceneCompound(renderer);
+    createSceneCompound(scene);
     break;
 
   case 1:
-    createSceneDaruma(renderer);
+    createSceneDaruma(scene);
     break;
 
   case 2:
-    createSceneStackingPole(renderer);
+    createSceneStackingPole(scene);
     break;
 
   case 3:
-    createSceneStackingWall(renderer);
+    createSceneStackingWall(scene);
     break;
   }
 
-  createFireBody(renderer);
+  createFireBody(scene);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
