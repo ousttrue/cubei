@@ -1,33 +1,10 @@
-﻿/*
-        Copyright (c) 2012 Hiroshi Matsuike
-
-        This software is provided 'as-is', without any express or implied
-        warranty. In no event will the authors be held liable for any damages
-        arising from the use of this software.
-
-        Permission is granted to anyone to use this software for any purpose,
-        including commercial applications, and to alter it and redistribute it
-        freely, subject to the following restrictions:
-
-        1. The origin of this software must not be misrepresented; you must not
-        claim that you wrote the original software. If you use this software
-        in a product, an acknowledgment in the product documentation would be
-        appreciated but is not required.
-
-        2. Altered source versions must be plainly marked as such, and must not
-   be misrepresented as being the original software.
-
-        3. This notice may not be removed or altered from any source
-   distribution.
-*/
-
+﻿#include <common/DrawData.h>
 #include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <gl/gl.h>
 #include <stdexcept>
 #include <vector>
 
-// using namespace std;
 using namespace EasyPhysics;
 
 Gl1Renderer::Gl1Renderer() {
@@ -56,6 +33,22 @@ void Gl1Renderer::Begin(int width, int height, const float projection[16],
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glMultMatrixf(view);
+}
+
+void Gl1Renderer::Render(const DrawData &data, class Geometry &scene) {
+  for (auto [wMtx, shape] : data.shapes) {
+    auto mesh = scene.meshes[(size_t)shape->userData];
+    RenderMesh((const float *)&wMtx, EasyPhysics::EpxVector3(1, 1, 1),
+               mesh.get());
+  }
+  DebugBegin();
+  for (auto &point : data.points) {
+    DebugPoint(point.position, point.color);
+  }
+  for (auto &line : data.lines) {
+    DebugLine(line.begin, line.end, line.color);
+  }
+  DebugEnd();
 }
 
 void Gl1Renderer::DebugBegin() {

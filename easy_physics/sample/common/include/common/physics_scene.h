@@ -1,7 +1,10 @@
 #pragma once
+#include "Gl1Renderer.h"
 #include <EpxInclude.h>
+#include <common/DrawData.h>
 #include <common/geometry_data.h>
 #include <string>
+#include <vector>
 
 struct Perf {
   int frame;
@@ -80,8 +83,7 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(class Geometry &scene, int id,
-                                  ShapeType type,
+  EasyPhysics::EpxShape *AddShape(class Geometry &scene, int id, ShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish);
   EasyPhysics::EpxShape *AddBoxShape(class Geometry &scene, int id,
@@ -121,6 +123,5 @@ struct PhysicsScene {
                    const EasyPhysics::EpxVector3 &velocity);
 };
 
-// render
-void PhysicsRender(const PhysicsScene &physics, const PhysicsState &physicsState,
-                   class Gl1Renderer *renderer, const class Geometry &scene);
+DrawData PhysicsRender(const PhysicsScene &physics,
+                       const PhysicsState &physicsState);

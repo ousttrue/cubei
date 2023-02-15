@@ -12,7 +12,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-
 #define SAMPLE_NAME "01_basic"
 
 static bool g_simulating = false;
@@ -196,7 +195,9 @@ int main(int argc, char **argv) {
 
     // render
     renderer.Begin(width, height, projection, view);
-    PhysicsRender(*g_scene, g_state, &renderer, scene);
+
+    auto data = PhysicsRender(*g_scene, g_state);
+    renderer.Render(data, scene);
 
     renderer.Debug2dBegin(width, height);
     stash.Draw(x, y, width, height, g_scene->title_);

@@ -181,9 +181,11 @@ void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
   states[fireRigidBodyId].m_angularVelocity = EpxVector3(0.0f);
 }
 
-void PhysicsRender(const PhysicsScene &physicsScene,
-                   const PhysicsState &physicsState, Gl1Renderer *renderer,
-                   const Geometry &scene) {
+DrawData PhysicsRender(const PhysicsScene &physicsScene,
+                       const PhysicsState &physicsState) {
+
+  DrawData data;
+
   for (int i = 0; i < physicsScene.g_numRigidBodies; i++) {
     auto &state = physicsScene.states[i];
     auto &collidable = physicsScene.collidables[i];
@@ -192,19 +194,16 @@ void PhysicsRender(const PhysicsScene &physicsScene,
                                                   state.m_position);
 
     for (int j = 0; j < collidable.m_numShapes; j++) {
-      auto shape = collidable.m_shapes[j];
-      EasyPhysics::EpxTransform3 shapeTransform(shape.m_offsetOrientation,
-                                                shape.m_offsetPosition);
+      auto shape = &collidable.m_shapes[j];
+      EasyPhysics::EpxTransform3 shapeTransform(shape->m_offsetOrientation,
+                                                shape->m_offsetPosition);
       EasyPhysics::EpxTransform3 worldTransform =
           rigidBodyTransform * shapeTransform;
       EpxMatrix4 wMtx = EpxMatrix4(worldTransform);
-      auto mesh = scene.meshes[(size_t)shape.userData];
-      renderer->RenderMesh((const float *)&wMtx,
-                           EasyPhysics::EpxVector3(1, 1, 1), mesh.get());
+
+      data.shapes.push_back({wMtx, shape});
     }
   }
-
-  renderer->DebugBegin();
 
   // 衝突点の表示
   const EasyPhysics::EpxVector3 colorA(1, 0, 0);
@@ -224,12 +223,13 @@ void PhysicsRender(const PhysicsScene &physicsScene,
       auto pointB =
           stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
       auto normal = contactPoint.normal;
-      renderer->DebugPoint(pointA, colorA);
-      renderer->DebugPoint(pointB, colorB);
-      renderer->DebugLine(pointA, pointA + 0.1f * normal, colorLine);
-      renderer->DebugLine(pointB, pointB - 0.1f * normal, colorLine);
+
+      data.points.push_back({pointA, colorA});
+      data.points.push_back({pointB, colorB});
+      data.lines.push_back({pointA, pointA + 0.1f * normal, colorLine});
+      data.lines.push_back({pointB, pointB - 0.1f * normal, colorLine});
     }
   }
 
-  renderer->DebugEnd();
+  return data;
 }
