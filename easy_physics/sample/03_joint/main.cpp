@@ -23,11 +23,13 @@
 
 #include "physics_func.h"
 #include <common/FontStashRenderer.h>
+#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/ScreenCamera.h>
 #include <common/common.h>
 #include <common/ctrl_func.h>
 #include <common/win32window.h>
+
 
 using namespace EasyPhysics;
 
@@ -38,7 +40,7 @@ static bool g_isRunning = true;
 int g_sceneId = 0;
 bool g_simulating = false;
 
-static void render(Gl1Renderer *renderer, MeshScene &scene) {
+static void render(Gl1Renderer *renderer, Geometry &scene) {
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
     const EpxState &state = physicsGetState(i);
     const EpxCollidable &collidable = physicsGetCollidable(i);
@@ -85,7 +87,7 @@ static void render(Gl1Renderer *renderer, MeshScene &scene) {
   renderer->DebugEnd();
 }
 
-static void update(MeshScene &scene, ScreenCamera &camera, Control *ctrl,
+static void update(Geometry &scene, ScreenCamera &camera, Control *ctrl,
                    int width, int height) {
   auto [angX, angY, r] = camera.GetViewAngle();
 
@@ -173,7 +175,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   physicsInit();
   Gl1Renderer renderer;
   ScreenCamera camera;
-  MeshScene scene;
+  Geometry scene;
   physicsCreateScene(g_sceneId, scene);
   Control ctrl;
 

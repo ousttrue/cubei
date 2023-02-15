@@ -26,4 +26,4 @@
 #include <memory>
 
 std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,
-                                                 class MeshScene &scene);
+                                                 class Geometry &scene);

@@ -80,27 +80,27 @@ struct PhysicsScene {
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(class MeshScene &scene, int id,
+  EasyPhysics::EpxShape *AddShape(class Geometry &scene, int id,
                                   ShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish);
-  EasyPhysics::EpxShape *AddBoxShape(class MeshScene &scene, int id,
+  EasyPhysics::EpxShape *AddBoxShape(class Geometry &scene, int id,
                                      const EasyPhysics::EpxVector3 &scale,
                                      bool finish = true) {
     return AddShape(scene, id, ShapeType::Box, scale, finish);
   }
-  EasyPhysics::EpxShape *AddSphereShape(MeshScene &scene, int id,
+  EasyPhysics::EpxShape *AddSphereShape(Geometry &scene, int id,
                                         const EasyPhysics::EpxVector3 &scale,
                                         bool finish = true) {
     return AddShape(scene, id, ShapeType::Sphere, scale, finish);
   }
-  EasyPhysics::EpxShape *AddCylinderShape(MeshScene &scene, int id,
+  EasyPhysics::EpxShape *AddCylinderShape(Geometry &scene, int id,
                                           const EasyPhysics::EpxVector3 &scale,
                                           bool finish = true) {
     return AddShape(scene, id, ShapeType::Cylinder, scale, finish);
   }
   EasyPhysics::EpxShape *
-  AddTetrahedronShape(MeshScene &scene, int id,
+  AddTetrahedronShape(Geometry &scene, int id,
                       const EasyPhysics::EpxVector3 &scale,
                       bool finish = true) {
     return AddShape(scene, id, ShapeType::Tetrahedron, scale, finish);
@@ -116,11 +116,11 @@ struct PhysicsScene {
 
   // fire
   int fireRigidBodyId;
-  void CreateFireBody(class MeshScene &scene);
+  void CreateFireBody(class Geometry &scene);
   void PhysicsFire(const EasyPhysics::EpxVector3 &position,
                    const EasyPhysics::EpxVector3 &velocity);
 };
 
 // render
 void PhysicsRender(const PhysicsScene &physics, const PhysicsState &physicsState,
-                   class Gl1Renderer *renderer, const class MeshScene &scene);
+                   class Gl1Renderer *renderer, const class Geometry &scene);

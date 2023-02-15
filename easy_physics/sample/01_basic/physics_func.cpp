@@ -27,7 +27,7 @@
 
 using namespace EasyPhysics;
 
-static std::shared_ptr<PhysicsScene> createSceneTwoBox(MeshScene &scene) {
+static std::shared_ptr<PhysicsScene> createSceneTwoBox(Geometry &scene) {
   auto physics = std::make_shared<PhysicsScene>("basic rigid bodies");
 
   // 地面
@@ -66,7 +66,7 @@ static std::shared_ptr<PhysicsScene> createSceneTwoBox(MeshScene &scene) {
   return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneFriction(MeshScene &scene) {
+static std::shared_ptr<PhysicsScene> createSceneFriction(Geometry &scene) {
   auto physics = std::make_shared<PhysicsScene>("friction test");
 
   const EpxFloat angle = 0.4f;
@@ -98,7 +98,7 @@ static std::shared_ptr<PhysicsScene> createSceneFriction(MeshScene &scene) {
   return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneRestitution(MeshScene &scene) {
+static std::shared_ptr<PhysicsScene> createSceneRestitution(Geometry &scene) {
   auto physics = std::make_shared<PhysicsScene>("restitution test");
 
   // 地面
@@ -125,7 +125,7 @@ static std::shared_ptr<PhysicsScene> createSceneRestitution(MeshScene &scene) {
   return physics;
 }
 
-static std::shared_ptr<PhysicsScene> createSceneGeometries(MeshScene &scene) {
+static std::shared_ptr<PhysicsScene> createSceneGeometries(Geometry &scene) {
   auto physics = std::make_shared<PhysicsScene>("various convex shapes");
 
   // 地面
@@ -178,7 +178,7 @@ static std::shared_ptr<PhysicsScene> createSceneGeometries(MeshScene &scene) {
 
 static const int maxScenes = 4;
 std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId,
-                                                 MeshScene &scene) {
+                                                 Geometry &scene) {
   std::shared_ptr<PhysicsScene> physics;
   switch (sceneId % maxScenes) {
   case 0:

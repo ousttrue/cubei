@@ -1,6 +1,7 @@
 ﻿#include "physics_func.h"
 #include <GLFW/glfw3.h>
 #include <common/FontStashRenderer.h>
+#include <common/Geometry.h>
 #include <common/Gl1Renderer.h>
 #include <common/ScreenCamera.h>
 #include <common/common.h>
@@ -10,6 +11,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
+
 
 #define SAMPLE_NAME "01_basic"
 
@@ -93,7 +95,7 @@ public:
     m_onKeyPress[key] = callback;
   }
 
-  void Bind(MeshScene &scene, ScreenCamera &camera) {
+  void Bind(Geometry &scene, ScreenCamera &camera) {
     // keybind: view
     OnKeyIsDown(GLFW_KEY_UP, [&camera](int x, int y, int width, int height) {
       auto [angX, angY, r] = camera.GetViewAngle();
@@ -173,7 +175,7 @@ int main(int argc, char **argv) {
   GlfwPlatform platform;
   Gl1Renderer renderer;
   ScreenCamera camera;
-  MeshScene scene;
+  Geometry scene;
   platform.Bind(scene, camera);
 
   FontStashRenderer stash(

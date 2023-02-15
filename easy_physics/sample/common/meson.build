@@ -18,6 +18,7 @@ easy_physics_common_lib = static_library(
         'src/physics_scene.cpp',
         'src/FontStashRenderer.cpp',
         'src/ScreenCamera.cpp',
+        'src/Geometry.cpp',
     ],
     include_directories: easy_physics_common_inc,
     dependencies: dependencies,
