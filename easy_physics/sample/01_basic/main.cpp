@@ -100,11 +100,11 @@ int main(int argc, char **argv) {
     // render
     {
       cubeRenderer.Render(projection.data(), view.data(), data.boxes);
-      // cubeRenderer.Render(projection.data(), view.data(), data.spheres);
-      // cubeRenderer.Render(projection.data(), view.data(), data.cylinders);
-      // cubeRenderer.Render(projection.data(), view.data(), data.tetrahedrons);
+      cubeRenderer.Render(projection.data(), view.data(), data.spheres);
+      cubeRenderer.Render(projection.data(), view.data(), data.cylinders);
+      cubeRenderer.Render(projection.data(), view.data(), data.tetrahedrons);
       // lineRenderer.Render(projection, view, data.tetrahedrons);
-      // stash.Draw(io.DisplaySize.x, io.DisplaySize.y, selector.Title());
+      stash.Draw(io.DisplaySize.x, io.DisplaySize.y, selector.Title());
 
       ImGui::Render();
       platform.EndFrame(ImGui::GetDrawData());
