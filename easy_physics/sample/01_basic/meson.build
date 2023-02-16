@@ -1,5 +1,3 @@
-cuber_dep = dependency('cuber')
-
 executable(
     '01_basic',
     'main.cpp',
