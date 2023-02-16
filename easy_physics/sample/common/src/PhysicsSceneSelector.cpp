@@ -15,10 +15,10 @@ void PhysicsSceneSelector::Next() {
   ++sceneId_;
   Reset();
 }
-void PhysicsSceneSelector::Fire(const ScreenCamera &camera, int x, int y,
-                                int width, int height) {
-  auto wp1 = camera.GetWorldPosition({(float)x, (float)y, 0.0f}, width, height);
-  auto wp2 = camera.GetWorldPosition({(float)x, (float)y, 1.0f}, width, height);
+void PhysicsSceneSelector::Fire(const EpxVector3 &wp1, const EpxVector3 &wp2) {
+  // auto wp1 = camera.GetWorldPosition({(float)x, (float)y, 0.0f}, width,
+  // height); auto wp2 = camera.GetWorldPosition({(float)x, (float)y, 1.0f},
+  // width, height);
   scene_->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
 }
 void PhysicsSceneSelector::Update() {
@@ -30,6 +30,6 @@ DrawDataSpan PhysicsSceneSelector::DrawData() const {
   return scene_->GetDrawData();
 }
 std::string PhysicsSceneSelector::Title() const {
-  return std::format("[{}/{}] {}", sceneId_+1, generators_.size(),
+  return std::format("[{}/{}] {}", sceneId_ + 1, generators_.size(),
                      scene_->title_);
 }

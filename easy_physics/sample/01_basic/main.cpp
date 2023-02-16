@@ -1,6 +1,6 @@
 ﻿#include "physics_func.h"
 #include <array>
-#include <common/FontStashRenderer.h>
+#include <common/Gl1FontStashRenderer.h>
 #include <common/GlfwPlatform.h>
 #include <common/PhysicsSceneSelector.h>
 #include <common/ScreenCamera.h>
@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  spanmath::OrbitView turntable_;
+  spanmath::OrbitView camera;
+  camera.shift_[2] = -10.0f;
 
   // ScreenCamera camera;
   // platform.BindCamera(camera);
@@ -48,7 +49,7 @@ int main(int argc, char **argv) {
   cuber::gl3::GlCubeRenderer cubeRenderer;
   cuber::gl3::GlLineRenderer lineRenderer;
   // Gl1Renderer renderer;
-  FontStashRenderer stash(
+  Gl1FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
                   : "subprojects/fontstash/example/DroidSerif-Regular.ttf");
@@ -62,21 +63,34 @@ int main(int argc, char **argv) {
     ImGuiIO &io = ImGui::GetIO();
     ImGui::NewFrame();
 
+    if (ImGui::IsKeyPressed(ImGuiKey_F2)) {
+      selector.Reset();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_F2)) {
+      selector.Next();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_F3)) {
+      selector.Toggle();
+    }
+    if (ImGui::IsMouseDown(ImGuiButtonFlags_MouseButtonLeft)) {
+      // auto pos = io.MousePos;
+    }
+
     // camera
-    turntable_.SetSize(static_cast<int>(io.DisplaySize.x),
-                       static_cast<int>(io.DisplaySize.y));
+    camera.SetSize(static_cast<int>(io.DisplaySize.x),
+                   static_cast<int>(io.DisplaySize.y));
     if (!io.WantCaptureMouse) {
       if (io.MouseDown[ImGuiMouseButton_Right]) {
-        turntable_.YawPitch(static_cast<int>(io.MouseDelta.x),
-                            static_cast<int>(io.MouseDelta.y));
+        camera.YawPitch(static_cast<int>(io.MouseDelta.x),
+                        static_cast<int>(io.MouseDelta.y));
       }
       if (io.MouseDown[ImGuiMouseButton_Middle]) {
-        turntable_.Shift(static_cast<int>(io.MouseDelta.x),
-                         static_cast<int>(io.MouseDelta.y));
+        camera.Shift(static_cast<int>(io.MouseDelta.x),
+                     static_cast<int>(io.MouseDelta.y));
       }
-      turntable_.Dolly(static_cast<int>(io.MouseWheel));
+      camera.Dolly(static_cast<int>(io.MouseWheel));
     }
-    turntable_.Update(spanmath::Mat4(projection), spanmath::Mat4(view));
+    camera.Update(spanmath::Mat4(projection), spanmath::Mat4(view));
 
     // update
     selector.Update();
@@ -90,7 +104,7 @@ int main(int argc, char **argv) {
       cubeRenderer.Render(projection.data(), view.data(), data.cylinders);
       cubeRenderer.Render(projection.data(), view.data(), data.tetrahedrons);
       // lineRenderer.Render(projection, view, data.tetrahedrons);
-      // stash.Draw(x, y, width, height, selector.Title());
+      stash.Draw(io.DisplaySize.x, io.DisplaySize.y, selector.Title());
 
       ImGui::Render();
       platform.EndFrame(ImGui::GetDrawData());

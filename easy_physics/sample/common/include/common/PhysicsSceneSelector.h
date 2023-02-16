@@ -19,8 +19,8 @@ public:
   void Next();
   void Toggle() { simulating_ = !simulating_; }
   void Run() { simulating_ = true; }
-  void Fire(const class ScreenCamera &camera, int x, int y, int width,
-            int height);
+  void Fire(const EasyPhysics::EpxVector3 &wp1,
+            const EasyPhysics::EpxVector3 &wp2);
   void Update();
   DrawDataSpan DrawData() const;
   std::string Title() const;
