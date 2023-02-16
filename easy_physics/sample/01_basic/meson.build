@@ -1,3 +1,5 @@
+cuber_dep = dependency('cuber')
+
 executable(
     '01_basic',
     'main.cpp',
@@ -8,5 +10,6 @@ executable(
         easy_physics_dep,
         easy_physics_common_dep,
         glew_dep,
+        cuber_dep,
     ],
 )

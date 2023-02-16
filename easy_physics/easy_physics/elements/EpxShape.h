@@ -41,7 +41,7 @@ struct EpxShape {
                                               m_offsetPosition);
     EasyPhysics::EpxTransform3 worldTransform =
         rigidBodyTransform * shapeTransform;
-    return EpxMatrix4(worldTransform) * EpxMatrix4::scale(m_geometry.m_scale);
+    return EpxMatrix4(worldTransform) * EpxMatrix4::scale(m_geometry.m_scale * 2);
   }
 };
 
