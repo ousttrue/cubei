@@ -11,5 +11,6 @@ executable(
         easy_physics_common_dep,
         glew_dep,
         cuber_dep,
+        spanmath_dep,
     ],
 )

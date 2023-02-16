@@ -6,6 +6,8 @@ dependencies = [
     easy_physics_dep,
     fontstash_dep,
     glfw_dep,
+    glew_dep,
+    imgui_dep,
 ]
 
 easy_physics_common_inc = include_directories('include')

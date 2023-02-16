@@ -1,131 +1,96 @@
-#include <GLFW/glfw3.h>
+#include <GL/glew.h>
 #include <common/GlfwPlatform.h>
-#include <common/PhysicsSceneSelector.h>
-#include <common/ScreenCamera.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <stdexcept>
+#include <stdio.h>
 
-void GlfwPlatform::key_callback(GLFWwindow *window, int key, int scancode,
-                                int action, int mods) {
-  auto self = (GlfwPlatform *)glfwGetWindowUserPointer(window);
-  if (action == GLFW_PRESS) {
-    auto found = self->m_onKeyPress.find(key);
-    if (found != self->m_onKeyPress.end()) {
-      found->second(self->x_, self->y_, self->width_, self->height_);
-    }
-    self->m_isDown.insert(key);
-  } else if (action == GLFW_RELEASE) {
-    self->m_isDown.erase(key);
-  }
+const char *glsl_version = nullptr;
+
+#define GL_SILENCE_DEPRECATION
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <GLES2/gl2.h>
+#endif
+#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+
+static void glfw_error_callback(int error, const char *description) {
+  fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-void GlfwPlatform::cursor_position_callback(GLFWwindow *window, double xpos,
-                                            double ypos) {
-  auto self = (GlfwPlatform *)glfwGetWindowUserPointer(window);
-  self->x_ = xpos - self->width_ / 2;
-  self->y_ = -ypos + self->height_ / 2;
-}
-
-GlfwPlatform::GlfwPlatform(const char *title) {
+GlfwPlatform::GlfwPlatform() {
+  // Setup window
+  glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) {
     throw std::runtime_error("glfwInit");
   }
-  window_ = glfwCreateWindow(640, 480, title, NULL, NULL);
+}
+
+GlfwPlatform::~GlfwPlatform() {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+
+  glfwDestroyWindow(window_);
+  glfwTerminate();
+}
+
+GLFWwindow *GlfwPlatform::Create(const char *title) {
+
+  // GL 3.2 + GLSL 150
+  glsl_version = "#version 150";
+  // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required
+  // on Mac
+
+  // Create window with graphics context
+  window_ = glfwCreateWindow(1280, 720, title, NULL, NULL);
   if (!window_) {
-    throw std::runtime_error("glfwCreateWindow");
+    return nullptr;
   }
   glfwMakeContextCurrent(window_);
+  glfwSwapInterval(1); // Enable vsync
 
-  glfwSetWindowUserPointer(window_, this);
-  glfwSetKeyCallback(window_, key_callback);
-  glfwSetCursorPosCallback(window_, cursor_position_callback);
+  glewInit();
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(window_, true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
+
+  return window_;
 }
 
-GlfwPlatform::~GlfwPlatform() { glfwTerminate(); }
-
-bool GlfwPlatform::NewFrame(int *x, int *y, int *width, int *height) {
+std::optional<GlfwTime> GlfwPlatform::NewFrame(const float clear_color[4]) {
   if (glfwWindowShouldClose(window_)) {
-    return false;
+    return {};
   }
+  // Poll and handle events (inputs, window resize, etc.)
+  // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
+  // tell if dear imgui wants to use your inputs.
+  // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
+  // your main application, or clear/overwrite your copy of the mouse data.
+  // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
+  // data to your main application, or clear/overwrite your copy of the
+  // keyboard data. Generally you may always pass all inputs to dear imgui,
+  // and hide them from your application based on those two flags.
   glfwPollEvents();
-  for (auto key : m_isDown) {
-    auto found = m_onKeyIsDown.find(key);
-    if (found != m_onKeyIsDown.end()) {
-      found->second(x_, y_, width_, height_);
-    }
-  }
-  glfwGetFramebufferSize(window_, width, height);
-  width_ = *width;
-  height_ = *height;
-  *x = x_;
-  *y = y_;
-  return true;
+
+  int display_w, display_h;
+  glfwGetFramebufferSize(window_, &display_w, &display_h);
+
+  // Start the Dear ImGui frame
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+
+  // clear viewport
+  glViewport(0, 0, display_w, display_h);
+  glClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  return GlfwTime(glfwGetTime());
 }
 
-void GlfwPlatform::EndFrame() { glfwSwapBuffers(window_); }
-
-void GlfwPlatform::BindCamera(ScreenCamera &camera) {
-  // keybind: view
-  OnKeyIsDown(GLFW_KEY_UP, [&camera](int x, int y, int width, int height) {
-    auto [angX, angY, r] = camera.GetViewAngle();
-    angX -= 0.05f;
-    if (angX < -1.4f)
-      angX = -1.4f;
-    if (angX > -0.01f)
-      angX = -0.01f;
-    camera.SetViewAngle(angX, angY, r);
-  });
-  OnKeyIsDown(GLFW_KEY_DOWN, [&camera](int x, int y, int width, int height) {
-    auto [angX, angY, r] = camera.GetViewAngle();
-    angX += 0.05f;
-    if (angX < -1.4f)
-      angX = -1.4f;
-    if (angX > -0.01f)
-      angX = -0.01f;
-    camera.SetViewAngle(angX, angY, r);
-  });
-  OnKeyIsDown(GLFW_KEY_LEFT, [&camera](int x, int y, int width, int height) {
-    auto [angX, angY, r] = camera.GetViewAngle();
-    angY -= 0.05f;
-    camera.SetViewAngle(angX, angY, r);
-  });
-  OnKeyIsDown(GLFW_KEY_RIGHT, [&camera](int x, int y, int width, int height) {
-    auto [angX, angY, r] = camera.GetViewAngle();
-    angY += 0.05f;
-    camera.SetViewAngle(angX, angY, r);
-  });
-  OnKeyIsDown(GLFW_KEY_PAGE_DOWN,
-              [&camera](int x, int y, int width, int height) {
-                auto [angX, angY, r] = camera.GetViewAngle();
-                r *= 1.1f;
-                if (r > 500.0f)
-                  r = 500.0f;
-                camera.SetViewAngle(angX, angY, r);
-              });
-  OnKeyIsDown(GLFW_KEY_PAGE_UP, [&camera](int x, int y, int width, int height) {
-    auto [angX, angY, r] = camera.GetViewAngle();
-    r *= 0.9f;
-    if (r < 1.0f)
-      r = 1.0f;
-    camera.SetViewAngle(angX, angY, r);
-  });
-}
-
-void GlfwPlatform::BindSelector(struct PhysicsSceneSelector &selector,
-                                class ScreenCamera &camera) {
-  OnKeyPress(GLFW_KEY_F1, [&selector](int x, int y, int width, int height) {
-    selector.Reset();
-  });
-  OnKeyPress(GLFW_KEY_F2, [&selector](int x, int y, int width, int height) {
-    selector.Next();
-  });
-  OnKeyPress(GLFW_KEY_F3, [&selector](int x, int y, int width, int height) {
-    selector.Toggle();
-  });
-  OnKeyPress(GLFW_KEY_F4, [&selector](int x, int y, int width, int height) {
-    selector.Run();
-  });
-  OnKeyPress(GLFW_KEY_SPACE,
-             [&camera, &selector](int x, int y, int width, int height) {
-               selector.Fire(camera, x, y, width, height);
-             });
+void GlfwPlatform::EndFrame(ImDrawData *data) {
+  ImGui_ImplOpenGL3_RenderDrawData(data);
+  glfwSwapBuffers(window_);
 }
