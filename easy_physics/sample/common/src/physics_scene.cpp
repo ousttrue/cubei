@@ -57,6 +57,8 @@ EpxShape *PhysicsScene::AddShape(int id, EpxShapeType type,
   return added;
 }
 
+void PhysicsScene::FinishShape(int id) { collidables[id].finish(); }
+
 void PhysicsScene::Simulate() {
   auto perf = state_.NewFrame();
   ApplyForce(perf);

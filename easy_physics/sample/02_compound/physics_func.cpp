@@ -28,329 +28,128 @@
 
 using namespace EasyPhysics;
 
-///////////////////////////////////////////////////////////////////////////////
-// シミュレーション定義
+std::shared_ptr<PhysicsScene> createSceneCompound() {
+  auto physics = std::make_shared<PhysicsScene>("compound shape");
 
-const int maxRigidBodies = 500;
-const int maxJoints = 100;
-const int maxPairs = 5000;
-const float timeStep = 0.016f;
-const float contactBias = 0.1f;
-const float contactSlop = 0.001f;
-const int iteration = 10;
-const EpxVector3 gravity(0.0f, -9.8f, 0.0f);
-
-///////////////////////////////////////////////////////////////////////////////
-// シミュレーションデータ
-
-// 剛体
-EpxState states[maxRigidBodies];
-EpxRigidBody bodies[maxRigidBodies];
-EpxCollidable collidables[maxRigidBodies];
-EpxUInt32 g_numRigidBodies = 0;
-
-// ジョイント
-EpxBallJoint joints[maxJoints];
-EpxUInt32 g_numJoints = 0;
-
-// ペア
-unsigned int g_pairSwap;
-EpxUInt32 g_numPairs[2];
-EpxPair pairs[2][maxPairs];
-
-static int g_frame = 0;
-
-///////////////////////////////////////////////////////////////////////////////
-// メモリアロケータ
-
-class DefaultAllocator : public EpxAllocator {
-public:
-  void *allocate(size_t bytes) { return malloc(bytes); }
-
-  void deallocate(void *p) { free(p); }
-} allocator;
-
-///////////////////////////////////////////////////////////////////////////////
-// シミュレーション関数
-
-struct Perf {
-  unsigned long long count;
-  int frame;
-
-  void setFrame(int f) { frame = f; }
-
-  void begin() { count = perfGetCount(); }
-
-  void end(const char *msg) {
-    unsigned long long count2 = perfGetCount();
-    float msec = perfGetTimeMillisecond(count, count2);
-    if (frame % 100 == 0) {
-      epxPrintf("%s : %.2f msec\n", msg, msec);
-    }
-  }
-};
-
-void physicsSimulate() {
-  Perf perf;
-  perf.setFrame(g_frame);
-
-  g_pairSwap = 1 - g_pairSwap;
-
-  perf.begin();
-  for (EpxUInt32 i = 0; i < g_numRigidBodies; i++) {
-    EpxVector3 externalForce = gravity * bodies[i].m_mass;
-    EpxVector3 externalTorque(0.0f);
-    epxApplyExternalForce(states[i], bodies[i], externalForce, externalTorque,
-                          timeStep);
-  }
-  perf.end("apply force");
-
-  perf.begin();
-  g_numPairs[g_pairSwap] =
-      epxBroadPhase({states, g_numRigidBodies}, {collidables, g_numRigidBodies},
-                    {pairs[1 - g_pairSwap], g_numPairs[1 - g_pairSwap]},
-                    {pairs[g_pairSwap], maxPairs}, &allocator, NULL, NULL);
-  perf.end("broadphase");
-
-  perf.begin();
-  epxDetectCollision(states, collidables, g_numRigidBodies,
-                     {pairs[g_pairSwap], g_numPairs[g_pairSwap]});
-  perf.end("collision");
-
-  perf.begin();
-  epxSolveConstraints(states, bodies, g_numRigidBodies,
-                      {pairs[g_pairSwap], g_numPairs[g_pairSwap]}, joints,
-                      g_numJoints, iteration, contactBias, contactSlop,
-                      timeStep, &allocator);
-  perf.end("solver");
-
-  perf.begin();
-  epxIntegrate(states, g_numRigidBodies, timeStep);
-  perf.end("integrate");
-
-  // epxPrintf("--- frame %d -------------\n",frame);
-  // for(int i=0;i<numPairs[pairSwap];i++) {
-  //	EpxPair &p = pairs[pairSwap][i];
-  //	epxPrintf("RB %u,%u CP
-  //%u\n",p.rigidBodyA,p.rigidBodyB,p.contact->m_numContacts);
-  // }
-
-  g_frame++;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// シーンの作成
-
-static int fireRigidBodyId;
-
-static void createFireBody() {
-  fireRigidBodyId = g_numRigidBodies++;
-
-  EpxVector3 scale(0.5f);
-
-  states[fireRigidBodyId].reset();
-  states[fireRigidBodyId].m_motionType = EpxMotionTypeStatic;
-  states[fireRigidBodyId].m_position = EpxVector3(999.0f);
-  bodies[fireRigidBodyId].reset();
-  bodies[fireRigidBodyId].m_mass = 1.0f;
-  bodies[fireRigidBodyId].m_inertia = epxCalcInertiaBox(scale, 1.0f);
-  collidables[fireRigidBodyId].reset();
-
-  EpxShape shape;
-
-  epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-
-  collidables[fireRigidBodyId].addShape(shape);
-  collidables[fireRigidBodyId].finish();
-}
-
-static void createSceneCompound() {
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
-
-    states[id].reset();
-    states[id].m_motionType = EpxMotionTypeStatic;
-    states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-
-    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    body.state.m_motionType = EpxMotionTypeStatic;
+    body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
+    physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, scale);
   }
 
   // 複合形状
   for (int i = 0; i < 5; i++) {
-    int id = g_numRigidBodies++;
-
-    states[id].reset();
-    states[id].m_position = EpxVector3(0.0f, 3.0f + 2.0f * i, 0.0f);
-    states[id].m_orientation = EpxQuat::rotationY(0.5f * i);
-    bodies[id].reset();
-    bodies[id].m_mass = 1.0f;
-    bodies[id].m_inertia =
-        epxCalcInertiaBox(EpxVector3(1.0f, 1.0f, 0.5f), 1.0f);
-    collidables[id].reset();
+    auto body = physics->AddBody();
+    body.state.m_position = EpxVector3(0.0f, 3.0f + 2.0f * i, 0.0f);
+    body.state.m_orientation = EpxQuat::rotationY(0.5f * i);
+    body.body.m_mass = 1.0f;
+    body.body.m_inertia = epxCalcInertiaBox(EpxVector3(1.0f, 1.0f, 0.5f), 1.0f);
 
     {
       EpxVector3 scale(1.0f, 0.125f, 0.125f);
-      EpxShape shape;
-      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-      collidables[id].addShape(shape);
+      physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, scale, false);
     }
 
     {
       EpxVector3 scale(0.5f);
-      EpxShape shape;
-
-      shape.m_offsetPosition = EpxVector3(-1.0f, 0.0f, 0.0f);
-      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-
-      collidables[id].addShape(shape);
+      auto shape = physics->AddShape(body.id, EasyPhysics::EpxShapeType::Sphere,
+                                     scale, false);
+      shape->m_offsetPosition = EpxVector3(-1.0f, 0.0f, 0.0f);
     }
 
     {
       EpxVector3 scale(1.0f, 0.25f, 0.25f);
-      EpxShape shape;
-
-      shape.m_offsetPosition = EpxVector3(1.0f, 0.0f, 0.0f);
-      shape.m_offsetOrientation = EpxQuat::rotationZ(0.5f * EPX_PI);
-      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Cylinder, scale);
-
-      collidables[id].addShape(shape);
+      auto shape = physics->AddShape(
+          body.id, EasyPhysics::EpxShapeType::Cylinder, scale, false);
+      shape->m_offsetPosition = EpxVector3(1.0f, 0.0f, 0.0f);
+      shape->m_offsetOrientation = EpxQuat::rotationZ(0.5f * EPX_PI);
     }
-    collidables[id].finish();
+
+    physics->FinishShape(body.id);
   }
+
+  return physics;
 }
 
-static void createSceneDaruma() {
+std::shared_ptr<PhysicsScene> createSceneDaruma() {
+  auto physics = std::make_shared<PhysicsScene>("daruma");
+
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
-
-    states[id].reset();
-    states[id].m_motionType = EpxMotionTypeStatic;
-    states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-
-    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    body.state.m_motionType = EpxMotionTypeStatic;
+    body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
+    physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, scale);
   }
 
   // ダルマ複合形状
   for (int i = 0; i <= 5; i++) {
-    int id = g_numRigidBodies++;
-
-    states[id].reset();
-    states[id].m_position = EpxVector3(-5.0f + i * 2.0f, 3.0f, 0.0f);
-    states[id].m_angularVelocity =
+    auto body = physics->AddBody();
+    body.state.m_position = EpxVector3(-5.0f + i * 2.0f, 3.0f, 0.0f);
+    body.state.m_angularVelocity =
         EpxVector3(rand() % 5, rand() % 5, rand() % 5);
-    bodies[id].reset();
-    bodies[id].m_mass = 3.0f;
-    bodies[id].m_inertia = epxCalcInertiaSphere(1.5f, 3.0f);
-    collidables[id].reset();
+    body.body.m_mass = 3.0f;
+    body.body.m_inertia = epxCalcInertiaSphere(1.5f, 3.0f);
 
     {
       EpxVector3 scale(1.0f);
-      EpxShape shape;
-
-      shape.m_offsetPosition = EpxVector3(0.0f, 1.0f, 0.0f);
-      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-
-      collidables[id].addShape(shape);
+      auto shape = physics->AddShape(body.id, EasyPhysics::EpxShapeType::Sphere,
+                                     scale, false);
+      shape->m_offsetPosition = EpxVector3(0.0f, 1.0f, 0.0f);
     }
 
     {
       EpxVector3 scale(0.5f);
-      EpxShape shape;
-
-      shape.m_offsetPosition = EpxVector3(0.0f, 2.0f, 0.0f);
-      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Sphere, scale);
-
-      collidables[id].addShape(shape);
+      auto shape = physics->AddShape(body.id, EasyPhysics::EpxShapeType::Sphere,
+                                     scale, false);
+      shape->m_offsetPosition = EpxVector3(0.0f, 2.0f, 0.0f);
     }
 
-    collidables[id].finish();
+    physics->FinishShape(body.id);
   }
+
+  return physics;
 }
 
-static void createSceneStackingPole() {
+std::shared_ptr<PhysicsScene> createSceneStackingPole() {
+  auto physics = std::make_shared<PhysicsScene>("stacking 1");
+
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
-
-    states[id].reset();
-    states[id].m_motionType = EpxMotionTypeStatic;
-    states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-
-    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    body.state.m_motionType = EpxMotionTypeStatic;
+    body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
+    physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, scale);
   }
 
   // ボックスを積み上げる
-  int renderMeshId = -1;
   const EpxVector3 brickScale(0.5f);
-
   for (int i = 0; i < 7; i++) {
-    int id = g_numRigidBodies++;
-
-    states[id].reset();
-    states[id].m_position = EpxVector3(0.0f, brickScale[1] + i, 0.0f);
-    bodies[id].reset();
-    bodies[id].m_mass = 1.0f;
-    bodies[id].m_inertia = epxCalcInertiaBox(brickScale, 1.0f);
-    collidables[id].reset();
-
-    EpxShape shape;
-
-    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, brickScale);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    auto body = physics->AddBody();
+    body.state.m_position = EpxVector3(0.0f, brickScale[1] + i, 0.0f);
+    body.body.m_mass = 1.0f;
+    body.body.m_inertia = epxCalcInertiaBox(brickScale, 1.0f);
+    physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, brickScale);
   }
+
+  return physics;
 }
 
-static void createSceneStackingWall() {
+std::shared_ptr<PhysicsScene> createSceneStackingWall() {
+  auto physics = std::make_shared<PhysicsScene>("stacking 2");
+
   // 地面
   {
-    int id = g_numRigidBodies++;
-
+    auto body = physics->AddBody();
     EpxVector3 scale(10.0f, 1.0f, 10.0f);
-
-    states[id].reset();
-    states[id].m_motionType = EpxMotionTypeStatic;
-    states[id].m_position = EpxVector3(0.0f, -scale[1], 0.0f);
-    bodies[id].reset();
-    collidables[id].reset();
-
-    EpxShape shape;
-
-    epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, scale);
-
-    collidables[id].addShape(shape);
-    collidables[id].finish();
+    body.state.m_motionType = EpxMotionTypeStatic;
+    body.state.m_position = EpxVector3(0.0f, -scale[1], 0.0f);
+    physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, scale);
   }
 
   // ボックスを積み上げる
@@ -361,109 +160,19 @@ static void createSceneStackingWall() {
   EpxFloat offset = -stackSize * (diff * 2.0f) * 0.5f;
   EpxVector3 pos(0.0f, diff, 0.0f);
 
-  int renderMeshId = -1;
-
   while (stackSize) {
     for (int i = 0; i < stackSize; i++) {
-      int id = g_numRigidBodies++;
-
+      auto body = physics->AddBody();
       pos[0] = offset + i * diff * 2.0f;
-
-      states[id].reset();
-      states[id].m_position = offsetPosition + pos;
-      bodies[id].reset();
-      bodies[id].m_mass = 1.0f;
-      bodies[id].m_inertia = epxCalcInertiaBox(brickScale, 1.0f);
-      collidables[id].reset();
-
-      EpxShape shape;
-
-      epxCreateConvexMesh(&shape.m_geometry, EpxShapeType::Box, brickScale);
-
-      collidables[id].addShape(shape);
-      collidables[id].finish();
+      body.state.m_position = offsetPosition + pos;
+      body.body.m_mass = 1.0f;
+      body.body.m_inertia = epxCalcInertiaBox(brickScale, 1.0f);
+      physics->AddShape(body.id, EasyPhysics::EpxShapeType::Box, brickScale);
     }
     offset += diff;
     pos[1] += (diff * 2.0f);
     stackSize--;
   }
-}
 
-static const int maxScenes = 4;
-static const char titles[][32] = {
-    "compound shape",
-    "daruma",
-    "stacking 1",
-    "stacking 2",
-};
-
-const char *physicsGetSceneTitle(int i) { return titles[i % maxScenes]; }
-
-void physicsCreateScene(int sceneId) {
-  g_frame = 0;
-
-  g_numRigidBodies = 0;
-  g_numJoints = 0;
-  g_numPairs[0] = g_numPairs[1] = 0;
-  g_pairSwap = 0;
-
-  switch (sceneId % maxScenes) {
-  case 0:
-    createSceneCompound();
-    break;
-
-  case 1:
-    createSceneDaruma();
-    break;
-
-  case 2:
-    createSceneStackingPole();
-    break;
-
-  case 3:
-    createSceneStackingWall();
-    break;
-  }
-
-  createFireBody();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// 初期化、解放
-
-bool physicsInit() { return true; }
-
-void physicsRelease() {}
-
-///////////////////////////////////////////////////////////////////////////////
-// 外部から物理データへのアクセス
-
-int physicsGetNumRigidbodies() { return g_numRigidBodies; }
-
-const EpxState &physicsGetState(int i) { return states[i]; }
-
-const EpxRigidBody &physicsGetRigidBody(int i) { return bodies[i]; }
-
-const EpxCollidable &physicsGetCollidable(int i) { return collidables[i]; }
-
-int physicsGetNumContacts() { return g_numPairs[g_pairSwap]; }
-
-const EasyPhysics::EpxContact &physicsGetContact(int i) {
-  return *pairs[g_pairSwap][i].contact;
-}
-
-EpxUInt32 physicsGetRigidBodyAInContact(int i) {
-  return pairs[g_pairSwap][i].rigidBodyA;
-}
-
-EpxUInt32 physicsGetRigidBodyBInContact(int i) {
-  return pairs[g_pairSwap][i].rigidBodyB;
-}
-
-void physicsFire(const EasyPhysics::EpxVector3 &position,
-                 const EasyPhysics::EpxVector3 &velocity) {
-  states[fireRigidBodyId].m_motionType = EpxMotionTypeActive;
-  states[fireRigidBodyId].m_position = position;
-  states[fireRigidBodyId].m_linearVelocity = velocity;
-  states[fireRigidBodyId].m_angularVelocity = EpxVector3(0.0f);
+  return physics;
 }

@@ -14,7 +14,7 @@ struct PhysicsSceneSelector {
   std::shared_ptr<PhysicsScene> scene_;
 
 public:
-  PhysicsSceneSelector(std::span<SceneGen> generators);
+  PhysicsSceneSelector(std::span<const SceneGen> generators);
   void Reset();
   void Next();
   void Toggle() { simulating_ = !simulating_; }

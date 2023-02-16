@@ -2,7 +2,7 @@
 #include <common/ScreenCamera.h>
 #include <format>
 
-PhysicsSceneSelector::PhysicsSceneSelector(std::span<SceneGen> generators)
+PhysicsSceneSelector::PhysicsSceneSelector(std::span<const SceneGen> generators)
     : generators_(generators.begin(), generators.end()) {
   Reset();
 }

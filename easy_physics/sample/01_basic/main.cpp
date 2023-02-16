@@ -8,17 +8,9 @@
 
 auto SAMPLE_NAME = "01_basic";
 
-// int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
-// lpCmdLine, int nCmdShow)
 int main(int argc, char **argv) {
 
   // physics
-  PhysicsSceneSelector::SceneGen generators[] = {
-      createSceneTwoBox,
-      createSceneFriction,
-      createSceneRestitution,
-      createSceneGeometries,
-  };
   PhysicsSceneSelector selector(generators);
 
   // GUI

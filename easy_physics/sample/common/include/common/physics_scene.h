@@ -87,6 +87,7 @@ struct PhysicsScene {
   EasyPhysics::EpxShape *AddShape(int id, EasyPhysics::EpxShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish = true);
+  void FinishShape(int id);
 
   // simulation
   void Simulate();
