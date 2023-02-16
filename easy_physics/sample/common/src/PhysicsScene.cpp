@@ -1,7 +1,6 @@
 #include <common/Gl1Renderer.h>
 #include <common/common.h>
-#include <common/font_render_func.h>
-#include <common/physics_scene.h>
+#include <common/PhysicsScene.h>
 #include <stdexcept>
 
 using namespace EasyPhysics;

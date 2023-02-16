@@ -10,6 +10,7 @@ auto SAMPLE_NAME = "02_compound";
 
 int main(int argc, char **argv) {
 
+  // physics
   PhysicsSceneSelector selector(generators);
 
   // GUI

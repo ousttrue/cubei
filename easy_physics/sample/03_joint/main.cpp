@@ -6,12 +6,11 @@
 #include <common/PhysicsSceneSelector.h>
 #include <common/ScreenCamera.h>
 
-using namespace EasyPhysics;
-
 auto SAMPLE_NAME = "03_joint";
 
 int main(int argc, char **argv) {
 
+  // physics
   PhysicsSceneSelector selector(generators);
 
   // GUI

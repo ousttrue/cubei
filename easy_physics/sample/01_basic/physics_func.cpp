@@ -147,7 +147,7 @@ std::shared_ptr<PhysicsScene> createSceneGeometries() {
                        0.1f + (rand() % 90) / 100.0f);
 
       body.state.m_position =
-          EpxVector3(2 * (j - width / 2), 2.0f + 2 * i, 0.0f);
+          EpxVector3(2 * (j - static_cast<float>(width) / 2), 2.0f + 2 * i, 0.0f);
       body.body.m_mass = 1.0f;
       body.body.m_inertia = epxCalcInertiaBox(scale, 1.0f);
 
