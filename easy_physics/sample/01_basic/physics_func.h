@@ -25,4 +25,7 @@
 #include <common/physics_scene.h>
 #include <memory>
 
-std::shared_ptr<PhysicsScene> physicsCreateScene(int sceneId);
+std::shared_ptr<PhysicsScene> createSceneTwoBox();
+std::shared_ptr<PhysicsScene> createSceneFriction();
+std::shared_ptr<PhysicsScene> createSceneRestitution();
+std::shared_ptr<PhysicsScene> createSceneGeometries();

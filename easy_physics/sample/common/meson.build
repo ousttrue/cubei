@@ -5,6 +5,7 @@ dependencies = [
     gl_dep,
     easy_physics_dep,
     fontstash_dep,
+    glfw_dep,
 ]
 
 easy_physics_common_inc = include_directories('include')
@@ -18,6 +19,8 @@ easy_physics_common_lib = static_library(
         'src/physics_scene.cpp',
         'src/FontStashRenderer.cpp',
         'src/ScreenCamera.cpp',
+        'src/PhysicsSceneSelector.cpp',
+        'src/GlfwPlatform.cpp',
     ],
     include_directories: easy_physics_common_inc,
     dependencies: dependencies,
