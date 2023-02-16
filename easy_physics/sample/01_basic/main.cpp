@@ -13,10 +13,6 @@
 
 #define SAMPLE_NAME "01_basic"
 
-static bool g_simulating = false;
-static int g_sceneId = 0;
-static std::shared_ptr<PhysicsScene> g_scene;
-
 class GlfwPlatform {
   GLFWwindow *window_ = nullptr;
   int x_, y_, width_, height_;
@@ -92,7 +88,7 @@ public:
     m_onKeyPress[key] = callback;
   }
 
-  void Bind(ScreenCamera &camera) {
+  void BindCamera(ScreenCamera &camera) {
     // keybind: view
     OnKeyIsDown(GLFW_KEY_UP, [&camera](int x, int y, int width, int height) {
       auto [angX, angY, r] = camera.GetViewAngle();
@@ -138,27 +134,34 @@ public:
                     r = 1.0f;
                   camera.SetViewAngle(angX, angY, r);
                 });
-
-    OnKeyPress(GLFW_KEY_F1, [](int x, int y, int width, int height) {
-      g_scene = physicsCreateScene(g_sceneId);
-    });
-    OnKeyPress(GLFW_KEY_F2, [](int x, int y, int width, int height) {
-      g_scene = physicsCreateScene(++g_sceneId);
-    });
-    OnKeyPress(GLFW_KEY_F3, [](int x, int y, int width, int height) {
-      g_simulating = !g_simulating;
-    });
-    OnKeyPress(GLFW_KEY_F4, [](int x, int y, int width, int height) {
-      g_simulating = true;
-    });
-    OnKeyPress(GLFW_KEY_SPACE, [&camera](int x, int y, int width, int height) {
-      auto wp1 =
-          camera.GetWorldPosition({(float)x, (float)y, 0.0f}, width, height);
-      auto wp2 =
-          camera.GetWorldPosition({(float)x, (float)y, 1.0f}, width, height);
-      g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
-    });
   }
+};
+
+class PhysicsSceneSelector {
+  bool g_simulating = false;
+  int g_sceneId = 0;
+  std::shared_ptr<PhysicsScene> g_scene;
+
+public:
+  PhysicsSceneSelector() { g_scene = physicsCreateScene(g_sceneId); }
+  void Reset() { g_scene = physicsCreateScene(g_sceneId); }
+  void Next() { g_scene = physicsCreateScene(++g_sceneId); }
+  void Toggle() { g_simulating = !g_simulating; }
+  void Run() { g_simulating = true; }
+  void Fire(const ScreenCamera &camera, int x, int y, int width, int height) {
+    auto wp1 =
+        camera.GetWorldPosition({(float)x, (float)y, 0.0f}, width, height);
+    auto wp2 =
+        camera.GetWorldPosition({(float)x, (float)y, 1.0f}, width, height);
+    g_scene->PhysicsFire(wp1, normalize(wp2 - wp1) * 50.0f);
+  }
+  void Update() {
+    if (g_simulating) {
+      g_scene->Simulate();
+    }
+  }
+  DrawData DrawData() { return g_scene->GetDrawData(); }
+  std::string_view Title() const { return g_scene->title_; }
 };
 
 // int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
@@ -168,33 +171,41 @@ int main(int argc, char **argv) {
   GlfwPlatform platform;
   Gl1Renderer renderer;
   ScreenCamera camera;
-  platform.Bind(camera);
+  PhysicsSceneSelector selector;
+
+  platform.BindCamera(camera);
+  platform.OnKeyPress(
+      GLFW_KEY_F1,
+      [&selector](int x, int y, int width, int height) { selector.Reset(); });
+  platform.OnKeyPress(
+      GLFW_KEY_F2,
+      [&selector](int x, int y, int width, int height) { selector.Next(); });
+  platform.OnKeyPress(
+      GLFW_KEY_F3,
+      [&selector](int x, int y, int width, int height) { selector.Toggle(); });
+  platform.OnKeyPress(GLFW_KEY_F4, [&selector](int x, int y, int width,
+                                               int height) { selector.Run(); });
+  platform.OnKeyPress(GLFW_KEY_SPACE, [&camera, &selector](
+                                          int x, int y, int width, int height) {
+    selector.Fire(camera, x, y, width, height);
+  });
 
   FontStashRenderer stash(
       "sans", argc > 1
                   ? argv[1]
                   : "subprojects/fontstash/example/DroidSerif-Regular.ttf");
 
-  g_scene = physicsCreateScene(g_sceneId);
-
   int x, y, width, height;
   while (platform.NewFrame(&x, &y, &width, &height)) {
     // update
-    if (g_simulating) {
-      g_scene->Simulate();
-    }
+    selector.Update();
     auto [projection, view] = camera.UpdateProjectionView(width, height);
 
     // render
     renderer.Begin(width, height, projection, view);
-
-    auto data = g_scene->GetDrawData();
+    auto data = selector.DrawData();
     renderer.Render(data);
-
-    renderer.Debug2dBegin(width, height);
-    stash.Draw(x, y, width, height, g_scene->title_);
-    renderer.Debug2dEnd();
-
+    stash.Draw(x, y, width, height, selector.Title());
     platform.EndFrame();
   }
 

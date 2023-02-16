@@ -142,9 +142,9 @@ void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
   states[fireRigidBodyId].m_angularVelocity = EpxVector3(0.0f);
 }
 
-const DrawData &PhysicsScene::GetDrawData() {
+DrawData PhysicsScene::GetDrawData() const {
 
-  data_.Clear();
+  ClearDrawData();
 
   for (int i = 0; i < g_numRigidBodies; i++) {
     auto &state = states[i];
@@ -160,7 +160,7 @@ const DrawData &PhysicsScene::GetDrawData() {
       EasyPhysics::EpxTransform3 worldTransform =
           rigidBodyTransform * shapeTransform;
 
-      data_.shapes.push_back({worldTransform, shape});
+      shapes_.push_back({worldTransform, shape});
     }
   }
 
@@ -181,12 +181,16 @@ const DrawData &PhysicsScene::GetDrawData() {
           stateB.m_position + rotate(stateB.m_orientation, contactPoint.pointB);
       auto normal = contactPoint.normal;
 
-      data_.points.push_back({pointA, colorA});
-      data_.points.push_back({pointB, colorB});
-      data_.lines.push_back({pointA, pointA + 0.1f * normal, colorLine});
-      data_.lines.push_back({pointB, pointB - 0.1f * normal, colorLine});
+      points_.push_back({pointA, colorA});
+      points_.push_back({pointB, colorB});
+      lines_.push_back({pointA, pointA + 0.1f * normal, colorLine});
+      lines_.push_back({pointB, pointB - 0.1f * normal, colorLine});
     }
   }
 
-  return data_;
+  return {
+      {shapes_},
+      {points_},
+      {lines_},
+  };
 }

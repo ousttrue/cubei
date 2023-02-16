@@ -79,12 +79,12 @@ struct PhysicsScene {
   EasyPhysics::EpxBallJoint joints[maxJoints];
   EasyPhysics::EpxUInt32 g_numJoints = 0;
 
+  //
   PhysicsScene(const char *name) : title_(name) {}
 
   // build
   PhysicsBody AddBody();
-  EasyPhysics::EpxShape *AddShape(int id,
-                                  EasyPhysics::EpxShapeType type,
+  EasyPhysics::EpxShape *AddShape(int id, EasyPhysics::EpxShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish = true);
 
@@ -102,5 +102,16 @@ struct PhysicsScene {
   void PhysicsFire(const EasyPhysics::EpxVector3 &position,
                    const EasyPhysics::EpxVector3 &velocity);
 
-  const DrawData &GetDrawData();
+  // draw data
+  mutable std::vector<
+      std::tuple<EasyPhysics::EpxTransform3, const EasyPhysics::EpxShape *>>
+      shapes_;
+  mutable std::vector<Point> points_;
+  mutable std::vector<Line> lines_;
+  void ClearDrawData() const {
+    shapes_.clear();
+    points_.clear();
+    lines_.clear();
+  }
+  DrawData GetDrawData() const;
 };
