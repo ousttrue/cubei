@@ -41,16 +41,12 @@ static void render(Gl1Renderer *renderer) {
   for (int i = 0; i < physicsGetNumRigidbodies(); i++) {
     const EpxState &state = physicsGetState(i);
     const EpxCollidable &collidable = physicsGetCollidable(i);
-
     EpxTransform3 rigidBodyTransform(state.m_orientation, state.m_position);
-
     for (int j = 0; j < collidable.m_numShapes; j++) {
-      auto shape = &collidable.m_shapes[j];
-      EpxTransform3 shapeTransform(shape->m_offsetOrientation,
-                                   shape->m_offsetPosition);
-      EpxTransform3 worldTransform = rigidBodyTransform * shapeTransform;
-
-      renderer->RenderMesh(worldTransform, EpxVector3(1, 1, 1), shape);
+      auto &shape = collidable.m_shapes[j];
+      renderer->RenderShape(shape.m_geometry.m_shapeType,
+                            shape.WorldShapeMatrix(rigidBodyTransform),
+                            EpxVector3(1, 1, 1));
     }
   }
 

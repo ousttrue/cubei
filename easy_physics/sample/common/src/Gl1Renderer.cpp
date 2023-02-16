@@ -108,9 +108,8 @@ void Gl1Renderer::Begin(int width, int height, const float projection[16],
 }
 
 void Gl1Renderer::Render(const DrawData &data) {
-  for (auto [transform, shape] : data.shapes) {
-    // auto mesh = scene.meshes[(size_t)shape->userData];
-    RenderMesh(transform, EasyPhysics::EpxVector3(1, 1, 1), shape);
+  for (auto [type, transform] : data.shapes) {
+    RenderShape(type, transform, EasyPhysics::EpxVector3(1, 1, 1));
   }
   DebugBegin();
   for (auto &point : data.points) {
@@ -122,14 +121,12 @@ void Gl1Renderer::Render(const DrawData &data) {
   DebugEnd();
 }
 
-void Gl1Renderer::RenderMesh(const EpxTransform3 &transform,
-                             const EpxVector3 &color, const EpxShape *shape) {
-  auto buff = GetOrCreateMesh(shape->m_geometry.m_shapeType);
+void Gl1Renderer::RenderShape(EpxShapeType type, const EpxMatrix4 &transform,
+                              const EpxVector3 &color) {
+  auto buff = GetOrCreateMesh(type);
 
-  EpxMatrix4 wMtx =
-      EpxMatrix4(transform) * EpxMatrix4::scale(shape->m_geometry.m_scale);
   glPushMatrix();
-  glMultMatrixf((const float *)&wMtx);
+  glMultMatrixf((const float *)&transform);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, 0, buff->vtx.data());

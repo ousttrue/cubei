@@ -11,9 +11,9 @@ public:
 
   void Render(const struct DrawData &data);
 
-  void RenderMesh(const EasyPhysics::EpxTransform3 &transform,
-                  const EasyPhysics::EpxVector3 &color,
-                  const struct EasyPhysics::EpxShape *shape);
+  void RenderShape(EasyPhysics::EpxShapeType type,
+                  const EasyPhysics::EpxMatrix4 &transform,
+                  const EasyPhysics::EpxVector3 &color);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Debug Drawing

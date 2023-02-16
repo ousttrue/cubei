@@ -103,9 +103,7 @@ struct PhysicsScene {
                    const EasyPhysics::EpxVector3 &velocity);
 
   // draw data
-  mutable std::vector<
-      std::tuple<EasyPhysics::EpxTransform3, const EasyPhysics::EpxShape *>>
-      shapes_;
+  mutable std::vector<Shape> shapes_;
   mutable std::vector<Point> points_;
   mutable std::vector<Line> lines_;
   void ClearDrawData() const {

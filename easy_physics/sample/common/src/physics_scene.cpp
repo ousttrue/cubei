@@ -154,13 +154,9 @@ DrawData PhysicsScene::GetDrawData() const {
                                                   state.m_position);
 
     for (int j = 0; j < collidable.m_numShapes; j++) {
-      auto shape = &collidable.m_shapes[j];
-      EasyPhysics::EpxTransform3 shapeTransform(shape->m_offsetOrientation,
-                                                shape->m_offsetPosition);
-      EasyPhysics::EpxTransform3 worldTransform =
-          rigidBodyTransform * shapeTransform;
-
-      shapes_.push_back({worldTransform, shape});
+      auto &shape = collidable.m_shapes[j];
+      auto wMtx = shape.WorldShapeMatrix(rigidBodyTransform);
+      shapes_.push_back({shape.m_geometry.m_shapeType, wMtx});
     }
   }
 

@@ -35,6 +35,14 @@ struct EpxShape {
   EpxVector3 m_offsetPosition = {0, 0, 0};           ///< オフセット位置
   EpxQuat m_offsetOrientation = EpxQuat::identity(); ///< オフセット姿勢
   void *userData = nullptr;                          ///< ユーザーデータ
+
+  EpxMatrix4 WorldShapeMatrix(const EpxTransform3 &rigidBodyTransform) const {
+    EasyPhysics::EpxTransform3 shapeTransform(m_offsetOrientation,
+                                              m_offsetPosition);
+    EasyPhysics::EpxTransform3 worldTransform =
+        rigidBodyTransform * shapeTransform;
+    return EpxMatrix4(worldTransform) * EpxMatrix4::scale(m_geometry.m_scale);
+  }
 };
 
 } // namespace EasyPhysics
