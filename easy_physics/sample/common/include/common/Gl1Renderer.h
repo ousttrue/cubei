@@ -9,11 +9,16 @@ public:
   void Begin(int width, int height, const float projection[16],
              const float view[16]);
 
-  void Render(const struct DrawData &data);
+  void Render(const struct DrawDataSpan &data);
 
   void RenderShape(EasyPhysics::EpxShapeType type,
-                  const EasyPhysics::EpxMatrix4 &transform,
-                  const EasyPhysics::EpxVector3 &color);
+                   const EasyPhysics::EpxMatrix4 &transform,
+                   const EasyPhysics::EpxVector3 &color);
+
+  void RenderMesh(const EasyPhysics::EpxMatrix4 &transform,
+                  const EasyPhysics::EpxVector3 &color, const float *v,
+                  const uint16_t *i, uint32_t indexCount, const uint16_t *w,
+                  uint32_t wireCount);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Debug Drawing

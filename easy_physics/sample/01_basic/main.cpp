@@ -160,7 +160,7 @@ public:
       g_scene->Simulate();
     }
   }
-  DrawData DrawData() { return g_scene->GetDrawData(); }
+  DrawDataSpan DrawData() const { return g_scene->GetDrawData(); }
   std::string_view Title() const { return g_scene->title_; }
 };
 
