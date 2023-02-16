@@ -87,6 +87,13 @@ struct PhysicsScene {
   EasyPhysics::EpxShape *AddShape(int id, EasyPhysics::EpxShapeType type,
                                   const EasyPhysics::EpxVector3 &scale,
                                   bool finish = true);
+
+  EasyPhysics::EpxBallJoint *AddJoint() {
+    auto &joint = joints[g_numJoints++];
+    joint.reset();
+    return &joint;
+  }
+
   void FinishShape(int id);
 
   // simulation
@@ -96,6 +103,9 @@ struct PhysicsScene {
   void Collision(Perf &perf);
   void Solver(Perf &perf);
   void Integrate(Perf &perf);
+  EasyPhysics::EpxBool broadPhaseCallback(EasyPhysics::EpxUInt32 rigidBodyIdA,
+                                          EasyPhysics::EpxUInt32 rigidBodyIdB,
+                                          void *userData);
 
   // fire
   int fireRigidBodyId;

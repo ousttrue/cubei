@@ -22,9 +22,6 @@
 */
 
 #include "physics_func.h"
-#include <common/Gl1Renderer.h>
-#include <common/common.h>
-#include <stdlib.h>
 
 using namespace EasyPhysics;
 

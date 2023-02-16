@@ -29,7 +29,9 @@
 #include "../elements/EpxPair.h"
 #include "../elements/EpxState.h"
 #include "EpxAllocator.h"
+#include <functional>
 #include <span>
+
 
 #define EPX_MAX_LINEAR_VELOCITY 340.0f
 #define EPX_MAX_ANGULAR_VELOCITY (EPX_PI * 60.0f)
@@ -42,9 +44,8 @@ namespace EasyPhysics {
 /// @param rigidBodyIdB 剛体Bのインデックス
 /// @param userData ユーザーデータ
 /// return true:判定を続行 , false:判定をキャンセル
-typedef EpxBool (*epxBroadPhaseCallback)(EpxUInt32 rigidBodyIdA,
-                                         EpxUInt32 rigidBodyIdB,
-                                         void *userData);
+using epxBroadPhaseCallback = std::function<EpxBool(
+    EpxUInt32 rigidBodyIdA, EpxUInt32 rigidBodyIdB, void *userData)>;
 
 /// ブロードフェーズ
 /// @param states 剛体の状態の配列

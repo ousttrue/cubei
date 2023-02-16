@@ -13,6 +13,22 @@ const int iteration = 10;
 const EpxVector3 gravity(0.0f, -9.8f, 0.0f);
 const float timeStep = 0.016f;
 
+// ブロードフェーズコールバック
+EpxBool PhysicsScene::broadPhaseCallback(EpxUInt32 rigidBodyIdA,
+                                         EpxUInt32 rigidBodyIdB,
+                                         void *userData) {
+  // ジョイントで接続された剛体のペアは作成しない
+  for (EpxUInt32 i = 0; i < g_numJoints; i++) {
+    if ((joints[i].rigidBodyA == rigidBodyIdA &&
+         joints[i].rigidBodyB == rigidBodyIdB) ||
+        (joints[i].rigidBodyA == rigidBodyIdB &&
+         joints[i].rigidBodyB == rigidBodyIdA)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 class DefaultAllocator : public EpxAllocator {
 public:
   void *allocate(size_t bytes) { return malloc(bytes); }
@@ -88,10 +104,12 @@ void PhysicsScene::ApplyForce(Perf &perf) {
 
 void PhysicsScene::BroadPhase(Perf &perf) {
   perf.begin();
-  state_.CurrentPair().numPairs =
-      epxBroadPhase({states, g_numRigidBodies}, {collidables, g_numRigidBodies},
-                    state_.OtherPair().Span(), state_.CurrentPair().MaxSpan(),
-                    &allocator, NULL, NULL);
+  state_.CurrentPair().numPairs = epxBroadPhase(
+      {states, g_numRigidBodies}, {collidables, g_numRigidBodies},
+      state_.OtherPair().Span(), state_.CurrentPair().MaxSpan(), &allocator,
+      NULL,
+      std::bind(&PhysicsScene::broadPhaseCallback, this, std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3));
   perf.end("broadphase");
 }
 
@@ -138,6 +156,8 @@ void PhysicsScene::CreateFireBody() {
 
 void PhysicsScene::PhysicsFire(const EasyPhysics::EpxVector3 &position,
                                const EasyPhysics::EpxVector3 &velocity) {
+  epxPrintf("fire pos %f %f %f vel %f %f %f\n", position[0], position[1],
+            position[2], velocity[0], velocity[1], velocity[2]);
   states[fireRigidBodyId].m_motionType = EpxMotionTypeActive;
   states[fireRigidBodyId].m_position = position;
   states[fireRigidBodyId].m_linearVelocity = velocity;
